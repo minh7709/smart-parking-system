@@ -1,0 +1,26 @@
+# IDE & Editors
+.idea/
+.vscode/
+*.swp
+*.iml
+.DS_Store
+
+# Java / Spring Boot
+backend/target/
+backend/build/
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+backend/**/*.class
+
+# Node / React
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.env.local
+
+# Python
+ai-service/__pycache__/
+ai-service/*.pyc
+ai-service/venv/
+ai-service/.env
