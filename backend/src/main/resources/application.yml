@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: smart-parking-system-backend
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/parking_db
+    username: admin
+    password: password123
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+    show-sql: true         # In câu l?nh SQL ra console ?? d? debug
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 8080 # Port m?c ??nh c?a Spring Boot
