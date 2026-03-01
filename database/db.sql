@@ -21,6 +21,7 @@ CREATE TYPE lane_type_enum AS ENUM ('IN', 'OUT');
 CREATE TYPE lane_status AS ENUM ('ACTIVE', 'MAINTENANCE');
 CREATE TYPE session_status AS ENUM ('PARKED', 'COMPLETED', 'CANCELLED');
 CREATE TYPE payment_status AS ENUM ('PENDING', 'SUCCESS', 'FAILED');
+CREATE TYPE payment_method AS ENUM ('CASH', 'ONLINE_PAYMENT');
 CREATE TYPE incident_type_enum AS ENUM ('LOST_CARD', 'DAMAGE', 'SYSTEM_ERROR', 'OTHER');
 
 CREATE TYPE pricing_strategy_enum AS ENUM (
