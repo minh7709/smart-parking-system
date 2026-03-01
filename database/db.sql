@@ -1,14 +1,19 @@
 -- =========================================================================
--- 1. XÓA BẢNG VÀ ENUM CŨ NẾU CÓ (Hỗ trợ chạy lại script nhiều lần không lỗi)
+-- 1. KHỞI TẠO MÔI TRƯỜNG & EXTENSION (BẮT BUỘC CHO UUID)
 -- =========================================================================
 DROP SCHEMA public CASCADE;
 CREATE SCHEMA public;
 
+-- Kích hoạt extension sinh UUID
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- =========================================================================
--- 2. TẠO CÁC KIỂU DỮ LIỆU ENUM (Chuẩn hóa toàn bộ hệ thống)
+-- 2. TẠO CÁC KIỂU DỮ LIỆU ENUM 
 -- =========================================================================
-CREATE TYPE user_role AS ENUM ('ADMIN', 'GUARD', 'CUSTOMER');
+-- Chỉ giữ lại 2 Role thực tế cho hệ thống Desktop
+CREATE TYPE user_role AS ENUM ('ADMIN', 'GUARD');
 CREATE TYPE user_status AS ENUM ('ACTIVE', 'INACTIVE');
+
 CREATE TYPE vehicle_type_enum AS ENUM ('CAR', 'MOTO', 'BICYCLE');
 CREATE TYPE sub_type AS ENUM ('MONTHLY', 'QUARTERLY', 'YEARLY');
 CREATE TYPE sub_status AS ENUM ('PENDING', 'ACTIVE', 'EXPIRED', 'CANCELLED');
@@ -18,34 +23,26 @@ CREATE TYPE session_status AS ENUM ('PARKED', 'COMPLETED', 'CANCELLED');
 CREATE TYPE payment_status AS ENUM ('PENDING', 'SUCCESS', 'FAILED');
 CREATE TYPE incident_type_enum AS ENUM ('LOST_CARD', 'DAMAGE', 'SYSTEM_ERROR', 'OTHER');
 
--- Enum cho Hệ thống tính giá
 CREATE TYPE pricing_strategy_enum AS ENUM (
-    'FLAT_RATE',      -- Tính theo lượt
-    'TIME_WINDOW',    -- Tính theo khung giờ (Ngày/Đêm)
-    'ROLLING_BLOCK',  -- Tính theo Block (Mỗi 4 tiếng)
-    'PROGRESSIVE',    -- Tính bậc thang (Càng lâu càng đắt)
-    'DAILY_CAPPED'    -- Tính theo giờ nhưng có giá trần ngày
+    'FLAT_RATE', 'TIME_WINDOW', 'ROLLING_BLOCK', 'PROGRESSIVE', 'DAILY_CAPPED'
 );
 
--- Enum cho Audit Log
 CREATE TYPE audit_action_enum AS ENUM (
-    'CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 
-    'MANUAL_OPEN_BARRIER', 'EXPORT_REPORT'
+    'CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'MANUAL_OPEN_BARRIER', 'EXPORT_REPORT'
 );
 CREATE TYPE audit_table_enum AS ENUM (
-    'USERS', 'VEHICLE', 'SUBSCRIPTION', 'PARKING_SESSION', 
-    'INVOICE', 'PRICING_RULE', 'INCIDENT', 'SYSTEM'
+    'USERS', 'VEHICLE', 'SUBSCRIPTION', 'PARKING_SESSION', 'INVOICE', 'PRICING_RULE', 'INCIDENT', 'SYSTEM'
 );
 
 -- =========================================================================
--- 3. TẠO CÁC BẢNG DỮ LIỆU (Thứ tự từ không phụ thuộc đến có phụ thuộc)
+-- 3. TẠO CÁC BẢNG DỮ LIỆU (100% UUID)
 -- =========================================================================
 
--- 1. Bảng users
+-- 1. Bảng users (Tài khoản Admin, Guard - Phục vụ xác thực JWT)
 CREATE TABLE users (
-    user_id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL, -- Sẽ lưu mã băm BCrypt
     full_name VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
     role user_role NOT NULL,
@@ -54,21 +51,23 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 2. Bảng vehicle
+-- 2. Bảng vehicle (Guard đăng ký vé tháng cho khách)
 CREATE TABLE vehicle (
-    vehicle_id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(user_id),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     license_plate VARCHAR(20) NOT NULL UNIQUE,
     vehicle_type vehicle_type_enum NOT NULL,
     brand VARCHAR(50),
+    -- Lưu trực tiếp thông tin khách hàng tại đây
+    customer_name VARCHAR(100),     
+    customer_phone VARCHAR(20),     
     is_deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 3. Bảng subscription (Vé tháng)
 CREATE TABLE subscription (
-    sub_id SERIAL PRIMARY KEY,
-    vehicle_id INT NOT NULL REFERENCES vehicle(vehicle_id),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    vehicle_id UUID NOT NULL REFERENCES vehicle(id),
     type sub_type NOT NULL,
     price BIGINT NOT NULL,
     start_date TIMESTAMP NOT NULL,
@@ -79,7 +78,7 @@ CREATE TABLE subscription (
 
 -- 4. Bảng lane (Làn xe / Camera)
 CREATE TABLE lane (
-    lane_id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     lane_name VARCHAR(50) NOT NULL,
     lane_type lane_type_enum NOT NULL,
     ip_camera VARCHAR(100),
@@ -87,35 +86,30 @@ CREATE TABLE lane (
     is_deleted BOOLEAN DEFAULT FALSE
 );
 
--- 5. Bảng pricing_rule (Động cơ tính giá - ĐÃ THÊM THUỘC TÍNH MỚI)
+-- 5. Bảng pricing_rule (Động cơ tính giá)
 CREATE TABLE pricing_rule (
-    rule_id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     rule_name VARCHAR(100) NOT NULL,              
     vehicle_type vehicle_type_enum NOT NULL,      
     strategy pricing_strategy_enum NOT NULL,      
-    
-    base_price BIGINT NOT NULL,                   -- Giá cơ sở 
-    start_time TIME,                              -- Giờ bắt đầu (cho TIME_WINDOW)
-    end_time TIME,                                -- Giờ kết thúc (cho TIME_WINDOW)
-    block_minutes INT,                            -- Số phút 1 block (cho ROLLING_BLOCK)
-    
-    -- GIẢI QUYẾT BÀI TOÁN NGOẠI LỆ (Gửi > 12h)
-    threshold_minutes INT,                        -- Mốc thời gian ngoại lệ (VD: 720)
-    threshold_price BIGINT,                       -- Giá áp dụng khi vượt mốc (VD: 10000)
-    
-    max_price_per_day BIGINT,                     -- Giá trần 1 ngày (cho DAILY_CAPPED)
-    progressive_config JSONB,                     -- Cấu hình bậc thang
-    
+    base_price BIGINT NOT NULL,                   
+    start_time TIME,                              
+    end_time TIME,                                
+    block_minutes INT,                            
+    threshold_minutes INT,                        
+    threshold_price BIGINT,                       
+    max_price_per_day BIGINT,                     
+    progressive_config JSONB,                     
     is_active BOOLEAN DEFAULT TRUE,               
-    created_by INT REFERENCES users(user_id),     
+    created_by UUID REFERENCES users(id),     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 6. Bảng parking_session (Lượt gửi xe)
 CREATE TABLE parking_session (
-    session_id BIGSERIAL PRIMARY KEY,
-    entry_lane_id INT REFERENCES lane(lane_id),
-    exit_lane_id INT REFERENCES lane(lane_id),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    entry_lane_id UUID REFERENCES lane(id),
+    exit_lane_id UUID REFERENCES lane(id),
     time_in TIMESTAMP NOT NULL,
     time_out TIMESTAMP,
     plate_in_ocr VARCHAR(20),
@@ -131,10 +125,10 @@ CREATE TABLE parking_session (
 
 -- 7. Bảng invoice (Hóa đơn / Thanh toán)
 CREATE TABLE invoice (
-    invoice_id BIGSERIAL PRIMARY KEY,
-    session_id BIGINT REFERENCES parking_session(session_id), 
-    sub_id INT REFERENCES subscription(sub_id),             
-    cashier_id INT REFERENCES users(user_id),               
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    session_id UUID REFERENCES parking_session(id), 
+    sub_id UUID REFERENCES subscription(id),             
+    cashier_id UUID REFERENCES users(id),               
     amount BIGINT NOT NULL,                                 
     penalty_amount BIGINT DEFAULT 0,                        
     payment_time TIMESTAMP,
@@ -145,18 +139,18 @@ CREATE TABLE invoice (
 
 -- 8. Bảng incident (Sự cố: Mất thẻ, hư barie...)
 CREATE TABLE incident (
-    incident_id SERIAL PRIMARY KEY,
-    session_id BIGINT REFERENCES parking_session(session_id),
-    reported_by INT REFERENCES users(user_id),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    session_id UUID REFERENCES parking_session(id),
+    reported_by UUID REFERENCES users(id),
     incident_type incident_type_enum NOT NULL, 
     description TEXT,
     reported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 9. Bảng audit_log (Nhật ký giám sát hệ thống)
+-- 9. Bảng audit_log (Nhật ký giám sát hệ thống - UC5)
 CREATE TABLE audit_log (
-    log_id BIGSERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(user_id),              
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id),              
     action_type audit_action_enum NOT NULL,             
     target_table audit_table_enum NOT NULL,             
     target_id VARCHAR(50),                              
