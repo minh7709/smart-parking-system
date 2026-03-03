@@ -7,7 +7,7 @@ import smartparkingsystem.backend.entity.type.PaymentMethod;
 import smartparkingsystem.backend.entity.type.PaymentStatus;
 
 import java.math.BigInteger;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -38,7 +38,7 @@ public class Invoice {
 
     @Column(name = "payment_time", nullable = false)
     @Timestamp
-    private LocalDate paymentTime;
+    private LocalDateTime paymentTime;
 
     @Column(name = "payment_method", nullable = false)
     @Enumerated(EnumType.STRING)

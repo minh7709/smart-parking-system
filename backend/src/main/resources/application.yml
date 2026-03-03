@@ -12,10 +12,10 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: none
-    show-sql: true         # In câu l?nh SQL ra console ?? d? debug
+    show-sql: true
     properties:
       hibernate:
         format_sql: true
 
 server:
-  port: 8080 # Port m?c ??nh c?a Spring Boot
+  port: 8080
