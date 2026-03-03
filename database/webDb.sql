@@ -62,7 +62,8 @@ CREATE TABLE vehicle (
     customer_name VARCHAR(100),     
     customer_phone VARCHAR(20),     
     is_deleted BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 3. Bảng subscription (Vé tháng)
@@ -74,12 +75,14 @@ CREATE TABLE subscription (
     start_date TIMESTAMP NOT NULL,
     end_date TIMESTAMP NOT NULL,
     status sub_status DEFAULT 'PENDING',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 4. Bảng lane (Làn xe / Camera)
 CREATE TABLE lane (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    secret_key VARCHAR(255),
     lane_name VARCHAR(50) NOT NULL,
     lane_type lane_type_enum NOT NULL,
     ip_camera VARCHAR(100),
