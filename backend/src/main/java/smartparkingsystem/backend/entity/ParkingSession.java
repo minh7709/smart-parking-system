@@ -4,7 +4,8 @@ import jakarta.persistence.*;
 import jdk.jfr.Timestamp;
 import lombok.Data;
 import smartparkingsystem.backend.entity.type.SessionStatus;
-import java.time.LocalDate;
+
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 
@@ -26,11 +27,11 @@ public class ParkingSession {
 
     @Column(name = "time_in", nullable = false)
     @Timestamp
-    private LocalDate timeIn;
+    private LocalDateTime timeIn;
 
     @Column(name = "time_out")
     @Timestamp
-    private LocalDate timeOut;
+    private LocalDateTime timeOut;
 
     @Column(name = "plate_in_orc" , nullable = false, length = 20)
     private String plateInOrc;

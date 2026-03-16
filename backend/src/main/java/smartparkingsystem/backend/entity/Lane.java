@@ -15,6 +15,9 @@ public class Lane {
     @Column(name = "lane_name", nullable = false, unique = true, length = 50)
     private  String laneName;
 
+    @Column(name = "secret_key", nullable = false, unique = true, length = 255)
+    private  String secretKey;
+
     @Column(name = "lane_type", nullable = false)
     @Enumerated(EnumType.STRING)
     private LaneTypeEnum laneType;

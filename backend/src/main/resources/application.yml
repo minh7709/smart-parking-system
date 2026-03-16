@@ -12,10 +12,25 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: none
-    show-sql: true         # In câu l?nh SQL ra console ?? d? debug
+    show-sql: true
     properties:
       hibernate:
         format_sql: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
 
 server:
-  port: 8080 # Port m?c ??nh c?a Spring Boot
+  port: 8080
+
+jwt:
+  secret: 6ytui786uyi8978uyiu8978yiuo8978yiu8976tuyi7865ytu675tyu67645675e4w3qedrtfgytrew432456e4wr5
+  expiration: 3600000 # 1 hour in milliseconds
+  refresh-expiration: 86400000 # 1 day in milliseconds
+  remember-me-expiration: 604800000 # 7 days in milliseconds
+
+app:
+  sms:
+    enabled: false

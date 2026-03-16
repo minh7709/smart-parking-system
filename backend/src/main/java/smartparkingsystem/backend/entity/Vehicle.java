@@ -4,7 +4,8 @@ import jakarta.persistence.*;
 import jdk.jfr.Timestamp;
 import lombok.Data;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
-import java.time.LocalDate;
+
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -36,6 +37,10 @@ public class Vehicle {
 
     @Column(name = "created_at", nullable = false)
     @Timestamp
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    @Timestamp
+    private LocalDateTime updatedAt;
 
 }
