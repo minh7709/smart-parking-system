@@ -15,9 +15,11 @@ import smartparkingsystem.backend.dto.request.auth.RefreshTokenRequest;
 import smartparkingsystem.backend.dto.request.PhoneRequest;
 import smartparkingsystem.backend.dto.request.auth.ResetPasswordRequest;
 import smartparkingsystem.backend.dto.response.LoginResponse;
+import smartparkingsystem.backend.entity.User;
 import smartparkingsystem.backend.service.auth.AuthService;
 
 import smartparkingsystem.backend.dto.response.ApiResponse;
+import smartparkingsystem.backend.service.auth.UserService;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -25,6 +27,7 @@ import smartparkingsystem.backend.dto.response.ApiResponse;
 @Slf4j
 public class AuthController {
     private final AuthService authService;
+    private final UserService userService;
     /**
      * Login endpoint for ADMIN users
      * POST /api/v1/auth/login
@@ -72,30 +75,32 @@ public class AuthController {
     @PreAuthorize("hasAnyRole('ADMIN', 'GUARD')")
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<LoginResponse.UserAuthInfo>> getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        LoginResponse.UserAuthInfo userInfo = new LoginResponse.UserAuthInfo();
-        userInfo.setUsername(authentication.getName());
-        userInfo.setRole(authentication.getAuthorities().toString());
-
+        User user = userService.getCurrentUser();
+        LoginResponse.UserAuthInfo userInfo = LoginResponse.UserAuthInfo.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .fullName(user.getFullName())
+                .role(user.getRole().toString())
+                .status(user.getStatus().toString())
+                .build();
         return ResponseEntity.ok(ApiResponse.success(userInfo,"Current user info retrieved successfully"));
     }
 
     @PostMapping("forgot-password")
     public ResponseEntity<ApiResponse<String>> forgotPassword(@Valid @RequestBody PhoneRequest request) {
         log.info("Password reset requested for email: {}", request.getPhone());
-        authService.forgotPasswordHandler(request.getPhone());
+        authService.forgotPasswordHandler(request);
         return ResponseEntity.ok(ApiResponse.success(request.getPhone(),"Mã otp đã được gửi đến số điện thoại của bạn"));
     }
     @PostMapping("verify-otp")
     public ResponseEntity<ApiResponse<String>> verifyOtp(@Valid @RequestBody OtpVerifyRequest request) {
-        String resetToken =  authService.otpVerifyHandler(request.getPhone(), request.getOtp());
+        String resetToken =  authService.otpVerifyHandler(request);
         return ResponseEntity.ok(ApiResponse.success(resetToken,"OTP verified successfully. start resetting password"));
     }
 
     @PostMapping("reset-password")
     public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request){
-        authService.resetPasswordHandler(request.getToken(), request.getNewPassword());
+        authService.resetPasswordHandler(request);
         return ResponseEntity.ok(ApiResponse.success(null,"Password reset successful"));
     }
 }

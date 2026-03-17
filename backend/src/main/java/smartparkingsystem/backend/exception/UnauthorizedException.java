@@ -15,11 +15,21 @@ public class UnauthorizedException extends BaseException {
         );
     }
 
-    public UnauthorizedException(String resource, String action) {
+    public UnauthorizedException(String message, String path) {
+        super(
+                "UNAUTHORIZED",
+                message,
+                HttpStatus.FORBIDDEN.value(),
+                path
+        );
+    }
+
+    public UnauthorizedException(String resource, String action, String path) {
         super(
                 "UNAUTHORIZED",
                 String.format("You are not authorized to %s %s", action, resource),
-                HttpStatus.FORBIDDEN.value()
+                HttpStatus.FORBIDDEN.value(),
+                path
         );
     }
 }

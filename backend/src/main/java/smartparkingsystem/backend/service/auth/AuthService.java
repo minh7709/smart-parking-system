@@ -8,8 +8,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 import smartparkingsystem.backend.config.JwtProperties;
+import smartparkingsystem.backend.dto.request.PhoneRequest;
 import smartparkingsystem.backend.dto.request.auth.LoginRequest;
+import smartparkingsystem.backend.dto.request.auth.OtpVerifyRequest;
 import smartparkingsystem.backend.dto.request.auth.RefreshTokenRequest;
+import smartparkingsystem.backend.dto.request.auth.ResetPasswordRequest;
 import smartparkingsystem.backend.dto.response.LoginResponse;
 import smartparkingsystem.backend.entity.User;
 import smartparkingsystem.backend.entity.type.UserStatus;
@@ -77,7 +80,7 @@ public class AuthService {
                     .tokenType("Bearer")
                     .expiresIn(jwtProperties.getExpiration() / 1000) // Convert to seconds
                     .user(LoginResponse.UserAuthInfo.builder()
-                            .id(user.getId().toString())
+                            .id(user.getId())
                             .username(user.getUsername())
                             .fullName(user.getFullName())
                             .role(user.getRole().toString())
@@ -127,7 +130,7 @@ public class AuthService {
                 .tokenType("Bearer")
                 .expiresIn(jwtProperties.getExpiration() / 1000)
                 .user(LoginResponse.UserAuthInfo.builder()
-                        .id(user.getId().toString())
+                        .id(user.getId())
                         .username(user.getUsername())
                         .fullName(user.getFullName())
                         .role(user.getRole().toString())
@@ -146,30 +149,30 @@ public class AuthService {
         // Implement token blacklist if needed
     }
 
-    public void forgotPasswordHandler(String phone) {
-        User user  = userRepository.findByPhone(phone)
+    public void forgotPasswordHandler(PhoneRequest request) {
+        User user  = userRepository.findByPhone(request.getPhone())
                 .orElseThrow(() -> new ResourceNotFoundException("User with this phone number not found"));
         String otp = otpRedisService.generateOtp(user.getPhone(), FORGOT_PASSWORD_PURPOSE);
-        smsService.sendSms(phone, "Mã OTP đặt lại mật khẩu của bạn là: " + otp);
+        smsService.sendSms(request.getPhone(), "Mã OTP đặt lại mật khẩu của bạn là: " + otp);
     }
 
-    public String otpVerifyHandler(String phone, String otp) {
-        boolean isValid = otpRedisService.validateOtp(phone, otp, FORGOT_PASSWORD_PURPOSE);
+    public String otpVerifyHandler(OtpVerifyRequest otpVerifyRequest) {
+        boolean isValid = otpRedisService.validateOtp(otpVerifyRequest.getPhone(), otpVerifyRequest.getOtp(), FORGOT_PASSWORD_PURPOSE);
         if (!isValid) {
             throw new ValidationException("Invalid or expired OTP");
         }
-        String resetToken = otpRedisService.generateResetToken(phone);
+        String resetToken = otpRedisService.generateResetToken(otpVerifyRequest.getPhone());
         return resetToken;
     }
-    public void resetPasswordHandler(String token, String newPassword) {
-        String identifier = otpRedisService.validateResetToken(token);
+    public void resetPasswordHandler(ResetPasswordRequest resetPasswordRequest) {
+        String identifier = otpRedisService.validateResetToken(resetPasswordRequest.getToken());
         if (identifier == null) {
             throw new ValidationException("Invalid or expired reset token");
         }
         User user = userRepository.findByPhone(identifier)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        userService.resetPasswordById(user.getId(), newPassword);
-        otpRedisService.deleteResetToken(token);
+        userService.resetPasswordById(user.getId(), resetPasswordRequest.getNewPassword());
+        otpRedisService.deleteResetToken(resetPasswordRequest.getToken());
     }
 }
 
