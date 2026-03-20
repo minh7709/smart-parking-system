@@ -12,6 +12,7 @@ import smartparkingsystem.backend.dto.request.PricingRuleRequest;
 import smartparkingsystem.backend.dto.response.PricingRuleResponse;
 import smartparkingsystem.backend.entity.PricingRule;
 import smartparkingsystem.backend.entity.User;
+import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 import smartparkingsystem.backend.exception.DuplicateResourceException;
 import smartparkingsystem.backend.exception.ResourceNotFoundException;
 import smartparkingsystem.backend.mapper.PricingRuleMapper;
@@ -102,20 +103,24 @@ public class PricingRuleService {
      * Get all pricing rules with pagination
      */
     @Transactional(readOnly = true)
-    public Page<PricingRuleResponse> getAllPricingRules(Pageable pageable) {
+    public Page<PricingRuleResponse> getAllPricingRules(Pageable pageable, String vehicleType) {
         log.info("Fetching all pricing rules with pagination");
         // Luôn sort active trước, sau đó mới tới sort client
-        Sort combinedSort = Sort.by(Sort.Order.desc("active"));
-        // Tạo lại Pageable mới với sort đã combine
-                Pageable adjustedPageable = PageRequest.of(
+        Sort sort = Sort.by(Sort.Direction.DESC, "active");
+        Pageable sortedPageable = PageRequest.of(
                 pageable.getPageNumber(),
                 pageable.getPageSize(),
-                combinedSort
+                sort
         );
-        Page<PricingRuleResponse> page = pricingRuleRepository
-                .findAll(adjustedPageable)
-                .map(pricingRuleMapper::toResponse);
-        return page;
+        Page<PricingRule> page;
+        if (vehicleType == null || vehicleType.isBlank()) {
+            page = pricingRuleRepository.findAll(sortedPageable);
+        } else {
+            VehicleTypeEnum typeEnum = VehicleTypeEnum.valueOf(vehicleType);
+            page = pricingRuleRepository.findByVehicleType(typeEnum, sortedPageable);
+        }
+
+        return page.map(pricingRuleMapper::toResponse);
     }
 
     /**

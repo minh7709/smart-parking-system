@@ -69,9 +69,10 @@ public class PricingRuleController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse<Page<PricingRuleResponse>>> getAllPricingRules(
-            @PageableDefault(sort = "active", direction = Sort.Direction.DESC) Pageable pageable) {
+            @RequestParam(required = false) String vehicleType,
+            Pageable pageable) {
         log.info("Fetching pricing rules with pagination");
-        Page<PricingRuleResponse> page = pricingRuleService.getAllPricingRules(pageable);
+        Page<PricingRuleResponse> page = pricingRuleService.getAllPricingRules(pageable, vehicleType);
         return ResponseEntity.ok(ApiResponse.success(page, "Pricing rules fetched successfully"));
     }
 

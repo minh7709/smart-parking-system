@@ -32,12 +32,13 @@ public class AuthController {
      * Login endpoint for ADMIN users
      * POST /api/v1/auth/login
      */
+
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
         log.info("Login attempt for user: {}", loginRequest.getUsername());
         LoginResponse response = authService.login(loginRequest);
         log.info("User logged in successfully: {}", loginRequest.getUsername());
-        return ResponseEntity.ok(ApiResponse.success(response,"Login successful"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Login successful"));
     }
 
     /**
