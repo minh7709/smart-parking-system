@@ -23,8 +23,10 @@ public class PricingRuleRequest {
     private String ruleName;
 
     @NotNull(message = "Vehicle type is required")
+    @NotBlank(message = "Vehicle type cannot be blank")
     private VehicleTypeEnum vehicleType;
 
+    @NotBlank(message = "Pricing strategy cannot be blank")
     @NotNull(message = "Pricing strategy is required")
     private PricingStrategyEnum pricingStrategy;
 
