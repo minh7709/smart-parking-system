@@ -14,11 +14,14 @@ import smartparkingsystem.backend.entity.PricingRule;
 import smartparkingsystem.backend.entity.User;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 import smartparkingsystem.backend.exception.DuplicateResourceException;
+import smartparkingsystem.backend.exception.InvalidStateException;
 import smartparkingsystem.backend.exception.ResourceNotFoundException;
+import smartparkingsystem.backend.exception.ValidationException;
 import smartparkingsystem.backend.mapper.PricingRuleMapper;
 import smartparkingsystem.backend.repository.UserRepository;
 import smartparkingsystem.backend.repository.PricingRuleRepository;
 import smartparkingsystem.backend.service.auth.UserService;
+import smartparkingsystem.backend.validation.pricingRule.PricingValidatorFactory;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -30,8 +33,8 @@ import java.util.UUID;
 public class PricingRuleService {
     private final PricingRuleMapper pricingRuleMapper;
     private final PricingRuleRepository pricingRuleRepository;
-    private final UserRepository userRepository;
     private final UserService userService;
+    private final PricingValidatorFactory pricingValidatorFactory;
 
     /**
      * Create new pricing rule
@@ -39,6 +42,9 @@ public class PricingRuleService {
     @Transactional
     public PricingRuleResponse createPricingRule(PricingRuleRequest request) {
         log.info("Creating pricing rule: {}", request.getRuleName());
+
+        // Validate request based on pricing strategy
+        validatePricingRuleRequest(request);
 
         // Check if rule name already exists
         if (pricingRuleRepository.existsByRuleName(request.getRuleName())) {
@@ -49,7 +55,10 @@ public class PricingRuleService {
         User creator = userService.getCurrentUser();
 
         PricingRule pricingRule = pricingRuleMapper.toEntity(request, creator);
-
+        if(pricingRule.isActive()){
+            // Nếu rule mới tạo đã được đánh dấu là active, thì cần xử lý tự động tắt rule cũ (nếu có)
+            handleRuleActivation(pricingRule);
+        }
         PricingRule savedRule = pricingRuleRepository.save(pricingRule);
         log.info("Pricing rule created successfully with id: {}", savedRule.getId());
 
@@ -66,10 +75,12 @@ public class PricingRuleService {
         PricingRule pricingRule = pricingRuleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Pricing rule not found with id: " + id));
 
-        if (request.getVehicleType() != null) {
-            throw new IllegalArgumentException("Không được phép thay đổi loại xe của một cấu hình giá đã tồn tại. Vui lòng tạo cấu hình mới.");
+        if (request.getVehicleType() != pricingRule.getVehicleType()) {
+            throw new ValidationException("Không được phép thay đổi loại xe của một cấu hình giá đã tồn tại. Vui lòng tạo cấu hình mới.");
         }
 
+        // Validate request based on pricing strategy
+        validatePricingRuleRequest(request);
 
         // Check if new rule name is unique (if changed)
         if (!pricingRule.getRuleName().equals(request.getRuleName()) &&
@@ -170,14 +181,34 @@ public class PricingRuleService {
     }
 
     /// ///////////// validator ///////////////////
+
+    /**
+     * Validate pricing rule request based on pricing strategy
+     * Uses PricingValidatorFactory to get appropriate validator for strategy
+     */
+    private void validatePricingRuleRequest(PricingRuleRequest request) {
+        if (request.getPricingStrategy() == null) {
+            throw new ValidationException("Pricing strategy cannot be null");
+        }
+
+        // Get validator based on pricing strategy
+        var validator = pricingValidatorFactory.getValidator(request.getPricingStrategy());
+
+        // Validate request
+        if (!validator.validate(request)) {
+            throw new ValidationException(
+                    "Invalid pricing rule request for strategy: " + request.getPricingStrategy() +
+                    ". Please check all required fields are provided correctly."
+            );
+        }
+
+        log.debug("Pricing rule request validated successfully for strategy: {}", request.getPricingStrategy());
+    }
+
     /**
      * Logic xử lý khi kích hoạt một Rule: Tự động vô hiệu hóa Rule cũ
      */
     private void handleRuleActivation(PricingRule newActiveRule) {
-        if (newActiveRule.isActive()) {
-            return; // Nếu đang bật rồi thì không làm gì cả
-        }
-
         // Tìm Cấu hình giá ĐANG HOẠT ĐỘNG của cùng loại xe này
         pricingRuleRepository.findByVehicleTypeAndActiveTrue(newActiveRule.getVehicleType())
                 .ifPresent(currentActiveRule -> {
@@ -206,7 +237,7 @@ public class PricingRuleService {
         // CHỐT CHẶN BẢO VỆ: Nếu rule này đang active, người dùng KHÔNG ĐƯỢC phép tắt thủ công.
         // Vì nếu tắt, bãi xe sẽ không có rule để tính tiền cho loại xe này.
         // Cách đúng là: Bật một rule khác, hệ thống sẽ TỰ ĐỘNG tắt rule này.
-        throw new IllegalStateException(
+        throw new InvalidStateException(
                 "Không thể tắt thủ công cấu hình giá đang hoạt động. " +
                         "Để vô hiệu hóa cấu hình này, vui lòng chọn KÍCH HOẠT một cấu hình giá khác dành cho xe " +
                         ruleToDeactivate.getVehicleType() + " để thay thế."

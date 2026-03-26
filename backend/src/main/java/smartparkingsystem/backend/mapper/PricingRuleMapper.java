@@ -83,6 +83,5 @@ public class PricingRuleMapper {
         entity.setThresholdPrice(request.getThresholdPrice());
         entity.setMaxPricePerDay(request.getMaxPricePerDay());
         entity.setProgressiveConfig(request.getProgressiveConfig());
-        entity.setActive(request.getIsActive() != null && request.getIsActive());
     }
 }

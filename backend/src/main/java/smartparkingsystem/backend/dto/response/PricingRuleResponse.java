@@ -2,7 +2,7 @@ package smartparkingsystem.backend.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
-import smartparkingsystem.backend.config.ProgressivePriceConfig;
+import smartparkingsystem.backend.config.TimeWindowAndProgressiveConfig;
 import smartparkingsystem.backend.entity.type.PricingStrategyEnum;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 
@@ -29,7 +29,7 @@ public class PricingRuleResponse {
     private Integer thresholdMinutes;
     private BigInteger thresholdPrice;
     private BigInteger maxPricePerDay;
-    private List<ProgressivePriceConfig> progressiveConfig;
+    private List<TimeWindowAndProgressiveConfig> progressiveConfig;
     private Boolean isActive;
     private LocalDateTime createdAt;
     private String createdBy;

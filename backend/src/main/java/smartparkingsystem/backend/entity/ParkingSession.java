@@ -33,11 +33,11 @@ public class ParkingSession {
     @Timestamp
     private LocalDateTime timeOut;
 
-    @Column(name = "plate_in_orc" , nullable = false, length = 20)
-    private String plateInOrc;
+    @Column(name = "plate_in_ocr" , nullable = false, length = 20)
+    private String plateInOcr;
 
-    @Column(name = "plate_out_orc", length = 20)
-    private String plateOutOrc;
+    @Column(name = "plate_out_ocr", length = 20)
+    private String plateOutOcr;
 
     @Column(name = "final_plate", length = 20)
     private String finalPlate;
@@ -54,8 +54,8 @@ public class ParkingSession {
     @Column(name = "confidence_out")
     private Float confidenceOut;
 
-    @Column(name = "is_mouth", nullable = false)
-    private boolean isMouth;
+    @Column(name = "is_month", nullable = false)
+    private boolean month;
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)

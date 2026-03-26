@@ -11,7 +11,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import smartparkingsystem.backend.entity.type.PricingStrategyEnum;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
-import smartparkingsystem.backend.config.ProgressivePriceConfig;
+import smartparkingsystem.backend.config.TimeWindowAndProgressiveConfig;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -64,7 +64,7 @@ public class PricingRule {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "progressive_config", columnDefinition = "jsonb")
-    private List<ProgressivePriceConfig> progressiveConfig;
+    private List<TimeWindowAndProgressiveConfig> progressiveConfig;
 
     @Column(name = "is_active", nullable = false)
     private boolean active;
