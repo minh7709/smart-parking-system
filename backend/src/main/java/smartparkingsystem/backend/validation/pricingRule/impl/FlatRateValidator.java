@@ -1,26 +1,30 @@
 package smartparkingsystem.backend.validation.pricingRule.impl;
 
+import org.springframework.stereotype.Component;
 import smartparkingsystem.backend.dto.request.PricingRuleRequest;
 import smartparkingsystem.backend.entity.type.PricingStrategyEnum;
 import smartparkingsystem.backend.validation.pricingRule.PricingStrategyValidator;
 
+@Component
 public class FlatRateValidator implements PricingStrategyValidator {
     @Override
     public boolean validate(PricingRuleRequest pricingRuleRequest) {
         boolean check = true;
-        String ruleType = pricingRuleRequest.getPricingStrategy().name();
-        if (!ruleType.equalsIgnoreCase("FLAT_RATE")) {
+        PricingStrategyEnum ruleType = pricingRuleRequest.getPricingStrategy();
+        if (!this.getPricingStrategyType().equals(ruleType)) {
             check = false;
             return check;
         }
-        if(pricingRuleRequest.getRuleName() == null || pricingRuleRequest.getBasePrice() == null ||
-                pricingRuleRequest.getBasePrice() == null || pricingRuleRequest.getStartTime() == null || pricingRuleRequest.getEndTime() == null) {
+        if(pricingRuleRequest.getRuleName() == null || pricingRuleRequest.getBasePrice() == null
+                || pricingRuleRequest.getStartTime() == null
+                || pricingRuleRequest.getVehicleType() == null) {
             check = false;
         }
         pricingRuleRequest.setBlockMinutes(null);
         pricingRuleRequest.setMaxPricePerDay(null);
         pricingRuleRequest.setThresholdPrice(null);
-
+        pricingRuleRequest.setThresholdMinutes(null);
+        pricingRuleRequest.setProgressiveConfig(null);
         return check;
     }
 
@@ -29,7 +33,7 @@ public class FlatRateValidator implements PricingStrategyValidator {
         return PricingStrategyEnum.FLAT_RATE;
     }
 }
-/**
+/*
  private String ruleName;
  private VehicleTypeEnum vehicleType;
  private PricingStrategyEnum pricingStrategy;

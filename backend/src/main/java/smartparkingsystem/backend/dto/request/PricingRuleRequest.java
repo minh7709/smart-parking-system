@@ -3,7 +3,7 @@ package smartparkingsystem.backend.dto.request;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.*;
 import lombok.*;
-import smartparkingsystem.backend.config.ProgressivePriceConfig;
+import smartparkingsystem.backend.config.TimeWindowAndProgressiveConfig;
 import smartparkingsystem.backend.entity.type.PricingStrategyEnum;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 
@@ -23,10 +23,8 @@ public class PricingRuleRequest {
     private String ruleName;
 
     @NotNull(message = "Vehicle type is required")
-    @NotBlank(message = "Vehicle type cannot be blank")
     private VehicleTypeEnum vehicleType;
 
-    @NotBlank(message = "Pricing strategy cannot be blank")
     @NotNull(message = "Pricing strategy is required")
     private PricingStrategyEnum pricingStrategy;
 
@@ -45,13 +43,13 @@ public class PricingRuleRequest {
     @Min(value = 1, message = "Threshold minutes must be at least 1")
     private Integer thresholdMinutes;
 
-    @DecimalMin(value = "0", inclusive = false, message = "Threshold price must be greater than 0")
+    @DecimalMin(value = "0", message = "Threshold price must be greater than or equal 0")
     private BigInteger thresholdPrice;
 
-    @DecimalMin(value = "0", inclusive = false, message = "Max price per day must be greater than 0")
+    @DecimalMin(value = "0", message = "Max price per day must be greater than 0")
     private BigInteger maxPricePerDay;
 
-    private List<ProgressivePriceConfig> progressiveConfig;
+    private List<TimeWindowAndProgressiveConfig> progressiveConfig;
 
     @NotNull(message = "Active status is required")
     private Boolean isActive;

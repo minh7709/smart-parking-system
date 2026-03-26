@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 @Data
 @Component
-public class ProgressivePriceConfig {
+public class TimeWindowAndProgressiveConfig {
     private Integer fromHour;
     private Integer toHour;
     private Long pricePerHour;
