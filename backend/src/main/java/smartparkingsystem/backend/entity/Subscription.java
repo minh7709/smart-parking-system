@@ -3,6 +3,8 @@ package smartparkingsystem.backend.entity;
 import jakarta.persistence.*;
 import jdk.jfr.Timestamp;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import smartparkingsystem.backend.entity.type.SubType;
 import smartparkingsystem.backend.entity.type.SubStatus;
 import java.math.BigInteger;
@@ -40,10 +42,10 @@ public class Subscription {
     private SubStatus status;
 
     @Column(name = "created_at", nullable = false)
-    @Timestamp
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
-    @Timestamp
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
 }

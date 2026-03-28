@@ -12,6 +12,7 @@ import smartparkingsystem.backend.dto.request.PricingRuleRequest;
 import smartparkingsystem.backend.dto.response.PricingRuleResponse;
 import smartparkingsystem.backend.entity.PricingRule;
 import smartparkingsystem.backend.entity.User;
+import smartparkingsystem.backend.entity.type.PricingStrategyEnum;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 import smartparkingsystem.backend.exception.DuplicateResourceException;
 import smartparkingsystem.backend.exception.InvalidStateException;
@@ -243,5 +244,4 @@ public class PricingRuleService {
                         ruleToDeactivate.getVehicleType() + " để thay thế."
         );
     }
-
 }

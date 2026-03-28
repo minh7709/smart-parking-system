@@ -22,7 +22,7 @@ import smartparkingsystem.backend.exception.ValidationException;
 import smartparkingsystem.backend.repository.UserRepository;
 import smartparkingsystem.backend.security.CustomUserDetails;
 import smartparkingsystem.backend.security.JwtTokenProvider;
-import smartparkingsystem.backend.service.OtpRedisService;
+import smartparkingsystem.backend.service.thirdService.OtpRedisService;
 import smartparkingsystem.backend.service.thirdService.SmsService;
 
 @Service
