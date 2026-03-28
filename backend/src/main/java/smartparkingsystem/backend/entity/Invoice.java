@@ -2,7 +2,11 @@ package smartparkingsystem.backend.entity;
 
 import jakarta.persistence.*;
 import jdk.jfr.Timestamp;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.UpdateTimestamp;
 import smartparkingsystem.backend.entity.type.PaymentMethod;
 import smartparkingsystem.backend.entity.type.PaymentStatus;
 
@@ -12,6 +16,9 @@ import java.util.UUID;
 
 @Entity
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "invoice")
 public class Invoice {
     @Id
@@ -37,7 +44,7 @@ public class Invoice {
     private User cashier;
 
     @Column(name = "payment_time", nullable = false)
-    @Timestamp
+    @UpdateTimestamp
     private LocalDateTime paymentTime;
 
     @Column(name = "payment_method", nullable = false)

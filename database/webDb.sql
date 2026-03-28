@@ -119,6 +119,7 @@ CREATE TABLE parking_session (
     plate_in_ocr VARCHAR(20),
     plate_out_ocr VARCHAR(20),
     final_plate VARCHAR(20),
+    vehicle_type vehicle_type_enum NOT NULL,
     image_in_url TEXT,
     image_out_url TEXT,
     confidence_in FLOAT,
