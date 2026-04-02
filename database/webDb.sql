@@ -18,7 +18,7 @@ CREATE TYPE vehicle_type_enum AS ENUM ('CAR', 'MOTO', 'BICYCLE');
 CREATE TYPE sub_type AS ENUM ('MONTHLY', 'QUARTERLY', 'YEARLY');
 CREATE TYPE sub_status AS ENUM ('PENDING', 'ACTIVE', 'EXPIRED', 'CANCELLED');
 CREATE TYPE lane_type_enum AS ENUM ('IN', 'OUT');
-CREATE TYPE lane_status AS ENUM ('ACTIVE', 'MAINTENANCE');
+CREATE TYPE lane_status AS ENUM ('ACTIVE', 'MAINTENANCE', 'DELETED');
 CREATE TYPE session_status AS ENUM ('PARKED', 'COMPLETED', 'CANCELLED');
 CREATE TYPE payment_status AS ENUM ('PENDING', 'SUCCESS', 'FAILED');
 CREATE TYPE payment_method AS ENUM ('CASH', 'ONLINE_PAYMENT');
@@ -85,8 +85,7 @@ CREATE TABLE lane (
     lane_name VARCHAR(50) NOT NULL,
     lane_type lane_type_enum NOT NULL,
     ip_camera VARCHAR(100),
-    status lane_status DEFAULT 'ACTIVE',
-    is_deleted BOOLEAN DEFAULT FALSE
+    status lane_status DEFAULT 'ACTIVE'
 );
 
 -- 5. Bảng pricing_rule (Động cơ tính giá)

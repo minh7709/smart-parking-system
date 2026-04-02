@@ -11,9 +11,6 @@ import smartparkingsystem.backend.entity.type.PaymentMethod;
 import java.util.UUID;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @Validated
 public class ConfirmCheckOutRequest {
     @NotNull(message = "Plate number is required")

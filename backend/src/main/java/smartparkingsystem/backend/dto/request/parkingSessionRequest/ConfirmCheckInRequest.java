@@ -10,9 +10,6 @@ import org.springframework.validation.annotation.Validated;
 import java.util.UUID;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @Validated
 public class ConfirmCheckInRequest {
     @NotNull(message = "Entry lane ID is required")

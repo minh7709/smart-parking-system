@@ -1,5 +1,5 @@
 package smartparkingsystem.backend.entity.type;
 
 public enum LaneStatus {
-    ACTIVE, MAINTENANCE
+    ACTIVE, MAINTENANCE, DELETED
 }

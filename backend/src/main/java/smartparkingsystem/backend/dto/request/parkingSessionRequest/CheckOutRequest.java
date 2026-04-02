@@ -11,9 +11,6 @@ import org.springframework.validation.annotation.Validated;
 import java.util.UUID;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @Validated
 public class CheckOutRequest {
     @NotNull(message = "Exit lane ID is required")
