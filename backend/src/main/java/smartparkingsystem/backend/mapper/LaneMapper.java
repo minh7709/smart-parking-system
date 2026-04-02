@@ -31,15 +31,4 @@ public class LaneMapper {
         lane.setIpCamera(request.getIpCamera());
         return lane;
     }
-    public ParkingSession toParkingSession(LaneRequest request) {
-        Lane lane = toLaneEntity(request);
-        if (lane == null) {
-            return null;
-        }
-        return ParkingSession.builder()
-                .entryLane(lane)
-                .status(SessionStatus.PARKED)
-                .month(false)
-                .build();
-    }
 }

@@ -109,7 +109,7 @@ public class ParkingSessionService {
         return parkingSessionMapper.toCheckOutResponse(session, fee);
     }
 
-    public boolean processConfirmCheckOut(ConfirmCheckOutRequest request) {
+    public void processConfirmCheckOut(ConfirmCheckOutRequest request) {
         ParkingSession session = parkingSessionRepository.findById(request.getParkingSessionId())
                 .filter(s -> s.getStatus() == SessionStatus.PARKED)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe mở với ID: " + request.getParkingSessionId()));
@@ -119,7 +119,6 @@ public class ParkingSessionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy hóa đơn cho phiên đỗ xe với ID: " + request.getParkingSessionId()));
 
         invoiceService.updateInvoiceStatus(invoice, PaymentStatus.SUCCESS, request.getPaymentMethod());
-        return true;
     }
 
     private BigInteger calculatePenalty(ParkingSession session) {
