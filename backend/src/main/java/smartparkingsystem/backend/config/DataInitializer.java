@@ -70,6 +70,7 @@ public class DataInitializer implements CommandLineRunner {
                 defaultRule.setActive(true);
                 defaultRule.setCreatedAt(LocalDateTime.now());
                 defaultRule.setCreator(admin);
+                defaultRule.setPenaltyFee(BigInteger.valueOf(200));
 
                 pricingRuleRepository.save(defaultRule);
             }

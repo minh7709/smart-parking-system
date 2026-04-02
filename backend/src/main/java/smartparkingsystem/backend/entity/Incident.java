@@ -12,7 +12,6 @@ import smartparkingsystem.backend.entity.type.IncidentTypeEnum;
 @Entity
 @Table(name = "incident")
 @Builder
-@RequiredArgsConstructor
 @NoArgsConstructor
 @AllArgsConstructor
 public class Incident {
