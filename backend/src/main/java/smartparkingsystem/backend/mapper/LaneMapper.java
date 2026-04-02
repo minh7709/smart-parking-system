@@ -3,8 +3,6 @@ import org.springframework.stereotype.Component;
 import smartparkingsystem.backend.dto.request.parkingSessionRequest.LaneRequest;
 import smartparkingsystem.backend.dto.response.LaneResponse;
 import smartparkingsystem.backend.entity.Lane;
-import smartparkingsystem.backend.entity.ParkingSession;
-import smartparkingsystem.backend.entity.type.SessionStatus;
 @Component
 public class LaneMapper {
     public LaneResponse toLaneResponse(Lane lane) {
