@@ -1,6 +1,9 @@
 package smartparkingsystem.backend.service.guard;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import smartparkingsystem.backend.dto.request.parkingSessionRequest.*;
@@ -60,13 +63,7 @@ public class ParkingSessionService {
 
         parkingSessionRepository.save(newSession);
 
-        return CheckInResponse.builder()
-                .id(newSession.getId())
-                .plateInOcr(licensePlate)
-                .timeIn(newSession.getTimeIn())
-                .status(SessionStatus.PARKED)
-                .isMonth(false)
-                .build();
+        return toCheckInResponse(newSession);
     }
 
     public CheckInResponse processConfirmCheckIn(ConfirmCheckInRequest request) {
@@ -79,13 +76,7 @@ public class ParkingSessionService {
         session.setMonth(false);
         parkingSessionRepository.save(session);
 
-        return CheckInResponse.builder()
-                .id(session.getId())
-                .plateInOcr(session.getPlateInOcr())
-                .timeIn(session.getTimeIn())
-                .status(session.getStatus())
-                .isMonth(session.isMonth())
-                .build();
+        return toCheckInResponse(session);
     }
 
     public CheckOutResponse processCheckOut(CheckOutRequest request, MultipartFile image) {
@@ -118,6 +109,7 @@ public class ParkingSessionService {
         return CheckOutResponse.builder()
                 .id(session.getId())
                 .plateOutOcr(licensePlate)
+                .finalPlate(session.getFinalPlate())
                 .timeOut(session.getTimeOut())
                 .status(SessionStatus.PARKED)
                 .fee(fee)
@@ -175,9 +167,40 @@ public class ParkingSessionService {
         return CheckOutResponse.builder()
                 .id(session.getId())
                 .plateOutOcr(session.getPlateInOcr())
+                .finalPlate(session.getFinalPlate())
                 .timeOut(session.getTimeOut())
                 .status(SessionStatus.COMPLETED)
                 .fee(fee)
+                .build();
+    }
+
+    public CheckInResponse getParkingSessionByPlate(String plate) {
+        ParkingSession session = parkingSessionRepository.findFirstByStatusAndFinalPlateIgnoreCase(
+                        SessionStatus.PARKED,
+                        plate)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe đang mở với biển số: " + plate));
+
+        return toCheckInResponse(session);
+    }
+
+    public Page<CheckInResponse> getAllParkingSessions(Pageable pageable, SessionStatus status) {
+        Pageable safePageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
+        Page<ParkingSession> page = status == null
+                ? parkingSessionRepository.findAll(safePageable)
+                : parkingSessionRepository.findByStatus(status, safePageable);
+
+        return page.map(this::toCheckInResponse);
+    }
+
+    private CheckInResponse toCheckInResponse(ParkingSession session) {
+        return CheckInResponse.builder()
+                .id(session.getId())
+                .plateInOcr(session.getPlateInOcr())
+                .finalPlate(session.getFinalPlate())
+                .timeIn(session.getTimeIn())
+                .status(session.getStatus())
+                .isMonth(session.isMonth())
+                .vehicleType(session.getVehicleType())
                 .build();
     }
 }

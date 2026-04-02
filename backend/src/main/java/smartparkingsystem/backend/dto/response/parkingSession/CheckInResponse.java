@@ -10,6 +10,7 @@ import java.util.UUID;
 public class CheckInResponse {
     private UUID id;
     private String plateInOcr; // Biển số cuối cùng được xác nhận
+    private String finalPlate; // Biển số cuối cùng được xác nhận
     private LocalDateTime timeIn;
     private SessionStatus status;
     private boolean isMonth; //

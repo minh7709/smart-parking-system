@@ -12,6 +12,7 @@ import java.util.UUID;
 public class CheckOutResponse {
     private UUID id; //
     private String plateOutOcr; //
+    private String finalPlate;
     private LocalDateTime timeOut; //
     private SessionStatus status; //
     private BigInteger fee; //
