@@ -15,7 +15,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @Validated
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CheckOutRequest {
     @NotNull(message = "Exit lane ID is required")
     private UUID exitLaneId;

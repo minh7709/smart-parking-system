@@ -82,7 +82,6 @@ CREATE TABLE subscription (
 -- 4. Bảng lane (Làn xe / Camera)
 CREATE TABLE lane (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    secret_key VARCHAR(255),
     lane_name VARCHAR(50) NOT NULL,
     lane_type lane_type_enum NOT NULL,
     ip_camera VARCHAR(100),
@@ -103,7 +102,8 @@ CREATE TABLE pricing_rule (
     threshold_minutes INT,                        
     threshold_price BIGINT,                       
     max_price_per_day BIGINT,                     
-    progressive_config JSONB,                     
+    progressive_config JSONB,  
+    penalty_fee BIGINT NOT NULL DEFAULT 0,                   
     is_active BOOLEAN DEFAULT TRUE,               
     created_by UUID REFERENCES users(id),     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

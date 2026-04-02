@@ -16,7 +16,8 @@ public class RollingBlockValidator implements PricingStrategyValidator {
         }
         if(pricingRuleRequest.getRuleName() == null || pricingRuleRequest.getBasePrice() == null ||
                 pricingRuleRequest.getStartTime() == null ||
-                pricingRuleRequest.getBlockMinutes() == null || pricingRuleRequest.getVehicleType() == null) {
+                pricingRuleRequest.getBlockMinutes() == null || pricingRuleRequest.getVehicleType() == null ||
+                pricingRuleRequest.getPenaltyFee() == null) {
             check = false;
         }
         pricingRuleRequest.setProgressiveConfig(null);

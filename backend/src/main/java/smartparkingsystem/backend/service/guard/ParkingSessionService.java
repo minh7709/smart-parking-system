@@ -3,16 +3,14 @@ package smartparkingsystem.backend.service.guard;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import smartparkingsystem.backend.dto.request.parkingSessionRequest.CheckInRequest;
-import smartparkingsystem.backend.dto.request.parkingSessionRequest.CheckOutRequest;
-import smartparkingsystem.backend.dto.request.parkingSessionRequest.ConfirmCheckInRequest;
-import smartparkingsystem.backend.dto.request.parkingSessionRequest.ConfirmCheckOutRequest;
+import smartparkingsystem.backend.dto.request.parkingSessionRequest.*;
 import smartparkingsystem.backend.dto.response.parkingSession.CheckInResponse;
 import smartparkingsystem.backend.dto.response.parkingSession.CheckOutResponse;
 import smartparkingsystem.backend.entity.Invoice;
 import smartparkingsystem.backend.entity.Lane;
 import smartparkingsystem.backend.entity.ParkingSession;
 import smartparkingsystem.backend.entity.PricingRule;
+import smartparkingsystem.backend.entity.type.IncidentTypeEnum;
 import smartparkingsystem.backend.entity.type.PaymentStatus;
 import smartparkingsystem.backend.entity.type.SessionStatus;
 import smartparkingsystem.backend.exception.DuplicateResourceException;
@@ -40,6 +38,7 @@ public class ParkingSessionService {
     private final InvoiceService invoiceService;
     private final UserService userService;
     private final InvoiceRepository invoiceRepository;
+    private final IncidentService incidentService;
 
     public CheckInResponse processCheckIn(CheckInRequest request, MultipartFile image) {
         String licensePlate = aiIntegrationService.getLicensePlateFromAi(image);
@@ -73,6 +72,9 @@ public class ParkingSessionService {
     public CheckInResponse processConfirmCheckIn(ConfirmCheckInRequest request) {
         ParkingSession session = parkingSessionRepository.findById(request.getParkingSessionId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe với ID: " + request.getParkingSessionId()));
+        if(!session.getPlateInOcr().equals(request.getFinalPlate())){
+            incidentService.reportIncident(session, "Biển số xác nhận không khớp với biển số OCR", IncidentTypeEnum.WRONG_PLATE);
+        }
         session.setFinalPlate(request.getFinalPlate());
         session.setMonth(false);
         parkingSessionRepository.save(session);
@@ -96,6 +98,7 @@ public class ParkingSessionService {
 
         BigInteger fee = BigInteger.ZERO;
         if(session.getFinalPlate().equals(licensePlate)) {
+            fee.add(calculatePenalty(session));
             fee.add(calculateFee(session));
         } else {
             throw new ResourceNotFoundException("Không tìm thấy phiên đỗ xe mở với biển số: " + licensePlate);
@@ -134,6 +137,12 @@ public class ParkingSessionService {
         return true;
     }
 
+    private BigInteger calculatePenalty(ParkingSession session){
+        PricingRule pricingRule = pricingRuleRepository.findByVehicleTypeAndActiveTrue(session.getVehicleType())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy quy tắc giá cho loại xe: " + session.getVehicleType()));
+        return pricingRule.getPenaltyFee();
+    }
+
     private BigInteger calculateFee(ParkingSession session){
         if(session.isMonth()){
             return BigInteger.ZERO;
@@ -142,5 +151,33 @@ public class ParkingSessionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy quy tắc giá cho loại xe: " + session.getVehicleType()));
         FeeCalculationStrategy strategy = feeCalculationFactory.getCalculator(pricingRule.getStrategy());
         return strategy.calculateFee(session.getTimeIn(), session.getTimeOut(), pricingRule);
+    }
+
+    public CheckOutResponse reportLostCard ( CheckOutWithoutCardRequest request, MultipartFile image){
+        String licensePlate = aiIntegrationService.getLicensePlateFromAi(image);
+        ParkingSession session = parkingSessionRepository.findByFinalPlate(licensePlate)
+                .filter(s -> s.getStatus() == SessionStatus.PARKED)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe mở với biển số xe: " + licensePlate));
+
+        incidentService.reportIncident(session, request.getDescription(), IncidentTypeEnum.LOST_CARD);
+
+        Lane lane = laneRepository.findById(request.getExitLaneId())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy làn với ID: " + request.getExitLaneId()));
+        session.setExitLane(lane);
+        session.setTimeOut(LocalDateTime.now());
+        session.setPlateOutOcr(licensePlate);
+        session.setConfidenceOut( (float) (0.9 + Math.random() * 0.1));
+        parkingSessionRepository.save(session);
+
+        BigInteger fee = calculateFee(session).add(calculatePenalty(session));
+        invoiceService.createInvoiceForParkingSession(session, fee, userService.getCurrentUser());
+
+        return CheckOutResponse.builder()
+                .id(session.getId())
+                .plateOutOcr(session.getPlateInOcr())
+                .timeOut(session.getTimeOut())
+                .status(SessionStatus.COMPLETED)
+                .fee(fee)
+                .build();
     }
 }

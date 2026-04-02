@@ -8,10 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import smartparkingsystem.backend.dto.request.parkingSessionRequest.CheckInRequest;
-import smartparkingsystem.backend.dto.request.parkingSessionRequest.CheckOutRequest;
-import smartparkingsystem.backend.dto.request.parkingSessionRequest.ConfirmCheckInRequest;
-import smartparkingsystem.backend.dto.request.parkingSessionRequest.ConfirmCheckOutRequest;
+import smartparkingsystem.backend.dto.request.parkingSessionRequest.*;
 import smartparkingsystem.backend.dto.response.ApiResponse;
 import smartparkingsystem.backend.dto.response.parkingSession.CheckInResponse;
 import smartparkingsystem.backend.dto.response.parkingSession.CheckOutResponse;
@@ -54,5 +51,14 @@ public class ParkingSessionController {
             @Valid @RequestBody ConfirmCheckOutRequest request) {
         parkingSessionService.processConfirmCheckOut(request);
         return ResponseEntity.ok(ApiResponse.success(null, "Check-out confirmed successfully"));
+    }
+
+    @PostMapping("/report-incident/lost-card")
+    public ResponseEntity<ApiResponse<CheckOutResponse>> reportLostCard(
+            @Valid @RequestBody CheckOutWithoutCardRequest request,
+            @RequestPart("image") MultipartFile image) {
+        CheckOutResponse response = parkingSessionService.reportLostCard(request, image);
+        return ResponseEntity.ok(ApiResponse.success(response, "Incident reported successfully"));
+
     }
 }

@@ -17,7 +17,8 @@ public class TimeWindowValidator implements PricingStrategyValidator {
                 pricingRuleRequest.getStartTime() == null ||
                 pricingRuleRequest.getVehicleType() == null ||
                 pricingRuleRequest.getProgressiveConfig() == null ||
-                pricingRuleRequest.getProgressiveConfig().size() > 2
+                pricingRuleRequest.getProgressiveConfig().size() > 2 ||
+                pricingRuleRequest.getPenaltyFee() == null
         ) {
             check = false;
         }

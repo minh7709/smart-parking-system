@@ -17,7 +17,7 @@ public class DailyCappedCalculator implements FeeCalculationStrategy {
     private static final int MINUTES_PER_DAY = 24 * 60;
 
     @Override
-    public BigInteger calculateFee(LocalDateTime timeIn, LocalDateTime timeOut, PricingRule rule){
+    public BigInteger calculateFee(LocalDateTime timeIn, LocalDateTime timeOut, PricingRule rule) {
         // Validate input times
         if (timeIn == null || timeOut == null) {
             throw new ValidationException(
