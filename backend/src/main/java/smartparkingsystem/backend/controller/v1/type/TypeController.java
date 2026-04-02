@@ -8,8 +8,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import smartparkingsystem.backend.dto.response.ApiResponse;
-import smartparkingsystem.backend.entity.type.AuditActionEnum;
-import smartparkingsystem.backend.entity.type.AuditTableEnum;
 import smartparkingsystem.backend.entity.type.IncidentTypeEnum;
 import smartparkingsystem.backend.entity.type.LaneStatus;
 import smartparkingsystem.backend.entity.type.LaneTypeEnum;
@@ -91,15 +89,5 @@ public class TypeController {
     @GetMapping("/subscription-statuses")
     public ResponseEntity<ApiResponse<List<SubStatus>>> getSubscriptionStatuses() {
         return ResponseEntity.ok(ApiResponse.success(Arrays.asList(SubStatus.values()), "Subscription statuses retrieved successfully"));
-    }
-
-    @GetMapping("/audit-actions")
-    public ResponseEntity<ApiResponse<List<AuditActionEnum>>> getAuditActions() {
-        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(AuditActionEnum.values()), "Audit actions retrieved successfully"));
-    }
-
-    @GetMapping("/audit-tables")
-    public ResponseEntity<ApiResponse<List<AuditTableEnum>>> getAuditTables() {
-        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(AuditTableEnum.values()), "Audit tables retrieved successfully"));
     }
 }

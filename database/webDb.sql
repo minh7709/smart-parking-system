@@ -22,18 +22,18 @@ CREATE TYPE lane_status AS ENUM ('ACTIVE', 'MAINTENANCE', 'DELETED');
 CREATE TYPE session_status AS ENUM ('PARKED', 'COMPLETED', 'CANCELLED');
 CREATE TYPE payment_status AS ENUM ('PENDING', 'SUCCESS', 'FAILED');
 CREATE TYPE payment_method AS ENUM ('CASH', 'ONLINE_PAYMENT');
-CREATE TYPE incident_type_enum AS ENUM ('LOST_CARD', 'DAMAGE', 'SYSTEM_ERROR', 'OTHER');
+CREATE TYPE incident_type_enum AS ENUM ('LOST_CARD', 'DAMAGE', 'SYSTEM_ERROR','WRONG_PLATE', 'OTHER');
 
 CREATE TYPE pricing_strategy_enum AS ENUM (
     'FLAT_RATE', 'TIME_WINDOW', 'ROLLING_BLOCK', 'PROGRESSIVE', 'DAILY_CAPPED'
 );
 
-CREATE TYPE audit_action_enum AS ENUM (
-    'CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'MANUAL_OPEN_BARRIER', 'EXPORT_REPORT'
-);
-CREATE TYPE audit_table_enum AS ENUM (
-    'USERS', 'VEHICLE', 'SUBSCRIPTION', 'PARKING_SESSION', 'INVOICE', 'PRICING_RULE', 'INCIDENT', 'SYSTEM'
-);
+-- CREATE TYPE audit_action_enum AS ENUM (
+--     'CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'MANUAL_OPEN_BARRIER', 'EXPORT_REPORT'
+-- );
+-- CREATE TYPE audit_table_enum AS ENUM (
+--     'USERS', 'VEHICLE', 'SUBSCRIPTION', 'PARKING_SESSION', 'INVOICE', 'PRICING_RULE', 'INCIDENT', 'SYSTEM'
+-- );
 
 -- =========================================================================
 -- 3. TẠO CÁC BẢNG DỮ LIỆU (100% UUID)
@@ -151,19 +151,19 @@ CREATE TABLE incident (
     reported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 9. Bảng audit_log (Nhật ký giám sát hệ thống - UC5)
-CREATE TABLE audit_log (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES users(id),              
-    action_type audit_action_enum NOT NULL,             
-    target_table audit_table_enum NOT NULL,             
-    target_id VARCHAR(50),                              
-    old_value JSONB,                                    
-    new_value JSONB,                                    
-    ip_address VARCHAR(45),
-    device_info VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP      
-);
+-- -- 9. Bảng audit_log (Nhật ký giám sát hệ thống - UC5)
+-- CREATE TABLE audit_log (
+--     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+--     user_id UUID REFERENCES users(id),              
+--     action_type audit_action_enum NOT NULL,             
+--     target_table audit_table_enum NOT NULL,             
+--     target_id VARCHAR(50),                              
+--     old_value JSONB,                                    
+--     new_value JSONB,                                    
+--     ip_address VARCHAR(45),
+--     device_info VARCHAR(255),
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP      
+-- );
 
 -- =========================================================================
 -- 4. ĐÁNH CHỈ MỤC (INDEXING) - TỐI ƯU HIỆU SUẤT TRUY VẤN
@@ -172,4 +172,4 @@ CREATE INDEX idx_vehicle_plate ON vehicle(license_plate);
 CREATE INDEX idx_session_final_plate ON parking_session(final_plate);
 CREATE INDEX idx_session_status ON parking_session(status);
 CREATE INDEX idx_invoice_payment_time ON invoice(payment_time);
-CREATE INDEX idx_audit_target ON audit_log(target_table, target_id);
+-- CREATE INDEX idx_audit_target ON audit_log(target_table, target_id);
