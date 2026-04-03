@@ -1,137 +1,121 @@
-import React, { useState } from 'react';
-import './Login.css';
+import React, { useState } from "react";
+import "./Login.css";
 
 const Login = () => {
-  const [step, setStep] = useState('login');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [step, setStep] = useState("login");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [phone, setPhone] = useState('');
-  const [otp, setOtp] = useState('');
-  const [newPassword, setNewPassword] = useState('');
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
 
   const saveAuthToLocalStorage = (authData) => {
     const expiresAt = Date.now() + authData.expiresIn * 1000;
-
-    localStorage.setItem('accessToken', authData.accessToken);
-    localStorage.setItem('refreshToken', authData.refreshToken);
-    localStorage.setItem('tokenType', authData.tokenType);
-    localStorage.setItem('expiresIn', String(authData.expiresIn));
-    localStorage.setItem('expiresAt', String(expiresAt));
-    localStorage.setItem('user', JSON.stringify(authData.user));
+    localStorage.setItem("accessToken", authData.accessToken);
+    localStorage.setItem("refreshToken", authData.refreshToken);
+    localStorage.setItem("tokenType", authData.tokenType);
+    localStorage.setItem("expiresIn", String(authData.expiresIn));
+    localStorage.setItem("expiresAt", String(expiresAt));
+    localStorage.setItem("user", JSON.stringify(authData.user));
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
-    const loginData = {
-      username: username,
-      password: password,
-      rememberMe: rememberMe
-    };
+    const loginData = { username, password, rememberMe };
 
     try {
-      const response = await fetch('/api/v1/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await fetch("/api/v1/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(loginData),
       });
 
       const data = await response.json();
-      console.log('Response from server:', data);
-      console.log('HTTP status code:', response);
       if (!response.ok) {
-        alert(data.message || 'Đăng nhập thất bại.');
+        alert(data.message || "Đăng nhập thất bại.");
         return;
       }
 
       if (data.success && data.data?.accessToken && data.data?.refreshToken) {
         saveAuthToLocalStorage(data.data);
-        alert('Đăng nhập thành công!');
+        alert("Đăng nhập thành công!");
       } else {
-        alert(data.message || 'Dữ liệu đăng nhập không hợp lệ.');
+        alert(data.message || "Dữ liệu đăng nhập không hợp lệ.");
       }
     } catch (error) {
-      console.error('Lỗi kết nối đến server Spring Boot:', error);
-      alert('Không thể kết nối tới server. Hãy kiểm tra backend và khởi động lại Vite dev server.');
+      console.error("Lỗi kết nối:", error);
+      alert("Không thể kết nối tới server. Hãy kiểm tra backend.");
     }
   };
 
+  // Đã sửa thêm async và cấu trúc lại try catch chuẩn xác
   const handleSendOtp = async (e) => {
     e.preventDefault();
 
     if (!phone.trim()) {
-      alert('Vui lòng nhập số điện thoại.');
+      alert("Vui lòng nhập số điện thoại.");
       return;
     }
 
     try {
-      const response = await fetch('/api/v1/auth/forgot-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await fetch("/api/v1/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone: phone }),
       });
 
       const data = await response.json();
-      console.log('Response from server:', data);
-      console.log('HTTP status code:', response);
       if (!response.ok) {
-        alert(data.message || 'Gửi OTP thất bại.');
+        alert(data.message || "Gửi yêu cầu thất bại.");
         return;
       }
+
       if (data.success) {
-        alert('Đã gửi OTP thành công!');
-        setStep('otp');
+        alert("Đã gửi OTP qua số điện thoại của bạn!");
+        setStep("otp");
       } else {
-        alert(data.message || 'Không thể gửi OTP.');
+        alert(data.message || "Dữ liệu không hợp lệ.");
       }
     } catch (error) {
-      console.error('Lỗi kết nối đến server Spring Boot:', error);
-      alert('Không thể kết nối tới server. Hãy kiểm tra backend và khởi động lại Vite dev server.');
+      console.error("Lỗi kết nối:", error);
+      alert("Không thể kết nối tới server. Hãy kiểm tra backend.");
     }
   };
 
   const handleVerifyOtp = (e) => {
     e.preventDefault();
-
     if (!/^\d{6}$/.test(otp)) {
-      alert('OTP phải gồm đúng 6 chữ số.');
+      alert("OTP phải gồm đúng 6 chữ số.");
       return;
     }
-
-    setStep('reset');
+    setStep("reset");
   };
 
   const handleResetPassword = (e) => {
     e.preventDefault();
-
     if (newPassword.trim().length < 6) {
-      alert('Mật khẩu mới tối thiểu 6 ký tự.');
+      alert("Mật khẩu mới tối thiểu 6 ký tự.");
       return;
     }
-
-    alert('Đặt lại mật khẩu thành công (demo).');
-    setOtp('');
-    setNewPassword('');
-    setStep('login');
+    alert("Đặt lại mật khẩu thành công (demo).");
+    setOtp("");
+    setNewPassword("");
+    setStep("login");
   };
 
   const resetForgotFlow = () => {
-    setPhone('');
-    setOtp('');
-    setNewPassword('');
-    setStep('login');
+    setPhone("");
+    setOtp("");
+    setNewPassword("");
+    setStep("login");
   };
+
   return (
     <div className="wrapper">
-      {step === 'login' && (
+      {step === "login" && (
         <form onSubmit={handleLogin}>
           <h1>Login</h1>
-
           <div className="input-box">
             <input
               type="text"
@@ -142,7 +126,6 @@ const Login = () => {
             />
             <i className="bx bx-user"></i>
           </div>
-
           <div className="input-box">
             <input
               type="password"
@@ -153,33 +136,32 @@ const Login = () => {
             />
             <i className="bx bx-lock"></i>
           </div>
-
           <div className="remember-forgot">
             <label>
               <input
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-              />{' '}
+              />{" "}
               Remember Me
             </label>
             <button
               type="button"
               className="text-link"
-              onClick={() => setStep('forgot')}
+              onClick={() => setStep("forgot")}
             >
               Forgot Password?
             </button>
           </div>
-
-          <button type="submit" className="btn">Login</button>
+          <button type="submit" className="btn">
+            Login
+          </button>
         </form>
       )}
 
-      {step === 'forgot' && (
+      {step === "forgot" && (
         <form onSubmit={handleSendOtp}>
           <h1>Forgot Password</h1>
-
           <div className="input-box">
             <input
               type="text"
@@ -190,18 +172,22 @@ const Login = () => {
             />
             <i className="bx bx-phone"></i>
           </div>
-
-          <button type="submit" className="btn">Send OTP</button>
-          <button type="button" className="btn btn-secondary" onClick={resetForgotFlow}>
+          <button type="submit" className="btn">
+            Send OTP
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={resetForgotFlow}
+          >
             Back to Login
           </button>
         </form>
       )}
 
-      {step === 'otp' && (
+      {step === "otp" && (
         <form onSubmit={handleVerifyOtp}>
           <h1>Verify OTP</h1>
-
           <div className="input-box">
             <input
               type="text"
@@ -211,26 +197,28 @@ const Login = () => {
               value={otp}
               onChange={(e) => {
                 const value = e.target.value;
-                if (/^\d{0,6}$/.test(value)) {
-                  setOtp(value);
-                }
+                if (/^\d{0,6}$/.test(value)) setOtp(value);
               }}
               required
             />
             <i className="bx bx-shield"></i>
           </div>
-
-          <button type="submit" className="btn">Verify OTP</button>
-          <button type="button" className="btn btn-secondary" onClick={() => setStep('forgot')}>
+          <button type="submit" className="btn">
+            Verify OTP
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setStep("forgot")}
+          >
             Back
           </button>
         </form>
       )}
 
-      {step === 'reset' && (
+      {step === "reset" && (
         <form onSubmit={handleResetPassword}>
           <h1>Reset Password</h1>
-
           <div className="input-box">
             <input
               type="password"
@@ -241,9 +229,14 @@ const Login = () => {
             />
             <i className="bx bx-lock-alt"></i>
           </div>
-
-          <button type="submit" className="btn">Confirm</button>
-          <button type="button" className="btn btn-secondary" onClick={() => setStep('otp')}>
+          <button type="submit" className="btn">
+            Confirm
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setStep("otp")}
+          >
             Back
           </button>
         </form>
