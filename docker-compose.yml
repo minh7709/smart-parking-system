@@ -43,8 +43,9 @@ services:
       context: ./frontend # Đường dẫn tới thư mục frontend của bạn
       dockerfile: Dockerfile
     container_name: parking_web
+    restart: unless-stopped
     ports:
-      - "3000:3000" # Hoặc 80:80 tùy cấu hình
+      - "3000:80"
     depends_on:
       - api-server
     networks:

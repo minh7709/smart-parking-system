@@ -20,9 +20,11 @@ except Exception as e:
 @app.get("/health")
 async def health_check():
     """Health check endpoint cho Docker healthcheck"""
+    if processor is None:
+        raise HTTPException(status_code=503, detail="AI Model chưa được tải")
     return {
         "status": "healthy",
-        "model_loaded": processor is not None
+        "model_loaded": True
     }
 
 

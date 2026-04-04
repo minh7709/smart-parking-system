@@ -1,8 +1,9 @@
-import Login from './Login';
-
 function App() {
   return (
-    <Login />
+    <div className="App">
+      <h1>Smart Parking System</h1>
+      <p>Welcome to the Smart Parking System frontend!</p>
+    </div>
   )
 }
 

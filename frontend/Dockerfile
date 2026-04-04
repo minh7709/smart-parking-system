@@ -17,7 +17,7 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Nginx (để serve kết quả build)
-FROM nginx:stable-alpine
+FROM FROM nginx:1.27-alpine
 COPY --from=build-stage /app/dist /usr/share/nginx/html
 # Nếu bạn có file config nginx riêng, hãy copy vào:
 # COPY nginx.conf /etc/nginx/conf.d/default.conf
