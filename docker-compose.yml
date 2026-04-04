@@ -37,6 +37,18 @@ services:
       retries: 5
     networks:
       - parking-network
+      
+  frontend:
+    build:
+      context: ./frontend # Đường dẫn tới thư mục frontend của bạn
+      dockerfile: Dockerfile
+    container_name: parking_web
+    ports:
+      - "3000:3000" # Hoặc 80:80 tùy cấu hình
+    depends_on:
+      - api-server
+    networks:
+      - parking-network
 
   # AI Service (Python FastAPI)
   ai-service:
