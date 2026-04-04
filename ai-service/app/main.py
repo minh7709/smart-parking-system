@@ -17,6 +17,15 @@ except Exception as e:
     processor = None
 
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint cho Docker healthcheck"""
+    return {
+        "status": "healthy",
+        "model_loaded": processor is not None
+    }
+
+
 @app.post("/api/v1/ai/detect-plate")
 async def detect_plate_api(file: UploadFile = File(...)):
     if processor is None:
