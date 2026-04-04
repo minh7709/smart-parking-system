@@ -8,9 +8,6 @@ import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 import java.util.UUID;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @Validated
 public class CheckInRequest {
     @NotNull(message = "Entry lane ID is required")

@@ -1,12 +1,19 @@
 package smartparkingsystem.backend.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import java.util.UUID;
+
+import lombok.NoArgsConstructor;
 import smartparkingsystem.backend.entity.type.LaneTypeEnum;
 import smartparkingsystem.backend.entity.type.LaneStatus;
 @Entity(name = "lane")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Lane {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -22,9 +29,6 @@ public class Lane {
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
     private LaneStatus status;
-
-    @Column(name = "is_deleted", nullable = false)
-    private boolean deleted;
 
     @Column(name = "ip_camera", nullable = false, length = 100)
     private String ipCamera;

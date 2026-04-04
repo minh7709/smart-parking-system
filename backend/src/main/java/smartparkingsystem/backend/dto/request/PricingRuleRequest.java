@@ -28,11 +28,9 @@ public class PricingRuleRequest {
     @NotNull(message = "Pricing strategy is required")
     private PricingStrategyEnum pricingStrategy;
 
-    @NotNull(message = "Base price is required")
     @DecimalMin(value = "0", inclusive = false, message = "Base price must be greater than 0")
     private BigInteger basePrice;
 
-    @NotNull(message = "Start time is required")
     private LocalDateTime startTime;
 
     private LocalDateTime endTime;
@@ -50,6 +48,9 @@ public class PricingRuleRequest {
     private BigInteger maxPricePerDay;
 
     private List<TimeWindowAndProgressiveConfig> progressiveConfig;
+
+    @NotNull(message = "Penalty price is required")
+    private BigInteger penaltyFee;
 
     @NotNull(message = "Active status is required")
     private Boolean isActive;

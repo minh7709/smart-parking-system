@@ -1,22 +1,24 @@
 package smartparkingsystem.backend.service.guard;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import smartparkingsystem.backend.dto.request.parkingSessionRequest.CheckInRequest;
-import smartparkingsystem.backend.dto.request.parkingSessionRequest.CheckOutRequest;
-import smartparkingsystem.backend.dto.request.parkingSessionRequest.ConfirmCheckInRequest;
-import smartparkingsystem.backend.dto.request.parkingSessionRequest.ConfirmCheckOutRequest;
+import smartparkingsystem.backend.dto.request.parkingSessionRequest.*;
 import smartparkingsystem.backend.dto.response.parkingSession.CheckInResponse;
 import smartparkingsystem.backend.dto.response.parkingSession.CheckOutResponse;
 import smartparkingsystem.backend.entity.Invoice;
 import smartparkingsystem.backend.entity.Lane;
 import smartparkingsystem.backend.entity.ParkingSession;
 import smartparkingsystem.backend.entity.PricingRule;
+import smartparkingsystem.backend.entity.type.IncidentTypeEnum;
 import smartparkingsystem.backend.entity.type.PaymentStatus;
 import smartparkingsystem.backend.entity.type.SessionStatus;
 import smartparkingsystem.backend.exception.DuplicateResourceException;
 import smartparkingsystem.backend.exception.ResourceNotFoundException;
+import smartparkingsystem.backend.mapper.ParkingSessionMapper;
 import smartparkingsystem.backend.repository.InvoiceRepository;
 import smartparkingsystem.backend.repository.LaneRepository;
 import smartparkingsystem.backend.repository.ParkingSessionRepository;
@@ -40,6 +42,8 @@ public class ParkingSessionService {
     private final InvoiceService invoiceService;
     private final UserService userService;
     private final InvoiceRepository invoiceRepository;
+    private final IncidentService incidentService;
+    private final ParkingSessionMapper parkingSessionMapper;
 
     public CheckInResponse processCheckIn(CheckInRequest request, MultipartFile image) {
         String licensePlate = aiIntegrationService.getLicensePlateFromAi(image);
@@ -49,54 +53,45 @@ public class ParkingSessionService {
                 throw new DuplicateResourceException("Đã tồn tại phiên đỗ xe với biển số này trong bãi : " + licensePlate);
             }
         });
+
         Lane lane = laneRepository.findById(request.getEntryLaneId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy làn với ID: " + request.getEntryLaneId()));
-        String imageInUrl;
-        ParkingSession newSession = ParkingSession.builder()
-                .plateInOcr(licensePlate)
-                .entryLane(lane)
-                .status(SessionStatus.PARKED)
-                .confidenceIn((float)(0.9 + Math.random() * 0.1))
-                .build();
+
+        ParkingSession newSession = parkingSessionMapper.toEntityForCheckIn(
+                request,
+                lane,
+                licensePlate,
+                (float) (0.9 + Math.random() * 0.1)
+        );
 
         parkingSessionRepository.save(newSession);
-
-        return CheckInResponse.builder()
-                .id(newSession.getId())
-                .plateInOcr(licensePlate)
-                .timeIn(newSession.getTimeIn())
-                .status(SessionStatus.PARKED)
-                .isMonth(false)
-                .build();
+        return parkingSessionMapper.toCheckInResponse(newSession);
     }
 
     public CheckInResponse processConfirmCheckIn(ConfirmCheckInRequest request) {
         ParkingSession session = parkingSessionRepository.findById(request.getParkingSessionId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe với ID: " + request.getParkingSessionId()));
+        if (!session.getPlateInOcr().equals(request.getFinalPlate())) {
+            incidentService.reportIncident(session, "Biển số xác nhận không khớp với biển số OCR", IncidentTypeEnum.WRONG_PLATE);
+        }
         session.setFinalPlate(request.getFinalPlate());
         session.setMonth(false);
         parkingSessionRepository.save(session);
 
-        return CheckInResponse.builder()
-                .id(session.getId())
-                .plateInOcr(session.getPlateInOcr())
-                .timeIn(session.getTimeIn())
-                .status(session.getStatus())
-                .isMonth(session.isMonth())
-                .build();
+        return parkingSessionMapper.toCheckInResponse(session);
     }
 
     public CheckOutResponse processCheckOut(CheckOutRequest request, MultipartFile image) {
         String licensePlate = aiIntegrationService.getLicensePlateFromAi(image);
 
-        // Tìm session PARKED với biển số này
         ParkingSession session = parkingSessionRepository.findById(request.getParkingSessionId())
                 .filter(s -> s.getStatus() == SessionStatus.PARKED)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe mở với biển số: " + licensePlate));
 
         BigInteger fee = BigInteger.ZERO;
-        if(session.getFinalPlate().equals(licensePlate)) {
-            fee.add(calculateFee(session));
+        if (session.getFinalPlate().equals(licensePlate)) {
+            fee = fee.add(calculatePenalty(session));
+            fee = fee.add(calculateFee(session));
         } else {
             throw new ResourceNotFoundException("Không tìm thấy phiên đỗ xe mở với biển số: " + licensePlate);
         }
@@ -105,23 +100,16 @@ public class ParkingSessionService {
 
         Lane lane = laneRepository.findById(request.getExitLaneId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy làn với ID: " + request.getExitLaneId()));
-        String imageOutUrl;
         session.setTimeOut(LocalDateTime.now());
         session.setExitLane(lane);
         session.setPlateOutOcr(licensePlate);
-        session.setConfidenceOut( (float) (0.9 + Math.random() * 0.1));
+        session.setConfidenceOut((float) (0.9 + Math.random() * 0.1));
         parkingSessionRepository.save(session);
 
-        return CheckOutResponse.builder()
-                .id(session.getId())
-                .plateOutOcr(licensePlate)
-                .timeOut(session.getTimeOut())
-                .status(SessionStatus.PARKED)
-                .fee(fee)
-                .build();
+        return parkingSessionMapper.toCheckOutResponse(session, fee);
     }
 
-    public boolean processConfirmCheckOut(ConfirmCheckOutRequest request) {
+    public void processConfirmCheckOut(ConfirmCheckOutRequest request) {
         ParkingSession session = parkingSessionRepository.findById(request.getParkingSessionId())
                 .filter(s -> s.getStatus() == SessionStatus.PARKED)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe mở với ID: " + request.getParkingSessionId()));
@@ -131,16 +119,63 @@ public class ParkingSessionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy hóa đơn cho phiên đỗ xe với ID: " + request.getParkingSessionId()));
 
         invoiceService.updateInvoiceStatus(invoice, PaymentStatus.SUCCESS, request.getPaymentMethod());
-        return true;
     }
 
-    private BigInteger calculateFee(ParkingSession session){
-        if(session.isMonth()){
+    private BigInteger calculatePenalty(ParkingSession session) {
+        PricingRule pricingRule = pricingRuleRepository.findByVehicleTypeAndActiveTrue(session.getVehicleType())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy quy tắc giá cho loại xe: " + session.getVehicleType()));
+        return pricingRule.getPenaltyFee();
+    }
+
+    private BigInteger calculateFee(ParkingSession session) {
+        if (session.isMonth()) {
             return BigInteger.ZERO;
         }
         PricingRule pricingRule = pricingRuleRepository.findByVehicleTypeAndActiveTrue(session.getVehicleType())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy quy tắc giá cho loại xe: " + session.getVehicleType()));
         FeeCalculationStrategy strategy = feeCalculationFactory.getCalculator(pricingRule.getStrategy());
         return strategy.calculateFee(session.getTimeIn(), session.getTimeOut(), pricingRule);
+    }
+
+    public CheckOutResponse reportLostCard(CheckOutWithoutCardRequest request, MultipartFile image) {
+        String licensePlate = aiIntegrationService.getLicensePlateFromAi(image);
+        ParkingSession session = parkingSessionRepository.findByFinalPlate(licensePlate)
+                .filter(s -> s.getStatus() == SessionStatus.PARKED)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe mở với biển số xe: " + licensePlate));
+
+        incidentService.reportIncident(session, request.getDescription(), IncidentTypeEnum.LOST_CARD);
+
+        Lane lane = laneRepository.findById(request.getExitLaneId())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy làn với ID: " + request.getExitLaneId()));
+        session.setExitLane(lane);
+        session.setTimeOut(LocalDateTime.now());
+        session.setPlateOutOcr(licensePlate);
+        session.setConfidenceOut((float) (0.9 + Math.random() * 0.1));
+        session.setStatus(SessionStatus.COMPLETED);
+        parkingSessionRepository.save(session);
+
+        BigInteger fee = calculateFee(session).add(calculatePenalty(session));
+        invoiceService.createInvoiceForParkingSession(session, fee, userService.getCurrentUser());
+
+        return parkingSessionMapper.toCheckOutResponse(session, fee);
+    }
+
+    public CheckInResponse getParkingSessionByPlate(String plate) {
+        ParkingSession session = parkingSessionRepository.findFirstByStatusAndFinalPlateIgnoreCase(
+                        SessionStatus.PARKED,
+                        plate
+                )
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe đang mở với biển số: " + plate));
+
+        return parkingSessionMapper.toCheckInResponse(session);
+    }
+
+    public Page<CheckInResponse> getAllParkingSessions(Pageable pageable, SessionStatus status) {
+        Pageable safePageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
+        Page<ParkingSession> page = status == null
+                ? parkingSessionRepository.findAll(safePageable)
+                : parkingSessionRepository.findByStatus(status, safePageable);
+
+        return page.map(parkingSessionMapper::toCheckInResponse);
     }
 }

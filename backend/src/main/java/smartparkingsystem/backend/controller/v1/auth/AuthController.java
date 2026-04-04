@@ -8,12 +8,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import smartparkingsystem.backend.dto.request.auth.LoginRequest;
 import smartparkingsystem.backend.dto.request.auth.OtpVerifyRequest;
 import smartparkingsystem.backend.dto.request.auth.RefreshTokenRequest;
 import smartparkingsystem.backend.dto.request.PhoneRequest;
 import smartparkingsystem.backend.dto.request.auth.ResetPasswordRequest;
+import smartparkingsystem.backend.dto.request.auth.LogoutRequest;
 import smartparkingsystem.backend.dto.response.LoginResponse;
 import smartparkingsystem.backend.entity.User;
 import smartparkingsystem.backend.service.auth.AuthService;
@@ -58,15 +60,23 @@ public class AuthController {
      */
     @PreAuthorize("hasAnyRole('ADMIN', 'GUARD')")
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout() {
+    public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody LogoutRequest logoutRequest,
+                                                    @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null) {
-            String username = authentication.getName();
-            log.info("Logout requested for user: {}", username);
-            authService.logout(username);
-            log.info("User logged out successfully: {}", username);
-        }
+        String username = authentication != null ? authentication.getName() : "anonymous";
+
+        String accessToken = extractBearerToken(authorizationHeader);
+        authService.logout(accessToken, logoutRequest.getRefreshToken(), username);
+
+        log.info("User logged out successfully: {}", username);
         return ResponseEntity.ok(ApiResponse.success(null,"Logout successful"));
+    }
+
+    private String extractBearerToken(String authorizationHeader) {
+        if (!StringUtils.hasText(authorizationHeader) || !authorizationHeader.startsWith("Bearer ")) {
+            return null;
+        }
+        return authorizationHeader.substring(7);
     }
 
     /**
@@ -105,4 +115,3 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(null,"Password reset successful"));
     }
 }
-

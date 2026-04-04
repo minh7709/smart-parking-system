@@ -16,7 +16,8 @@ public class ProgressiveValidator implements PricingStrategyValidator {
         }
         if(pricingRuleRequest.getRuleName() == null ||
                 pricingRuleRequest.getStartTime() == null ||
-                pricingRuleRequest.getProgressiveConfig() == null || pricingRuleRequest.getVehicleType() == null) {
+                pricingRuleRequest.getProgressiveConfig() == null || pricingRuleRequest.getVehicleType() == null ||
+                pricingRuleRequest.getPenaltyFee() == null) {
             check = false;
         }
         pricingRuleRequest.setBasePrice(null);

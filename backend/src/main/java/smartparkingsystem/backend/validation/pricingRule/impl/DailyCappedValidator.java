@@ -17,7 +17,8 @@ public class DailyCappedValidator implements PricingStrategyValidator {
         }
         if(pricingRuleRequest.getRuleName() == null  ||
                 pricingRuleRequest.getBasePrice() == null || pricingRuleRequest.getStartTime() == null ||
-                pricingRuleRequest.getVehicleType() == null || pricingRuleRequest.getMaxPricePerDay() == null) {
+                pricingRuleRequest.getVehicleType() == null || pricingRuleRequest.getMaxPricePerDay() == null ||
+                pricingRuleRequest.getPenaltyFee() == null) {
             check = false;
         }
         pricingRuleRequest.setProgressiveConfig(null);

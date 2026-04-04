@@ -69,6 +69,9 @@ public class PricingRule {
     @Column(name = "is_active", nullable = false)
     private boolean active;
 
+    @Column(name = "penalty_fee", nullable = false, columnDefinition = "bigint default 0")
+    private BigInteger penaltyFee;
+
     @Column(name = "created_at", nullable = false)
     @Timestamp
     @CreationTimestamp

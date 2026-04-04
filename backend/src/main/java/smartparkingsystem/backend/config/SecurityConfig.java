@@ -18,6 +18,7 @@ import smartparkingsystem.backend.security.CustomUserDetailsService;
 import smartparkingsystem.backend.security.JwtAuthenticationFilter;
 import smartparkingsystem.backend.security.JwtTokenProvider;
 import smartparkingsystem.backend.security.JwtAuthenticationEntryPoint;
+import smartparkingsystem.backend.service.auth.TokenRedisService;
 
 @Configuration
 @EnableWebSecurity
@@ -27,6 +28,7 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final TokenRedisService tokenRedisService;
 
     /**
      * Create password encoder bean
@@ -53,7 +55,7 @@ public class SecurityConfig {
      */
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService);
+        return new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService, tokenRedisService);
     }
 
     /**
