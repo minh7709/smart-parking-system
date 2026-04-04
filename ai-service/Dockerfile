@@ -1,28 +1,32 @@
-# Sử dụng Python 3.12 slim cho nhẹ gọn
+# 1. Sử dụng Python 3.12 slim là lựa chọn rất tốt cho môi trường Production
 FROM python:3.12-slim
 
-# Cài đặt các thư viện hệ thống cần thiết cho OpenCV và Paddle
+# 2. Thiết lập các biến môi trường quan trọng
+# PYTHONUNBUFFERED: Giúp log hiện ra ngay lập tức trên terminal (không bị nghẽn)
+# PYTHONDONTWRITEBYTECODE: Không tạo file .pyc rác trong container
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1
+
+# 3. Cài đặt thư viện hệ thống (Đã fix lỗi libgl1)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
     libxrender-dev \
-    libgl1-mesa-glx \
+    libgl1 \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Thiết lập thư mục làm việc
+# 4. Thiết lập thư mục làm việc
 WORKDIR /app
-
-# Copy requirements và cài đặt
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
 
-# Copy toàn bộ source code (bao gồm thư mục models, app) vào container
+# 6. Copy toàn bộ source code
 COPY . .
 
-# Mở port 8000
+# 8. Mở port 8000
 EXPOSE 8000
-
-# Lệnh khởi chạy FastAPI server
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

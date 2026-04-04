@@ -3,18 +3,18 @@ fastapi
 uvicorn
 python-multipart
 
-# --- AI Frameworks (Pinned for Stability) ---
+# --- AI Frameworks (Bản chỉ chạy CPU để giảm dung lượng) ---
+--extra-index-url https://download.pytorch.org/whl/cpu
 torch==2.5.1
 torchvision==0.20.1
+
 ultralytics==8.1.0
+
+# Bản PaddlePaddle chỉ dành cho CPU
 paddlepaddle==2.6.2
+
 paddleocr==2.8.1
 
-# --- Compatibility Fixes ---
-# Giữ numpy 1.x để tránh lỗi "AttributeError: module 'numpy' has no attribute 'int'"
+# --- Compatibility & Utilities ---
 numpy==1.26.4
-# Chỉ dùng bản headless cho môi trường server/Docker
 opencv-python-headless==4.9.0.80
-
-# --- Utilities (Có thể bỏ qua vì là sub-deps, nhưng nên giữ nếu cần bản cụ thể) ---
-shapely
