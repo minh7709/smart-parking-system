@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import smartparkingsystem.backend.service.auth.TokenRedisService;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -21,6 +22,7 @@ import java.util.UUID;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider tokenProvider;
     private final CustomUserDetailsService userDetailsService;
+    private final TokenRedisService tokenRedisService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -33,6 +35,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Validate that it's not a refresh token
                 if (tokenProvider.isRefreshToken(jwt)) {
                     log.warn("Refresh token used as access token");
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
+                if (tokenRedisService.isAccessTokenBlacklisted(jwt)) {
+                    log.warn("Blacklisted access token detected");
                     filterChain.doFilter(request, response);
                     return;
                 }
@@ -64,4 +72,3 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 }
-

@@ -166,6 +166,25 @@ public class JwtTokenProvider {
     }
 
     /**
+     * Return remaining validity time in milliseconds for a JWT token.
+     * Returns 0 if token is invalid or already expired.
+     */
+    public long getRemainingExpirationMillis(String token) {
+        try {
+            Date expiration = Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getExpiration();
+            long remaining = expiration.getTime() - System.currentTimeMillis();
+            return Math.max(remaining, 0L);
+        } catch (JwtException | IllegalArgumentException e) {
+            return 0L;
+        }
+    }
+
+    /**
      * Get signing key from secret
      */
     private SecretKey getSigningKey() {
@@ -173,4 +192,3 @@ public class JwtTokenProvider {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }
-

@@ -1,4 +1,4 @@
-package smartparkingsystem.backend.service.thirdService;
+package smartparkingsystem.backend.service.auth;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +26,7 @@ public class OtpRedisService {
      */
     public String generateOtp(String identifier, String purpose) {
         String otp = String.valueOf(new Random().nextInt(900000) + 100000);
-        String key = buildOtpKey(identifier, purpose);
+        String key = buildOtpKey(identifier, purpose, otp);
         redisTemplate.opsForValue().set(key, otp, OTP_TTL, TimeUnit.MINUTES);
         return otp;
     }
@@ -35,7 +35,7 @@ public class OtpRedisService {
      * Validate OTP cho identifier (phone hoặc email)
      */
     public boolean validateOtp(String identifier, String inputOtp, String purpose) {
-        String key = buildOtpKey(identifier, purpose);
+        String key = buildOtpKey(identifier, purpose, inputOtp);
         Object cachedOtp = redisTemplate.opsForValue().get(key);
         if (cachedOtp != null && cachedOtp.toString().equals(inputOtp)) {
             redisTemplate.delete(key); // Xóa ngay sau khi dùng xong (chỉ dùng 1 lần)
@@ -44,8 +44,8 @@ public class OtpRedisService {
         return false;
     }
 
-    private String buildOtpKey(String identifier, String purpose) {
-        return "OTP:" + purpose + ":" + identifier;
+    private String buildOtpKey(String identifier, String purpose, String otp) {
+        return "OTP:" + purpose + ":" + identifier + ":" + "otp";
     }
 
     // ===== RESET PASSWORD TOKEN =====

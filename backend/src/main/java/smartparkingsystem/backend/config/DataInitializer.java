@@ -59,7 +59,6 @@ public class DataInitializer implements CommandLineRunner {
                     case MOTO:
                         basePrice = BigInteger.valueOf(5000);
                         break;
-                    case BICYCLE:
                     default:
                         basePrice = BigInteger.valueOf(2000);
                         break;
