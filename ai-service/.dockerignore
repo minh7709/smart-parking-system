@@ -1,11 +1,25 @@
-.venv
-.idea
-__pycache__
-*.pyc
-*.pyo
-.git
-.gitignore
-*.md
-.env
-__pycache__/
-.vscode/
+# Chặn mọi loại thư mục môi trường ảo
+**/venv/
+**/env/
+**/.venv/
+**/.env/
+
+# Chặn các file model gốc cực nặng (.pt là của Torch, .pth là của Paddle)
+**/*.pt
+**/*.pth
+**/*.bin
+**/*.weights
+
+# Chặn dữ liệu rác và cache
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/.git/
+**/.idea/
+**/.vscode/
+**/.gitignore
+**/node_modules/
+
+# Chặn các file tạm và log
+*.log
+temp_*
