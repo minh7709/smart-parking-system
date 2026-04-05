@@ -17,6 +17,17 @@ except Exception as e:
     processor = None
 
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint cho Docker healthcheck"""
+    if processor is None:
+        raise HTTPException(status_code=503, detail="AI Model chưa được tải")
+    return {
+        "status": "healthy",
+        "model_loaded": True
+    }
+
+
 @app.post("/api/v1/ai/detect-plate")
 async def detect_plate_api(file: UploadFile = File(...)):
     if processor is None:
