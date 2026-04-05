@@ -5,10 +5,15 @@ import jdk.jfr.Timestamp;
 import lombok.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
 import smartparkingsystem.backend.entity.type.IncidentTypeEnum;
 @Data
 @Entity
 @Table(name = "incident")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Incident {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -26,7 +31,7 @@ public class Incident {
     private String description;
 
     @Column(name = "reported_at", nullable = false)
-    @Timestamp
+    @CreationTimestamp
     private LocalDateTime reportedAt;
 
     @Column(name = "incident_type", nullable = false)

@@ -172,7 +172,7 @@ public class GlobalExceptionHandler {
 
         ApiResponse<Object> response = ApiResponse.error(
                 "FORBIDDEN",
-                "Bạn không có quyền thực hiện hành động này. Chỉ dành cho admin.",
+                "Bạn không có quyền thực hiện hành động này",
                 path
         );
 

@@ -1,11 +1,11 @@
 package smartparkingsystem.backend.entity;
 
 import jakarta.persistence.*;
-import jdk.jfr.Timestamp;
 import lombok.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import smartparkingsystem.backend.entity.type.UserRole;
@@ -42,7 +42,7 @@ public class User {
     UserStatus status;
 
     @Column(name = "created_at", nullable = false)
-    @Timestamp
+    @CreationTimestamp
     LocalDateTime createdAt;
 
     @Column(name = "is_deleted", nullable = false)

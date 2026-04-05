@@ -1,17 +1,24 @@
 package smartparkingsystem.backend.entity;
 
 import jakarta.persistence.*;
-import jdk.jfr.Timestamp;
-import lombok.Data;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.CurrentTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import smartparkingsystem.backend.entity.type.SessionStatus;
+import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(name = "parking_session")
-@Data
+@Getter
+@Setter
 public class ParkingSession {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -25,19 +32,22 @@ public class ParkingSession {
     @JoinColumn(name = "exit_lane_id")
     private Lane exitLane;
 
+    @JoinColumn(name = "vehicle_type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private VehicleTypeEnum vehicleType;
+
     @Column(name = "time_in", nullable = false)
-    @Timestamp
+    @CreationTimestamp
     private LocalDateTime timeIn;
 
     @Column(name = "time_out")
-    @Timestamp
     private LocalDateTime timeOut;
 
-    @Column(name = "plate_in_orc" , nullable = false, length = 20)
-    private String plateInOrc;
+    @Column(name = "plate_in_ocr" , nullable = false, length = 20)
+    private String plateInOcr;
 
-    @Column(name = "plate_out_orc", length = 20)
-    private String plateOutOrc;
+    @Column(name = "plate_out_ocr", length = 20)
+    private String plateOutOcr;
 
     @Column(name = "final_plate", length = 20)
     private String finalPlate;
@@ -54,8 +64,8 @@ public class ParkingSession {
     @Column(name = "confidence_out")
     private Float confidenceOut;
 
-    @Column(name = "is_mouth", nullable = false)
-    private boolean isMouth;
+    @Column(name = "is_month")
+    private boolean month;
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)

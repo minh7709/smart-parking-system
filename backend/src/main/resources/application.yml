@@ -3,9 +3,9 @@ spring:
     name: smart-parking-system-backend
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/parking_db
-    username: admin
-    password: password123
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/parking_db}
+    username: ${SPRING_DATASOURCE_USERNAME:admin}
+    password: ${SPRING_DATASOURCE_PASSWORD:password123}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -18,18 +18,32 @@ spring:
         format_sql: true
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6379}
 
 
 server:
   port: 8080
 
+# Actuator cho healthcheck
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+
 jwt:
-  secret: 6ytui786uyi8978uyiu8978yiuo8978yiu8976tuyi7865ytu675tyu67645675e4w3qedrtfgytrew432456e4wr5
+  secret: ${JWT_SECRET:6ytui786uyi8978uyiu8978yiuo8978yiu8976tuyi7865ytu675tyu67645675e4w3qedrtfgytrew432456e4wr5}
   expiration: 3600000 # 1 hour in milliseconds
   refresh-expiration: 86400000 # 1 day in milliseconds
   remember-me-expiration: 604800000 # 7 days in milliseconds
+
+ai:
+  service:
+    url: ${AI_SERVICE_URL:http://localhost:8000/api/v1/ai/detect-plate}
 
 app:
   sms:

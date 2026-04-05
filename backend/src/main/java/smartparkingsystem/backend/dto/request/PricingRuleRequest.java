@@ -3,7 +3,7 @@ package smartparkingsystem.backend.dto.request;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.*;
 import lombok.*;
-import smartparkingsystem.backend.config.ProgressivePriceConfig;
+import smartparkingsystem.backend.config.TimeWindowAndProgressiveConfig;
 import smartparkingsystem.backend.entity.type.PricingStrategyEnum;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 
@@ -28,11 +28,9 @@ public class PricingRuleRequest {
     @NotNull(message = "Pricing strategy is required")
     private PricingStrategyEnum pricingStrategy;
 
-    @NotNull(message = "Base price is required")
     @DecimalMin(value = "0", inclusive = false, message = "Base price must be greater than 0")
     private BigInteger basePrice;
 
-    @NotNull(message = "Start time is required")
     private LocalDateTime startTime;
 
     private LocalDateTime endTime;
@@ -43,13 +41,16 @@ public class PricingRuleRequest {
     @Min(value = 1, message = "Threshold minutes must be at least 1")
     private Integer thresholdMinutes;
 
-    @DecimalMin(value = "0", inclusive = false, message = "Threshold price must be greater than 0")
+    @DecimalMin(value = "0", message = "Threshold price must be greater than or equal 0")
     private BigInteger thresholdPrice;
 
-    @DecimalMin(value = "0", inclusive = false, message = "Max price per day must be greater than 0")
+    @DecimalMin(value = "0", message = "Max price per day must be greater than 0")
     private BigInteger maxPricePerDay;
 
-    private List<ProgressivePriceConfig> progressiveConfig;
+    private List<TimeWindowAndProgressiveConfig> progressiveConfig;
+
+    @NotNull(message = "Penalty price is required")
+    private BigInteger penaltyFee;
 
     @NotNull(message = "Active status is required")
     private Boolean isActive;

@@ -7,6 +7,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import smartparkingsystem.backend.config.JwtProperties;
 import smartparkingsystem.backend.dto.request.PhoneRequest;
 import smartparkingsystem.backend.dto.request.auth.LoginRequest;
@@ -22,7 +23,6 @@ import smartparkingsystem.backend.exception.ValidationException;
 import smartparkingsystem.backend.repository.UserRepository;
 import smartparkingsystem.backend.security.CustomUserDetails;
 import smartparkingsystem.backend.security.JwtTokenProvider;
-import smartparkingsystem.backend.service.OtpRedisService;
 import smartparkingsystem.backend.service.thirdService.SmsService;
 
 @Service
@@ -34,9 +34,11 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtProperties jwtProperties;
     private final OtpRedisService otpRedisService;
-    private static final String FORGOT_PASSWORD_PURPOSE = "FORGOT_PASSWORD";
     private final SmsService smsService;
     private final UserService userService;
+    private final TokenRedisService tokenRedisService;
+
+    private static final String FORGOT_PASSWORD_PURPOSE = "FORGOT_PASSWORD";
 
     /**
      * Authenticate user and generate JWT tokens
@@ -73,6 +75,9 @@ public class AuthService {
                     rememberMe
             );
 
+            long refreshTtl = rememberMe ? jwtProperties.getRememberMeExpiration() : jwtProperties.getRefreshExpiration();
+            tokenRedisService.storeRefreshToken(refreshToken, refreshTtl);
+
             // Build response
             return LoginResponse.builder()
                     .accessToken(accessToken)
@@ -101,8 +106,13 @@ public class AuthService {
     public LoginResponse refreshToken(RefreshTokenRequest refreshTokenRequest) {
         String refreshToken = refreshTokenRequest.getRefreshToken();
 
+        if (!tokenRedisService.isRefreshTokenActive(refreshToken)) {
+            throw new UnauthorizedException("Refresh token has been revoked or does not exist");
+        }
+
         // Validate refresh token
         if (!tokenProvider.validateToken(refreshToken)) {
+            tokenRedisService.revokeRefreshToken(refreshToken);
             throw new UnauthorizedException("Invalid or expired refresh token");
         }
 
@@ -141,12 +151,16 @@ public class AuthService {
     }
 
     /**
-     * Logout user (clear token on client side)
-     * Backend doesn't maintain session, but can implement token blacklist in future
+     * Logout user and revoke tokens immediately
      */
-    public void logout(String username) {
-        log.info("User logged out: {}", username);
-        // Implement token blacklist if needed
+    public void logout(String accessToken, String refreshToken, String username) {
+        if (StringUtils.hasText(accessToken) && tokenProvider.validateToken(accessToken) && !tokenProvider.isRefreshToken(accessToken)) {
+            long ttlMillis = tokenProvider.getRemainingExpirationMillis(accessToken);
+            tokenRedisService.blacklistAccessToken(accessToken, ttlMillis);
+        }
+
+        tokenRedisService.revokeRefreshToken(refreshToken);
+        log.info("User logged out and tokens revoked: {}", username);
     }
 
     public void forgotPasswordHandler(PhoneRequest request) {
@@ -175,4 +189,3 @@ public class AuthService {
         otpRedisService.deleteResetToken(resetPasswordRequest.getToken());
     }
 }
-

@@ -1,12 +1,13 @@
 version: '3.8'
 
 services:
+  # Database PostgreSQL
   postgres:
     image: postgres:15-alpine
     container_name: parking_db
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "5432:5432"  # Expose cho dev, bỏ khi production
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password123
@@ -19,29 +20,58 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - parking-network
 
-  # Trạm trung chuyển tin nhắn siêu tốc & Cache
+  # Redis Cache
   redis:
     image: redis:latest
     container_name: parking_redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "6379:6379"  # Expose cho dev, bỏ khi production
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - parking-network
+      
+  frontend:
+    build:
+      context: ./frontend # Đường dẫn tới thư mục frontend của bạn
+      dockerfile: Dockerfile
+    container_name: parking_web
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - api-server
+    networks:
+      - parking-network
 
-  # 1. AI Service (Python FastAPI)
+  # AI Service (Python FastAPI)
   ai-service:
     build: 
-      context: ./ai-service-python
+      context: ./ai-service
       dockerfile: Dockerfile
     container_name: parking_ai
     restart: unless-stopped
     ports:
       - "8000:8000"
-    # Lắp volume để model không bị copy vào image, giảm dung lượng image
     volumes:
-      - ./ai-service-python/models:/app/models
+      - ./ai-service/models:/app/models
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s  # AI models cần thời gian load
+    networks:
+      - parking-network
   
-  # 2. Backend API Server (Spring Boot)
+  # Backend API Server (Spring Boot)
   api-server:
     build: 
       context: ./backend
@@ -51,31 +81,25 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/parking_db
-      - SPRING_DATASOURCE_USERNAME=admin
-      - SPRING_DATASOURCE_PASSWORD=password123
-      - SPRING_REDIS_HOST=redis
-      # GỌI SANG PYTHON QUA TÊN CONTAINER, KHÔNG DÙNG LOCALHOST
-      - AI_SERVICE_URL=http://ai-service:8000/api/detect-license-plate 
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/parking_db
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: password123
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      AI_SERVICE_URL: http://ai-service:8000/api/v1/ai/detect-plate
     depends_on:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
       ai-service:
-        condition: service_started
+        condition: service_healthy
+    networks:
+      - parking-network
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: parking_frontend
-    restart: unless-stopped
-    ports:
-      - "3000:80" # Map port 80 của Nginx trong container ra 3000 của host
-    depends_on:
-      - api-server
-
+networks:
+  parking-network:
+    driver: bridge
 
 volumes:
   postgres_data:
