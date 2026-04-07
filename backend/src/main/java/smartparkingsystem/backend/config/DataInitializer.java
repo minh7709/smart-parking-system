@@ -4,12 +4,11 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
+import smartparkingsystem.backend.entity.Lane;
 import smartparkingsystem.backend.entity.PricingRule;
 import smartparkingsystem.backend.entity.User;
-import smartparkingsystem.backend.entity.type.PricingStrategyEnum;
-import smartparkingsystem.backend.entity.type.UserRole;
-import smartparkingsystem.backend.entity.type.UserStatus;
-import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
+import smartparkingsystem.backend.entity.type.*;
+import smartparkingsystem.backend.repository.LaneRepository;
 import smartparkingsystem.backend.repository.UserRepository;
 import smartparkingsystem.backend.repository.PricingRuleRepository;
 
@@ -28,6 +27,9 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private PricingRuleRepository pricingRuleRepository;
 
+    @Autowired
+    private LaneRepository laneRepository;
+
     @Override
     public void run(String... args) throws Exception {
         if (userRepository.count() == 0) {
@@ -42,8 +44,20 @@ public class DataInitializer implements CommandLineRunner {
             admin.setFullName("System Administrator");
             admin.setPhone("0123456789");
             admin.setStatus(UserStatus.ACTIVE);
-            userRepository.save(admin);
 
+            User guard = new User();
+            guard.setUsername("guard");
+            guard.setPassword(passwordEncoder.encode("12345678Aa"));
+            guard.setRole(UserRole.GUARD);
+            guard.setFullName("System Guard");
+            guard.setPhone("0987654321");
+            guard.setStatus(UserStatus.ACTIVE);
+
+            userRepository.save(admin);
+            userRepository.save(guard);
+        }
+        if(pricingRuleRepository.count() == 0) {
+            User admin = userRepository.findByUsername("admin").orElseThrow(() -> new RuntimeException("Admin user not found"));
             for (VehicleTypeEnum vehicleType : VehicleTypeEnum.values()) {
                 PricingRule defaultRule = new PricingRule();
                 defaultRule.setRuleName("Default Flat Rate - " + vehicleType.name());
@@ -73,6 +87,21 @@ public class DataInitializer implements CommandLineRunner {
 
                 pricingRuleRepository.save(defaultRule);
             }
+        }
+        if(laneRepository.count() == 0) {
+            Lane entryLane = new Lane();
+            entryLane.setLaneName("Lane 1 - Entry");
+            entryLane.setLaneType(LaneTypeEnum.IN);
+            entryLane.setStatus(LaneStatus.ACTIVE);
+            entryLane.setIpCamera("192.168.100.1");
+            laneRepository.save(entryLane);
+
+            Lane exitLane = new Lane();
+            exitLane.setLaneName("Lane 1 - Exit");
+            exitLane.setLaneType(LaneTypeEnum.OUT);
+            exitLane.setStatus(LaneStatus.ACTIVE);
+            exitLane.setIpCamera("192.168.100.10");
+            laneRepository.save(exitLane);
         }
     }
 }
