@@ -5,6 +5,9 @@ import CameraCard from "../components/CameraCard";
 import HistoryTable from "../components/HistoryTable";
 import Stats from "../components/Stats";
 
+const CAMERA_IN_URL = "http://192.168.8.88:4747/video";
+const CAMERA_OUT_URL = "http://192.168.61.20:4747/video";
+
 const MonitorPage = () => {
   return (
     <AppLayout>
@@ -15,7 +18,7 @@ const MonitorPage = () => {
             type="IN"
             title="LÀN VÀO"
             plateNumber="ABC-8842"
-            imgSrc="https://i.pinimg.com/1200x/83/33/99/83339974e61603dc655517fd33e9fbb8.jpg"
+            imgSrc={CAMERA_IN_URL}
           />
         </Col>
         <Col span={12}>
@@ -23,7 +26,7 @@ const MonitorPage = () => {
             type="OUT"
             title="LÀN RA"
             plateNumber="XYZ-1092"
-            imgSrc="https://i.pinimg.com/1200x/7c/13/e1/7c13e112bec70032a710134ddc6cdc94.jpg"
+            imgSrc={CAMERA_OUT_URL}
           />
         </Col>
       </Row>

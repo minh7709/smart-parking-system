@@ -1,7 +1,8 @@
 import React from "react";
 import { Layout, Menu, Input, Badge, Avatar, ConfigProvider } from "antd";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
-  DashboardOutlined,
+  StarOutlined,
   VideoCameraOutlined,
   SearchOutlined,
   BellOutlined,
@@ -26,6 +27,17 @@ const styles = {
 };
 
 export const AppLayout = ({ children }) => {
+  const navigate = useNavigate(); // Dùng để chuyển trang
+  const location = useLocation(); // Dùng để biết đang ở trang nào để bôi màu menu
+
+  // Xác định menu nào đang được chọn dựa trên URL hiện tại
+  const selectedKey = location.pathname.includes("/register") ? "1" : "2";
+
+  // Hàm xử lý khi click vào Menu
+  const handleMenuClick = (e) => {
+    if (e.key === "1") navigate("/register"); // Chuyển qua trang vé tháng
+    if (e.key === "2") navigate("/monitor"); // Chuyển qua trang giám sát
+  };
   return (
     <ConfigProvider
       theme={{
@@ -44,10 +56,11 @@ export const AppLayout = ({ children }) => {
           <Menu
             theme="dark"
             mode="inline"
-            defaultSelectedKeys={["2"]}
+            selectedKeys={[selectedKey]} // Tự động highlight menu
+            onClick={handleMenuClick} // Gọi hàm khi click
             style={{ background: "transparent" }}
             items={[
-              { key: "1", icon: <DashboardOutlined />, label: "Dashboard" },
+              { key: "1", icon: <StarOutlined />, label: "Register" },
               { key: "2", icon: <VideoCameraOutlined />, label: "Camera" },
             ]}
           />
@@ -59,11 +72,6 @@ export const AppLayout = ({ children }) => {
           <Header style={styles.header}>
             <h2 style={{ color: "#fff", margin: 0 }}>Camera</h2>
             <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-              <Input
-                placeholder="Search..."
-                prefix={<SearchOutlined />}
-                style={styles.search}
-              />
               <Badge dot>
                 <BellOutlined style={{ fontSize: 18, color: "#aaa" }} />
               </Badge>
