@@ -1,11 +1,19 @@
 import React from "react";
+import { useLocation } from 'react-router-dom';
 import { Row, Col } from "antd";
 import { AppLayout } from "../../../components/Layout/AppLayout";
 import CameraCard from "../components/CameraCard";
 import HistoryTable from "../components/HistoryTable";
 import Stats from "../components/Stats";
+import { getLaneSelection } from '../../../utils/storage';
 
 const MonitorPage = () => {
+  const location = useLocation();
+  const savedSelection = getLaneSelection();
+
+  const checkInLane = location.state?.checkInLane || savedSelection.checkInLane;
+  const checkOutLane = location.state?.checkOutLane || savedSelection.checkOutLane;
+
   return (
     <AppLayout>
       {/* 2 CAMERA IN/OUT */}
@@ -13,7 +21,7 @@ const MonitorPage = () => {
         <Col span={12}>
           <CameraCard
             type="IN"
-            title="LÀN VÀO"
+            title={checkInLane?.laneName || 'LÀN VÀO'}
             plateNumber="ABC-8842"
             imgSrc="https://i.pinimg.com/1200x/83/33/99/83339974e61603dc655517fd33e9fbb8.jpg"
           />
@@ -21,7 +29,7 @@ const MonitorPage = () => {
         <Col span={12}>
           <CameraCard
             type="OUT"
-            title="LÀN RA"
+            title={checkOutLane?.laneName || 'LÀN RA'}
             plateNumber="XYZ-1092"
             imgSrc="https://i.pinimg.com/1200x/7c/13/e1/7c13e112bec70032a710134ddc6cdc94.jpg"
           />

@@ -5,10 +5,24 @@ const buildUrl = (path) => `${API_BASE_PATH}${path}`;
 const cleanHeaders = (headers = {}) =>
   Object.fromEntries(Object.entries(headers).filter(([, value]) => value !== undefined));
 
+const buildAuthHeaders = () => {
+  const token = localStorage.getItem('accessToken');
+  if (!token) {
+    return {};
+  }
+
+  return {
+    Authorization: `Bearer ${token}`,
+  };
+};
+
 const request = async (method, path, body, options = {}) => {
   const response = await fetch(buildUrl(path), {
     method,
-    headers: cleanHeaders(options.headers || {}),
+    headers: cleanHeaders({
+      ...buildAuthHeaders(),
+      ...(options.headers || {}),
+    }),
     body,
     ...options,
   });

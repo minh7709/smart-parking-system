@@ -69,7 +69,7 @@ const LoginPage = () => {
 
       if (response.success && response.data?.accessToken && response.data?.refreshToken) {
         saveAuthToLocalStorage(response.data);
-        navigate('/dashboard');
+        navigate('/lane');
       } else {
         showError(response.message || 'Du lieu dang nhap khong hop le.');
       }
@@ -189,60 +189,62 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="wrapper">
-      {step === 'login' && (
-        <LoginForm
-          username={username}
-          password={password}
-          rememberMe={rememberMe}
-          loading={loading}
-          error={error}
-          onUsernameChange={setUsername}
-          onPasswordChange={setPassword}
-          onRememberMeChange={setRememberMe}
-          onSubmit={handleLogin}
-          onForgotPassword={() => {
-            setStep('forgot');
-            clearErrors();
-          }}
-        />
-      )}
+    <div className="login-page">
+      <div className="wrapper">
+        {step === 'login' && (
+          <LoginForm
+            username={username}
+            password={password}
+            rememberMe={rememberMe}
+            loading={loading}
+            error={error}
+            onUsernameChange={setUsername}
+            onPasswordChange={setPassword}
+            onRememberMeChange={setRememberMe}
+            onSubmit={handleLogin}
+            onForgotPassword={() => {
+              setStep('forgot');
+              clearErrors();
+            }}
+          />
+        )}
 
-      {step === 'forgot' && (
-        <ForgotPasswordForm
-          phone={phone}
-          loading={loading}
-          error={error}
-          phoneError={phoneError}
-          onPhoneChange={setPhone}
-          onSubmit={handleSendOtp}
-          onBack={resetForgotFlow}
-        />
-      )}
+        {step === 'forgot' && (
+          <ForgotPasswordForm
+            phone={phone}
+            loading={loading}
+            error={error}
+            phoneError={phoneError}
+            onPhoneChange={setPhone}
+            onSubmit={handleSendOtp}
+            onBack={resetForgotFlow}
+          />
+        )}
 
-      {step === 'otp' && (
-        <VerifyOtpForm
-          otp={otp}
-          loading={loading}
-          error={error}
-          otpError={otpError}
-          onOtpChange={setOtp}
-          onSubmit={handleVerifyOtp}
-          onBack={() => setStep('forgot')}
-        />
-      )}
+        {step === 'otp' && (
+          <VerifyOtpForm
+            otp={otp}
+            loading={loading}
+            error={error}
+            otpError={otpError}
+            onOtpChange={setOtp}
+            onSubmit={handleVerifyOtp}
+            onBack={() => setStep('forgot')}
+          />
+        )}
 
-      {step === 'reset' && (
-        <ResetPasswordForm
-          newPassword={newPassword}
-          loading={loading}
-          error={error}
-          passwordError={passwordError}
-          onNewPasswordChange={setNewPassword}
-          onSubmit={handleResetPassword}
-          onBack={() => setStep('otp')}
-        />
-      )}
+        {step === 'reset' && (
+          <ResetPasswordForm
+            newPassword={newPassword}
+            loading={loading}
+            error={error}
+            passwordError={passwordError}
+            onNewPasswordChange={setNewPassword}
+            onSubmit={handleResetPassword}
+            onBack={() => setStep('otp')}
+          />
+        )}
+      </div>
     </div>
   );
 };

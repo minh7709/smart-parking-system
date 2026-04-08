@@ -13,6 +13,7 @@ services:
       TZ: Asia/Ho_Chi_Minh
     volumes:
       - postgres_data_dev:/var/lib/postgresql/data
+      - ./database/webDb.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - parking-network-dev
 
@@ -49,6 +50,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/parking_db
       SPRING_DATASOURCE_USERNAME: ${DB_USER:-admin}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASS:-dev_password_123}
+      # SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_REDIS_HOST: redis
       AI_SERVICE_URL: http://ai-service:8000/api/v1/ai/detect-plate
       TZ: Asia/Ho_Chi_Minh
