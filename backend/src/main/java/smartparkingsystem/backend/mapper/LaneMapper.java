@@ -13,7 +13,7 @@ public class LaneMapper {
                 .id(lane.getId())
                 .laneName(lane.getLaneName())
                 .laneType(lane.getLaneType())
-                .status(lane.getStatus() != null ? lane.getStatus().name() : null)
+                .status(lane.getStatus() != null ? lane.getStatus() : null)
                 .ipCamera(lane.getIpCamera())
                 .build();
     }

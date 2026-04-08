@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: parking_db_prod
+    restart: always
+    # KHÔNG expose port ra ngoài host, chỉ cho các container nói chuyện nội bộ
+    environment:
+      POSTGRES_USER: ${PROD_DB_USER}
+      POSTGRES_PASSWORD: ${PROD_DB_PASS}
+      POSTGRES_DB: parking_db
+      TZ: Asia/Ho_Chi_Minh
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    networks:
+      - parking-network-prod
+
+  redis:
+    image: redis:alpine
+    container_name: parking_redis_prod
+    restart: always
+    # KHÔNG expose port
+    networks:
+      - parking-network-prod
+      
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: parking_web_prod
+    restart: always
+    ports:
+      - "80:80" # Chỉ expose web ra ngoài
+    depends_on:
+      - api-server
+    networks:
+      - parking-network-prod
+
+  ai-service:
+    build: 
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: parking_ai_prod
+    restart: always
+    # Thường AI service chỉ gọi nội bộ từ API, có thể cân nhắc đóng port 8000
+    volumes:
+      - ./ai-service/models:/app/models
+    networks:
+      - parking-network-prod
+  
+  api-server:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile # Sử dụng Multi-stage build của bạn
+    container_name: parking_api_prod
+    restart: always
+    ports:
+      - "8080:8080" # Expose để frontend gọi
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/parking_db
+      SPRING_DATASOURCE_USERNAME: ${PROD_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${PROD_DB_PASS}
+      SPRING_REDIS_HOST: redis
+      JWT_SECRET: ${PROD_JWT_SECRET} # Bí mật, chỉ có trên server
+      AI_SERVICE_URL: http://ai-service:8000/api/v1/ai/detect-plate
+      TZ: Asia/Ho_Chi_Minh
+    depends_on:
+      - postgres
+      - redis
+      - ai-service
+    networks:
+      - parking-network-prod
+
+networks:
+  parking-network-prod:
+    driver: bridge
+
+volumes:
+  postgres_data_prod:

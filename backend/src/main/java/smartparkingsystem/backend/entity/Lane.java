@@ -7,6 +7,8 @@ import lombok.Data;
 import java.util.UUID;
 
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import smartparkingsystem.backend.entity.type.LaneTypeEnum;
 import smartparkingsystem.backend.entity.type.LaneStatus;
 @Entity(name = "lane")
@@ -24,10 +26,12 @@ public class Lane {
 
     @Column(name = "lane_type", nullable = false)
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private LaneTypeEnum laneType;
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private LaneStatus status;
 
     @Column(name = "ip_camera", nullable = false, length = 100)
