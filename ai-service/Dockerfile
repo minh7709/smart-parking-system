@@ -1,5 +1,5 @@
-# 1. Sử dụng Python 3.12 slim là lựa chọn rất tốt cho môi trường Production
-FROM python:3.12-slim
+# 1. Sử dụng Python 3.10 slim là lựa chọn rất tốt cho môi trường Production
+FROM python:3.10-slim
 
 # 2. Thiết lập các biến môi trường quan trọng
 # PYTHONUNBUFFERED: Giúp log hiện ra ngay lập tức trên terminal (không bị nghẽn)
@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt
 
 # 6. Copy toàn bộ source code
 COPY . .
