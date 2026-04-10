@@ -165,6 +165,22 @@ CREATE TABLE incident (
 --     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP      
 -- );
 
+-- 9. Bảng cấu hình gói vé (Dành cho Admin thiết lập giá)
+CREATE TABLE subscription_pricing (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    vehicle_type vehicle_type_enum NOT NULL, -- CAR, MOTO, BICYCLE
+    duration_type sub_type NOT NULL,         -- MONTHLY, QUARTERLY, YEARLY
+    price BIGINT NOT NULL,                   -- Giá tiền tương ứng
+    description TEXT,                        -- Mô tả (vd: Gói tháng xe máy giá rẻ)
+    is_active BOOLEAN DEFAULT TRUE,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Đảm bảo mỗi loại xe chỉ có 1 mức giá duy nhất cho 1 loại kỳ hạn
+    UNIQUE(vehicle_type, duration_type) 
+);
+
+ALTER TABLE subscription 
+ADD COLUMN config_id UUID REFERENCES subscription_config(id);
 -- =========================================================================
 -- 4. ĐÁNH CHỈ MỤC (INDEXING) - TỐI ƯU HIỆU SUẤT TRUY VẤN
 -- =========================================================================
