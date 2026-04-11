@@ -1,4 +1,4 @@
-package smartparkingsystem.backend.service.calculator.impl;
+package smartparkingsystem.backend.service.calculator.impl.pricingParkingStrategy;
 
 import org.springframework.stereotype.Component;
 import smartparkingsystem.backend.config.TimeWindowAndProgressiveConfig;

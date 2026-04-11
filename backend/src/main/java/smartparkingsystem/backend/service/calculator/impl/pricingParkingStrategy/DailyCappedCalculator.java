@@ -1,4 +1,4 @@
-package smartparkingsystem.backend.service.calculator.impl;
+package smartparkingsystem.backend.service.calculator.impl.pricingParkingStrategy;
 
 import org.springframework.stereotype.Component;
 import smartparkingsystem.backend.entity.PricingRule;
@@ -13,7 +13,9 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Component
-public class RollingBlockCalculator implements FeeCalculationStrategy {
+public class DailyCappedCalculator implements FeeCalculationStrategy {
+    private static final int MINUTES_PER_DAY = 24 * 60;
+
     @Override
     public BigInteger calculateFee(LocalDateTime timeIn, LocalDateTime timeOut, PricingRule rule) {
         // Validate input times
@@ -43,22 +45,34 @@ public class RollingBlockCalculator implements FeeCalculationStrategy {
             );
         }
 
-        // Validate rolling block configuration
-        if (rule.getBlockMinutes() == null || rule.getBlockMinutes() <= 0) {
+        // Validate daily cap configuration
+        if (rule.getMaxPricePerDay() == null || rule.getMaxPricePerDay().compareTo(BigInteger.ZERO) <= 0) {
             throw new ValidationException(
-                "blockMinutes must be provided and greater than 0 for rolling block strategy. " +
-                "Current value: " + rule.getBlockMinutes()
+                "maxPricePerDay must be provided and greater than 0 for daily capped strategy. " +
+                "Current value: " + rule.getMaxPricePerDay()
             );
         }
 
-        long totalMinutes = Math.max(1, Duration.between(timeIn, timeOut).toMinutes());
-        long blocks = (totalMinutes + rule.getBlockMinutes() - 1) / rule.getBlockMinutes();
+        int blockMinutes = (rule.getBlockMinutes() != null && rule.getBlockMinutes() > 0)
+                ? rule.getBlockMinutes()
+                : MINUTES_PER_DAY;
 
-        return rule.getBasePrice().multiply(BigInteger.valueOf(blocks));
+        long totalMinutes = Math.max(1, Duration.between(timeIn, timeOut).toMinutes());
+        long blocks = (totalMinutes + blockMinutes - 1) / blockMinutes;
+
+        BigInteger fee = rule.getBasePrice().multiply(BigInteger.valueOf(blocks));
+
+        long days = (totalMinutes + MINUTES_PER_DAY - 1) / MINUTES_PER_DAY;
+        BigInteger dailyCap = rule.getMaxPricePerDay().multiply(BigInteger.valueOf(days));
+        if (fee.compareTo(dailyCap) > 0) {
+            fee = dailyCap;
+        }
+
+        return fee;
     }
 
     @Override
     public PricingStrategyEnum getPricingStrategyType() {
-        return PricingStrategyEnum.ROLLING_BLOCK;
+        return PricingStrategyEnum.DAILY_CAPPED;
     }
 }

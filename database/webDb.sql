@@ -66,6 +66,18 @@ CREATE TABLE vehicle (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 9. Bảng cấu hình gói vé (Dành cho Admin thiết lập giá)
+CREATE TABLE subscription_pricing (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    vehicle_type vehicle_type_enum NOT NULL, 
+    duration_type sub_type NOT NULL,         
+    price BIGINT NOT NULL,                   
+    description TEXT,                        
+    is_active BOOLEAN DEFAULT TRUE,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(vehicle_type, duration_type) 
+);
+
 -- 3. Bảng subscription (Vé tháng)
 CREATE TABLE subscription (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -166,17 +178,7 @@ CREATE TABLE incident (
 --     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP      
 -- );
 
--- 9. Bảng cấu hình gói vé (Dành cho Admin thiết lập giá)
-CREATE TABLE subscription_pricing (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    vehicle_type vehicle_type_enum NOT NULL, 
-    duration_type sub_type NOT NULL,         
-    price BIGINT NOT NULL,                   
-    description TEXT,                        
-    is_active BOOLEAN DEFAULT TRUE,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(vehicle_type, duration_type) 
-);
+
 -- =========================================================================
 -- 4. ĐÁNH CHỈ MỤC (INDEXING) - TỐI ƯU HIỆU SUẤT TRUY VẤN
 -- =========================================================================

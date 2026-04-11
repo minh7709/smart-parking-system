@@ -24,7 +24,11 @@ public class Subscription {
     @JoinColumn(name = "vehicle_id", nullable = false)
     private Vehicle vehicle;
 
-    @Column(name = "price", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "pricing_id", nullable = false)
+    private SubscriptionPricing pricing;
+
+    @Column(name = "price_at_purchase", nullable = false)
     private BigInteger price;
 
     @Column(name = "start_date", nullable = false)
@@ -32,10 +36,6 @@ public class Subscription {
 
     @Column(name = "end_date", nullable = false)
     private LocalDateTime endDate;
-
-    @Column(name = "type", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private SubType type;
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
