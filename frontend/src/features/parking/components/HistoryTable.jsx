@@ -72,7 +72,9 @@ const HistoryTable = () => {
     <Card
       title="Lịch sử"
       style={styles.card}
-      headStyle={styles.cardHead}
+      styles={{
+        header: styles.cardHead,
+      }}
       // ĐƯA Ô SEARCH VÀO ĐÂY
       extra={
         <Input
