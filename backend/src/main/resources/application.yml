@@ -20,7 +20,10 @@ spring:
     redis:
       host: ${SPRING_REDIS_HOST:localhost}
       port: ${SPRING_REDIS_PORT:6379}
-
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
 
 server:
   port: 8080
@@ -48,3 +51,7 @@ ai:
 app:
   sms:
     enabled: false
+
+springdoc:
+  swagger-ui:
+    persistAuthorization: true
