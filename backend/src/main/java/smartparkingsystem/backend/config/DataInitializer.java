@@ -70,7 +70,7 @@ public class DataInitializer implements CommandLineRunner {
                     case CAR:
                         basePrice = BigInteger.valueOf(30000);
                         break;
-                    case MOTO:
+                    case MOTOR:
                         basePrice = BigInteger.valueOf(5000);
                         break;
                     default:
