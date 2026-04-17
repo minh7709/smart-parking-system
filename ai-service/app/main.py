@@ -47,7 +47,8 @@ async def detect_plate_api(file: UploadFile = File(...)):
 
         return JSONResponse(content={
             "success": True if final_plate else False,
-            "plateNumber": final_plate,
+            "plateNumber": final_plate["plate"] if final_plate else None,
+            "confidence": final_plate["confidence"] if final_plate else None,
             "message": "OCR xử lý thành công" if final_plate else "Không đọc được biển số"
         })
     except Exception as e:

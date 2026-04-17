@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import smartparkingsystem.backend.dto.request.parkingSessionRequest.*;
+import smartparkingsystem.backend.dto.response.ai.AiDetectionResult;
 import smartparkingsystem.backend.dto.response.parkingSession.CheckInResponse;
 import smartparkingsystem.backend.dto.response.parkingSession.CheckOutResponse;
 import smartparkingsystem.backend.entity.Invoice;
@@ -46,7 +47,8 @@ public class ParkingSessionService {
     private final ParkingSessionMapper parkingSessionMapper;
 
     public CheckInResponse processCheckIn(CheckInRequest request, MultipartFile image) {
-        String licensePlate = aiIntegrationService.getLicensePlateFromAi(image);
+        AiDetectionResult aiResult = aiIntegrationService.getDetectionResultFromAi(image);
+        String licensePlate = aiResult.getPlateNumber();
 
         parkingSessionRepository.findByFinalPlate(licensePlate).ifPresent(session -> {
             if (session.getStatus() == SessionStatus.PARKED) {
@@ -61,7 +63,7 @@ public class ParkingSessionService {
                 request,
                 lane,
                 licensePlate,
-                (float) (0.9 + Math.random() * 0.1)
+                confidenceOrRandom(aiResult.getConfidence())
         );
 
         parkingSessionRepository.save(newSession);
@@ -82,7 +84,8 @@ public class ParkingSessionService {
     }
 
     public CheckOutResponse processCheckOut(CheckOutRequest request, MultipartFile image) {
-        String licensePlate = aiIntegrationService.getLicensePlateFromAi(image);
+        AiDetectionResult aiResult = aiIntegrationService.getDetectionResultFromAi(image);
+        String licensePlate = aiResult.getPlateNumber();
 
         ParkingSession session = parkingSessionRepository.findById(request.getParkingSessionId())
                 .filter(s -> s.getStatus() == SessionStatus.PARKED)
@@ -103,7 +106,7 @@ public class ParkingSessionService {
         session.setTimeOut(LocalDateTime.now());
         session.setExitLane(lane);
         session.setPlateOutOcr(licensePlate);
-        session.setConfidenceOut((float) (0.9 + Math.random() * 0.1));
+        session.setConfidenceOut(confidenceOrRandom(aiResult.getConfidence()));
         parkingSessionRepository.save(session);
 
         return parkingSessionMapper.toCheckOutResponse(session, fee);
@@ -138,7 +141,9 @@ public class ParkingSessionService {
     }
 
     public CheckOutResponse reportLostCard(CheckOutWithoutCardRequest request, MultipartFile image) {
-        String licensePlate = aiIntegrationService.getLicensePlateFromAi(image);
+        AiDetectionResult aiResult = aiIntegrationService.getDetectionResultFromAi(image);
+        String licensePlate = aiResult.getPlateNumber();
+
         ParkingSession session = parkingSessionRepository.findByFinalPlate(licensePlate)
                 .filter(s -> s.getStatus() == SessionStatus.PARKED)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe mở với biển số xe: " + licensePlate));
@@ -150,7 +155,7 @@ public class ParkingSessionService {
         session.setExitLane(lane);
         session.setTimeOut(LocalDateTime.now());
         session.setPlateOutOcr(licensePlate);
-        session.setConfidenceOut((float) (0.9 + Math.random() * 0.1));
+        session.setConfidenceOut(confidenceOrRandom(aiResult.getConfidence()));
         session.setStatus(SessionStatus.COMPLETED);
         parkingSessionRepository.save(session);
 
@@ -177,5 +182,12 @@ public class ParkingSessionService {
                 : parkingSessionRepository.findByStatus(status, safePageable);
 
         return page.map(parkingSessionMapper::toCheckInResponse);
+    }
+
+    private float confidenceOrRandom(Float confidenceFromAi) {
+        if (confidenceFromAi != null) {
+            return confidenceFromAi;
+        }
+        return (float) (0.9 + Math.random() * 0.1);
     }
 }

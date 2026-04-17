@@ -68,7 +68,8 @@ class OCRProcessor:
         found_plates = []
         # --- BƯỚC 2: CẮT ẢNH VÀ ĐỌC CHỮ BẰNG RAPIDOCR ---
         for i in result_indices:
-            x, y, w, h = boxes[i]
+            idx = int(i) if np.isscalar(i) else int(i[0])
+            x, y, w, h = boxes[idx]
 
             # Tăng padding lên một chút để bao trọn các biển số dài (như 29A-000.03)
             pad_x = int(w * 0.04)
@@ -112,6 +113,7 @@ class OCRProcessor:
                         lines.append(current_line)
 
                     plate_text = ""
+                    kept_confidences = []
                     for line in lines:
                         line.sort(key=lambda r: r[0][0][0])
                         for r in line:
@@ -121,11 +123,20 @@ class OCRProcessor:
                             # SỬA LỖI 2: Hạ ngưỡng tin cậy xuống 0.2 để không bị mất cụm số có chứa dấu chấm/gạch
                             if conf > 0.3:
                                 plate_text += text
+                                kept_confidences.append(float(conf))
 
                     # Làm sạch: Chỉ giữ lại chữ cái và số
                     clean_text = "".join(c for c in plate_text if c.isalnum())
-                    if clean_text:
-                        found_plates.append(clean_text)
+                    if clean_text and kept_confidences:
+                        # Gộp độ tin cậy từ YOLO (phát hiện) và OCR (nhận dạng) để có 1 điểm confidence dễ dùng.
+                        ocr_conf = float(np.mean(kept_confidences))
+                        final_conf = (float(scores[idx]) + ocr_conf) / 2.0
+                        found_plates.append(
+                            {
+                                "plate": clean_text,
+                                "confidence": round(final_conf, 4),
+                            }
+                        )
             except Exception as e:
                 print(f"Lỗi xử lý RapidOCR: {e}")
 
