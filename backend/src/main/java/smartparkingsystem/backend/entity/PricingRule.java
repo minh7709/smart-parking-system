@@ -44,12 +44,6 @@ public class PricingRule {
     @Column(name = "base_price", nullable = false)
     private BigInteger basePrice;
 
-    @Column(name = "start_time", nullable = false)
-    private LocalDateTime startTime;
-
-    @Column(name = "end_time")
-    private LocalDateTime endTime;
-
     @Column(name = "block_minutes")
     private Integer blockMinutes;
 
@@ -73,7 +67,6 @@ public class PricingRule {
     private BigInteger penaltyFee;
 
     @Column(name = "created_at", nullable = false)
-    @Timestamp
     @CreationTimestamp
     private LocalDateTime createdAt;
 

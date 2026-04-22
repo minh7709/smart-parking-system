@@ -1,6 +1,7 @@
 package smartparkingsystem.backend.service.guard;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +18,7 @@ import smartparkingsystem.backend.entity.PricingRule;
 import smartparkingsystem.backend.entity.type.IncidentTypeEnum;
 import smartparkingsystem.backend.entity.type.PaymentStatus;
 import smartparkingsystem.backend.entity.type.SessionStatus;
+import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 import smartparkingsystem.backend.exception.DuplicateResourceException;
 import smartparkingsystem.backend.exception.ResourceNotFoundException;
 import smartparkingsystem.backend.mapper.ParkingSessionMapper;
@@ -29,8 +31,13 @@ import smartparkingsystem.backend.service.calculator.FeeCalculationFactory;
 import smartparkingsystem.backend.service.calculator.FeeCalculationStrategy;
 import smartparkingsystem.backend.service.thirdService.AiIntegrationService;
 
+import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -46,18 +53,36 @@ public class ParkingSessionService {
     private final IncidentService incidentService;
     private final ParkingSessionMapper parkingSessionMapper;
 
+    @Value("${file.upload-dir}")
+    private String uploadRootPath;
+
+    private CheckInResponse processCheckInForBicycle(CheckInRequest request, Lane lane, String imageUrl) {
+        ParkingSession newSession = parkingSessionMapper.toEntityForCheckIn(
+                request,
+                lane,
+                "BICYCLE",
+                1.0f
+        );
+        newSession.setImageInUrl(imageUrl);
+        parkingSessionRepository.save(newSession);
+        return parkingSessionMapper.toCheckInResponse(newSession);
+    }
+
     public CheckInResponse processCheckIn(CheckInRequest request, MultipartFile image) {
-        AiDetectionResult aiResult = aiIntegrationService.getDetectionResultFromAi(image);
-        String licensePlate = aiResult.getPlateNumber();
-
-        parkingSessionRepository.findByFinalPlate(licensePlate).ifPresent(session -> {
-            if (session.getStatus() == SessionStatus.PARKED) {
-                throw new DuplicateResourceException("Đã tồn tại phiên đỗ xe với biển số này trong bãi : " + licensePlate);
-            }
-        });
-
         Lane lane = laneRepository.findById(request.getEntryLaneId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy làn với ID: " + request.getEntryLaneId()));
+
+
+        String imageUrl = storeImage(image, "check-in", "Không thể lưu ảnh check-in");
+        if(request.getVehicleType() == VehicleTypeEnum.BICYCLE){
+            return processCheckInForBicycle(request, lane, imageUrl);
+        }
+        AiDetectionResult aiResult = aiIntegrationService.getDetectionResultFromAi(buildAbsoluteImagePath(imageUrl));
+        String licensePlate = aiResult.getPlateNumber();
+
+        parkingSessionRepository.findByFinalPlateAndStatus(licensePlate, SessionStatus.PARKED).ifPresent(existingSession -> {
+                throw new DuplicateResourceException("Đã tồn tại phiên đỗ xe với biển số này trong bãi : " + licensePlate);
+        });
 
         ParkingSession newSession = parkingSessionMapper.toEntityForCheckIn(
                 request,
@@ -65,6 +90,7 @@ public class ParkingSessionService {
                 licensePlate,
                 confidenceOrRandom(aiResult.getConfidence())
         );
+        newSession.setImageInUrl(imageUrl);
 
         parkingSessionRepository.save(newSession);
         return parkingSessionMapper.toCheckInResponse(newSession);
@@ -83,17 +109,40 @@ public class ParkingSessionService {
         return parkingSessionMapper.toCheckInResponse(session);
     }
 
+    private CheckOutResponse processCheckOutForBicycle(ParkingSession session, Lane lane, String imageUrl) {
+
+        session.setTimeOut(LocalDateTime.now());
+        session.setExitLane(lane);
+        session.setPlateOutOcr("BICYCLE");
+        session.setConfidenceOut(1.0f);
+        session.setImageOutUrl(imageUrl);
+        parkingSessionRepository.save(session);
+
+        BigInteger fee = calculateFee(session);
+        invoiceService.createInvoiceForParkingSession(session, fee, userService.getCurrentUser());
+
+        return parkingSessionMapper.toCheckOutResponse(session, fee);
+    }
+
     public CheckOutResponse processCheckOut(CheckOutRequest request, MultipartFile image) {
-        AiDetectionResult aiResult = aiIntegrationService.getDetectionResultFromAi(image);
+        Lane lane = laneRepository.findById(request.getExitLaneId())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy làn với ID: " + request.getExitLaneId()));
+
+        String imageUrl = storeImage(image, "check-out", "Không thể lưu ảnh check-out");
+
+        ParkingSession session = parkingSessionRepository.findFirstByIdAndStatus(request.getParkingSessionId(), SessionStatus.PARKED)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe mở với id: " + request.getParkingSessionId()));
+
+        if(session.getVehicleType() == VehicleTypeEnum.BICYCLE) {
+            return processCheckOutForBicycle(session, lane, imageUrl);
+        }
+
+        AiDetectionResult aiResult = aiIntegrationService.getDetectionResultFromAi(buildAbsoluteImagePath(imageUrl));
         String licensePlate = aiResult.getPlateNumber();
 
-        ParkingSession session = parkingSessionRepository.findById(request.getParkingSessionId())
-                .filter(s -> s.getStatus() == SessionStatus.PARKED)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe mở với biển số: " + licensePlate));
 
         BigInteger fee = BigInteger.ZERO;
         if (session.getFinalPlate().equals(licensePlate)) {
-            fee = fee.add(calculatePenalty(session));
             fee = fee.add(calculateFee(session));
         } else {
             throw new ResourceNotFoundException("Không tìm thấy phiên đỗ xe mở với biển số: " + licensePlate);
@@ -101,20 +150,18 @@ public class ParkingSessionService {
 
         invoiceService.createInvoiceForParkingSession(session, fee, userService.getCurrentUser());
 
-        Lane lane = laneRepository.findById(request.getExitLaneId())
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy làn với ID: " + request.getExitLaneId()));
         session.setTimeOut(LocalDateTime.now());
         session.setExitLane(lane);
         session.setPlateOutOcr(licensePlate);
         session.setConfidenceOut(confidenceOrRandom(aiResult.getConfidence()));
+        session.setImageOutUrl(imageUrl);
         parkingSessionRepository.save(session);
 
         return parkingSessionMapper.toCheckOutResponse(session, fee);
     }
 
     public void processConfirmCheckOut(ConfirmCheckOutRequest request) {
-        ParkingSession session = parkingSessionRepository.findById(request.getParkingSessionId())
-                .filter(s -> s.getStatus() == SessionStatus.PARKED)
+        ParkingSession session = parkingSessionRepository.findFirstByIdAndStatus(request.getParkingSessionId(), SessionStatus.PARKED)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe mở với ID: " + request.getParkingSessionId()));
         session.setStatus(SessionStatus.COMPLETED);
 
@@ -137,32 +184,66 @@ public class ParkingSessionService {
         PricingRule pricingRule = pricingRuleRepository.findByVehicleTypeAndActiveTrue(session.getVehicleType())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy quy tắc giá cho loại xe: " + session.getVehicleType()));
         FeeCalculationStrategy strategy = feeCalculationFactory.getCalculator(pricingRule.getStrategy());
-        return strategy.calculateFee(session.getTimeIn(), session.getTimeOut(), pricingRule);
+        return strategy.calculateFee(session.getTimeIn(), LocalDateTime.now(), pricingRule);
     }
 
-    public CheckOutResponse reportLostCard(CheckOutWithoutCardRequest request, MultipartFile image) {
-        AiDetectionResult aiResult = aiIntegrationService.getDetectionResultFromAi(image);
-        String licensePlate = aiResult.getPlateNumber();
-
-        ParkingSession session = parkingSessionRepository.findByFinalPlate(licensePlate)
-                .filter(s -> s.getStatus() == SessionStatus.PARKED)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe mở với biển số xe: " + licensePlate));
-
-        incidentService.reportIncident(session, request.getDescription(), IncidentTypeEnum.LOST_CARD);
-
+    public CheckOutResponse reportLostCard(CheckOutWithoutCardRequest request, MultipartFile image, MultipartFile evidenceImage) {
         Lane lane = laneRepository.findById(request.getExitLaneId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy làn với ID: " + request.getExitLaneId()));
+
+        String imageUrl = storeImage(image, "check-out", "Không thể lưu ảnh check-out");
+
+        AiDetectionResult aiResult = aiIntegrationService.getDetectionResultFromAi(buildAbsoluteImagePath(imageUrl));
+        String licensePlate = aiResult.getPlateNumber();
+
+        ParkingSession session = parkingSessionRepository.findByFinalPlateAndStatus(licensePlate, SessionStatus.PARKED)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe mở với biển số xe: " + licensePlate));
+
+        String evidenceUrl = storeImage(evidenceImage, "evidence", "Không thể lưu ảnh bằng chứng");
+        incidentService.reportIncident(session, request.getDescription(), IncidentTypeEnum.LOST_CARD, evidenceUrl);
+
+
         session.setExitLane(lane);
         session.setTimeOut(LocalDateTime.now());
         session.setPlateOutOcr(licensePlate);
         session.setConfidenceOut(confidenceOrRandom(aiResult.getConfidence()));
+        session.setImageOutUrl(imageUrl);
         session.setStatus(SessionStatus.COMPLETED);
         parkingSessionRepository.save(session);
 
-        BigInteger fee = calculateFee(session).add(calculatePenalty(session));
-        invoiceService.createInvoiceForParkingSession(session, fee, userService.getCurrentUser());
+        Invoice invoice = invoiceService.createInvoiceForPenalty(session, calculatePenalty(session), calculateFee(session), userService.getCurrentUser());
 
-        return parkingSessionMapper.toCheckOutResponse(session, fee);
+        return parkingSessionMapper.toCheckOutResponse(session, invoice.getTotalAmount());
+    }
+
+    private String storeImage(MultipartFile image, String folder, String failureMessage) {
+        if (image == null || image.isEmpty()) {
+            return null;
+        }
+
+        try {
+            // Tạo đường dẫn vật lý tuyệt đối: uploads/images/check-in/
+            Path uploadDir = Path.of(uploadRootPath, "images", folder);
+            Files.createDirectories(uploadDir);
+
+            String extension = "";
+            String originalFileName = image.getOriginalFilename();
+            if (originalFileName != null && originalFileName.contains(".")) {
+                extension = originalFileName.substring(originalFileName.lastIndexOf('.'));
+            }
+
+            String fileName = UUID.randomUUID().toString() + extension;
+            Path targetPath = uploadDir.resolve(fileName);
+
+            // Lưu file
+            Files.copy(image.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+            // Trả về URL để Frontend hiển thị (hoặc lưu vào DB)
+            // cấu hình Resource Handler trong Spring để map URL này với thư mục vật lý
+            return folder + "/" + fileName;
+        } catch (IOException ex) {
+            throw new IllegalStateException(failureMessage, ex);
+        }
     }
 
     public CheckInResponse getParkingSessionByPlate(String plate) {
@@ -189,5 +270,12 @@ public class ParkingSessionService {
             return confidenceFromAi;
         }
         return (float) (0.9 + Math.random() * 0.1);
+    }
+
+    private String buildAbsoluteImagePath(String relativeImageUrl) {
+        if (relativeImageUrl == null || relativeImageUrl.isBlank()) {
+            return null;
+        }
+        return Path.of(uploadRootPath, "images", relativeImageUrl).toString();
     }
 }

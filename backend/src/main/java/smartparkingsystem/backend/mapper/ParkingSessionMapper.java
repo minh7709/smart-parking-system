@@ -53,6 +53,7 @@ public class ParkingSessionMapper {
                 .id(session.getId())
                 .plateOutOcr(session.getPlateOutOcr())
                 .finalPlate(session.getFinalPlate())
+                .timeIn(session.getTimeIn())
                 .timeOut(session.getTimeOut())
                 .status(session.getStatus())
                 .fee(fee)

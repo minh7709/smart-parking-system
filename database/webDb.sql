@@ -107,9 +107,7 @@ CREATE TABLE pricing_rule (
     rule_name VARCHAR(100) NOT NULL,              
     vehicle_type vehicle_type_enum NOT NULL,      
     strategy pricing_strategy_enum NOT NULL,      
-    base_price BIGINT NOT NULL,                   
-    start_time TIME,                              
-    end_time TIME,                                
+    base_price BIGINT NOT NULL,                                          
     block_minutes INT,                            
     threshold_minutes INT,                        
     threshold_price BIGINT,                       
@@ -146,8 +144,9 @@ CREATE TABLE invoice (
     session_id UUID REFERENCES parking_session(id), 
     sub_id UUID REFERENCES subscription(id),             
     cashier_id UUID REFERENCES users(id),               
-    amount BIGINT NOT NULL,                                 
-    penalty_amount BIGINT DEFAULT 0,                        
+    parking_amount BIGINT NOT NULL,                                 
+    penalty_amount BIGINT DEFAULT 0,   
+    total_amount BIGINT NOT NULL,                     
     payment_time TIMESTAMP,
     payment_method VARCHAR(20),
     transaction_ref VARCHAR(50),
@@ -161,7 +160,8 @@ CREATE TABLE incident (
     reported_by UUID REFERENCES users(id),
     incident_type incident_type_enum NOT NULL, 
     description TEXT,
-    reported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    reported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    evidence_url TEXT
 );
 
 -- -- 9. Bảng audit_log (Nhật ký giám sát hệ thống - UC5)

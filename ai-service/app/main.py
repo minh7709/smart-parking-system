@@ -1,6 +1,6 @@
 import os
-import shutil
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 import uvicorn
 
@@ -17,6 +17,29 @@ except Exception as e:
     processor = None
 
 
+class DetectPlateRequest(BaseModel):
+    imagePath: str | None = None
+    imageUrl: str | None = None
+
+
+def load_image_from_path(request: DetectPlateRequest):
+    image_path = request.imagePath or request.imageUrl
+    if image_path is None or not image_path.strip():
+        raise HTTPException(status_code=400, detail="Thiếu imagePath hoặc imageUrl")
+
+    normalized_path = os.path.abspath(image_path.strip())
+    if not os.path.exists(normalized_path):
+        raise HTTPException(status_code=404, detail=f"Không tìm thấy ảnh tại đường dẫn: {normalized_path}")
+    if not os.path.isfile(normalized_path):
+        raise HTTPException(status_code=400, detail=f"Đường dẫn không phải file ảnh: {normalized_path}")
+
+    img = processor.load_image_from_path(normalized_path)
+    if img is None:
+        raise HTTPException(status_code=400, detail="Không thể đọc ảnh từ đường dẫn đã cung cấp")
+
+    return normalized_path, img
+
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint cho Docker healthcheck"""
@@ -29,19 +52,13 @@ async def health_check():
 
 
 @app.post("/api/v1/ai/detect-plate")
-async def detect_plate_api(file: UploadFile = File(...)):
+async def detect_plate_api(request: DetectPlateRequest):
     if processor is None:
         raise HTTPException(status_code=500, detail="AI Model chưa được tải")
 
-    temp_file_path = f"temp_{file.filename}"
-
-    # Lưu file ảnh tải lên từ Spring Boot vào ổ cứng tạm
-    with open(temp_file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-
     try:
-        # Gọi hàm xử lý AI
-        plates = processor.process_image(temp_file_path)
+        _, img = load_image_from_path(request)
+        plates = processor.process_loaded_image(img)
 
         final_plate = plates[0] if len(plates) > 0 else None
 
@@ -51,13 +68,11 @@ async def detect_plate_api(file: UploadFile = File(...)):
             "confidence": final_plate["confidence"] if final_plate else None,
             "message": "OCR xử lý thành công" if final_plate else "Không đọc được biển số"
         })
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Lỗi xử lý ảnh: {str(e)}")
-    finally:
-        # Luôn dọn dẹp file tạm để tránh rác ổ cứng
-        if os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000)

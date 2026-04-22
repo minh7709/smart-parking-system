@@ -45,14 +45,6 @@ public class TimeWindowCalculator implements FeeCalculationStrategy {
             );
         }
 
-        // Validate time window configuration
-        if (rule.getStartTime() == null || rule.getEndTime() == null) {
-            throw new ValidationException(
-                "startTime and endTime must be provided for time window strategy. " +
-                "Current startTime: " + rule.getStartTime() + ", endTime: " + rule.getEndTime()
-            );
-        }
-
         if (timeIn.toLocalDate().equals(timeOut.toLocalDate())) {
             for(TimeWindowAndProgressiveConfig cfg : rule.getProgressiveConfig()) {
                 if (cfg.getFromHour() == null || cfg.getToHour() == null || cfg.getPricePerHour() == null) {

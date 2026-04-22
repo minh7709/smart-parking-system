@@ -79,7 +79,6 @@ public class DataInitializer implements CommandLineRunner {
                 }
                 defaultRule.setBasePrice(basePrice);
 
-                defaultRule.setStartTime(LocalDateTime.now());
                 defaultRule.setActive(true);
                 defaultRule.setCreatedAt(LocalDateTime.now());
                 defaultRule.setCreator(admin);

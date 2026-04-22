@@ -26,8 +26,6 @@ public class PricingRuleMapper {
                 .vehicleType(entity.getVehicleType())
                 .pricingStrategy(entity.getStrategy())
                 .basePrice(entity.getBasePrice())
-                .startTime(entity.getStartTime())
-                .endTime(entity.getEndTime())
                 .blockMinutes(entity.getBlockMinutes())
                 .thresholdMinutes(entity.getThresholdMinutes())
                 .thresholdPrice(entity.getThresholdPrice())
@@ -52,8 +50,6 @@ public class PricingRuleMapper {
                 .vehicleType(request.getVehicleType())
                 .strategy(request.getPricingStrategy())
                 .basePrice(request.getBasePrice())
-                .startTime(request.getStartTime())
-                .endTime(request.getEndTime())
                 .blockMinutes(request.getBlockMinutes())
                 .thresholdMinutes(request.getThresholdMinutes())
                 .thresholdPrice(request.getThresholdPrice())
@@ -76,8 +72,6 @@ public class PricingRuleMapper {
         entity.setVehicleType(request.getVehicleType());
         entity.setStrategy(request.getPricingStrategy());
         entity.setBasePrice(request.getBasePrice());
-        entity.setStartTime(request.getStartTime());
-        entity.setEndTime(request.getEndTime());
         entity.setBlockMinutes(request.getBlockMinutes());
         entity.setThresholdMinutes(request.getThresholdMinutes());
         entity.setThresholdPrice(request.getThresholdPrice());

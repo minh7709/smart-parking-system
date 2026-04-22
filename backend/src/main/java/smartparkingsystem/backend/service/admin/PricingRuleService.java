@@ -215,7 +215,6 @@ public class PricingRuleService {
                 .ifPresent(currentActiveRule -> {
                     // Nếu tìm thấy, tắt nó đi và chốt thời gian kết thúc
                     currentActiveRule.setActive(false);
-                    currentActiveRule.setEndTime(LocalDateTime.now());
                     pricingRuleRepository.save(currentActiveRule);
                     log.info("Auto-deactivated previous rule id: {} for vehicle type: {}",
                             currentActiveRule.getId(), currentActiveRule.getVehicleType());
@@ -223,8 +222,6 @@ public class PricingRuleService {
 
         // Bật Rule mới lên và ghi nhận thời gian bắt đầu
         newActiveRule.setActive(true);
-        newActiveRule.setStartTime(LocalDateTime.now());
-        newActiveRule.setEndTime(null);
     }
 
     /**

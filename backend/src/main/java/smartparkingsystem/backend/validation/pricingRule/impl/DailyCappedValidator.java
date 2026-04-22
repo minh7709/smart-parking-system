@@ -16,7 +16,7 @@ public class DailyCappedValidator implements PricingStrategyValidator {
             return check;
         }
         if(pricingRuleRequest.getRuleName() == null  ||
-                pricingRuleRequest.getBasePrice() == null || pricingRuleRequest.getStartTime() == null ||
+                pricingRuleRequest.getBasePrice() == null ||
                 pricingRuleRequest.getVehicleType() == null || pricingRuleRequest.getMaxPricePerDay() == null ||
                 pricingRuleRequest.getPenaltyFee() == null) {
             check = false;
@@ -30,6 +30,7 @@ public class DailyCappedValidator implements PricingStrategyValidator {
         return PricingStrategyEnum.DAILY_CAPPED;
     }
 }
+
 /*
  private String ruleName;
  private VehicleTypeEnum vehicleType;

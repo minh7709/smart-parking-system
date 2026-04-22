@@ -31,10 +31,6 @@ public class PricingRuleRequest {
     @DecimalMin(value = "0", inclusive = false, message = "Base price must be greater than 0")
     private BigInteger basePrice;
 
-    private LocalDateTime startTime;
-
-    private LocalDateTime endTime;
-
     @Min(value = 1, message = "Block minutes must be at least 1")
     private Integer blockMinutes;
 

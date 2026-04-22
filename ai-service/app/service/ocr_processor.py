@@ -14,8 +14,8 @@ class OCRProcessor:
         self.ocr = RapidOCR()
         print("Đã tải toàn bộ model AI thành công!")
 
-    def fix_exif_orientation(self, image_path):
-        """Đọc ảnh và tự động xoay đúng chiều thực tế dựa trên EXIF"""
+    def load_image_from_path(self, image_path):
+        """Đọc ảnh từ path và tự động xoay đúng chiều thực tế dựa trên EXIF"""
         try:
             img = Image.open(image_path)
             img = ImageOps.exif_transpose(img)
@@ -24,6 +24,10 @@ class OCRProcessor:
         except Exception as e:
             print(f"Lỗi đọc ảnh: {e}")
             return None
+
+    def fix_exif_orientation(self, image_path):
+        """Giữ tương thích ngược với code cũ."""
+        return self.load_image_from_path(image_path)
 
     def preprocess_yolo(self, img, size=(640, 640)):
         """Chuẩn bị ảnh đầu vào cho YOLOv8"""
@@ -40,11 +44,7 @@ class OCRProcessor:
         indices = cv2.dnn.NMSBoxes(boxes, scores, 0.25, iou_threshold)
         return indices
 
-    def process_image(self, image_path: str):
-        img = self.fix_exif_orientation(image_path)
-        if img is None:
-            return []
-
+    def process_loaded_image(self, img):
         orig_h, orig_w = img.shape[:2]
 
         # --- BƯỚC 1: TÌM BIỂN SỐ BẰNG YOLO ONNX ---
@@ -141,3 +141,9 @@ class OCRProcessor:
                 print(f"Lỗi xử lý RapidOCR: {e}")
 
         return found_plates
+
+    def process_image(self, image_path: str):
+        img = self.load_image_from_path(image_path)
+        if img is None:
+            return []
+        return self.process_loaded_image(img)

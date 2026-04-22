@@ -1,5 +1,6 @@
 package smartparkingsystem.backend.service.guard;
 
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import smartparkingsystem.backend.entity.Incident;
@@ -13,12 +14,18 @@ import smartparkingsystem.backend.service.auth.UserService;
 public class IncidentService {
     private final IncidentRepository incidentRepository;
     private final UserService userService;
+
     public void reportIncident(ParkingSession session, String description, IncidentTypeEnum type) {
+        reportIncident(session, description, type, null);
+    }
+
+    public void reportIncident(ParkingSession session, String description, IncidentTypeEnum type, @Nullable String evidenceUrl) {
         incidentRepository.save(Incident.builder()
                 .parkingSession(session)
                 .description(description)
                 .incidentType(type)
                 .reporter(userService.getCurrentUser())
-                .build());;
+                .evidenceUrl(evidenceUrl != null ? evidenceUrl : "")
+                .build());
     }
 }

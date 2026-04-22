@@ -3,23 +3,21 @@ package smartparkingsystem.backend.service.thirdService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.multipart.MultipartFile;
 import smartparkingsystem.backend.dto.response.ai.AiDetectionResult;
 import smartparkingsystem.backend.dto.response.ai.AiPlateCandidate;
 import smartparkingsystem.backend.exception.AiServiceException;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class AiIntegrationService {
@@ -34,34 +32,23 @@ public class AiIntegrationService {
         this.objectMapper = new ObjectMapper();
     }
 
-    public AiDetectionResult getDetectionResultFromAi(MultipartFile imageFile) {
+    public AiDetectionResult getDetectionResultFromAi(String imageUrl) {
         try {
-            // Validate input
-            if (imageFile == null || imageFile.isEmpty()) {
+            if (imageUrl == null || imageUrl.isBlank()) {
                 throw new AiServiceException("Tập tin hình ảnh trống hoặc không hợp lệ");
             }
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
 
-            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            // Send path in JSON so AI service can read image from absolute path.
+            Map<String, String> body = new HashMap<>();
+            body.put("imageUrl", imageUrl);
+            body.put("imagePath", imageUrl);
 
-            ByteArrayResource fileAsResource = new ByteArrayResource(imageFile.getBytes()) {
-                @Override
-                public String getFilename() {
-                    return imageFile.getOriginalFilename() != null ? imageFile.getOriginalFilename() : "image.jpg";
-                }
-            };
-
-            body.add("file", fileAsResource);
-
-            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                    aiServiceUrl,
-                    requestEntity,
-                    String.class
-            );
+            HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(body, headers);
+            ResponseEntity<String> response = restTemplate.postForEntity(aiServiceUrl, requestEntity, String.class);
 
             if (response.getBody() == null || response.getBody().isBlank()) {
                 throw new AiServiceException("AI Service trả về phản hồi trống");
@@ -78,8 +65,8 @@ public class AiIntegrationService {
     }
 
     // Backward-compatible helper for old callers.
-    public String getLicensePlateFromAi(MultipartFile imageFile) {
-        return getDetectionResultFromAi(imageFile).getPlateNumber();
+    public String getLicensePlateFromAi(String imageUrl) {
+        return getDetectionResultFromAi(imageUrl).getPlateNumber();
     }
 
     private AiDetectionResult parseAiResponse(String responseBody) {
