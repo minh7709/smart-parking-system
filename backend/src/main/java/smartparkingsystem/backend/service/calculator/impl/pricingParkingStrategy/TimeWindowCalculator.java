@@ -1,4 +1,4 @@
-package smartparkingsystem.backend.service.calculator.impl;
+package smartparkingsystem.backend.service.calculator.impl.pricingParkingStrategy;
 
 import org.springframework.stereotype.Component;
 import smartparkingsystem.backend.config.TimeWindowAndProgressiveConfig;
@@ -42,14 +42,6 @@ public class TimeWindowCalculator implements FeeCalculationStrategy {
             throw new ResourceNotFoundException(
                 "Pricing rule with basePrice is required to calculate parking fee. " +
                 "No active pricing rule found for this vehicle type."
-            );
-        }
-
-        // Validate time window configuration
-        if (rule.getStartTime() == null || rule.getEndTime() == null) {
-            throw new ValidationException(
-                "startTime and endTime must be provided for time window strategy. " +
-                "Current startTime: " + rule.getStartTime() + ", endTime: " + rule.getEndTime()
             );
         }
 

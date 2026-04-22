@@ -90,6 +90,7 @@ public class AuthService {
                             .fullName(user.getFullName())
                             .role(user.getRole().toString())
                             .status(user.getStatus().toString())
+                            .phone(user.getPhone())
                             .rememberMe(rememberMe)
                             .build())
                     .build();
@@ -145,6 +146,7 @@ public class AuthService {
                         .fullName(user.getFullName())
                         .role(user.getRole().toString())
                         .status(user.getStatus().toString())
+                        .phone(user.getPhone())
                         .rememberMe(rememberMe)
                         .build())
                 .build();
