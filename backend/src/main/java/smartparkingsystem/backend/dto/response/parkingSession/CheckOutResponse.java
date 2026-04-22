@@ -19,6 +19,7 @@ public class CheckOutResponse {
     private UUID id; //
     private String plateOutOcr; //
     private String finalPlate;
+    private LocalDateTime timeIn;
     private LocalDateTime timeOut; //
     private SessionStatus status; //
     private BigInteger fee; //

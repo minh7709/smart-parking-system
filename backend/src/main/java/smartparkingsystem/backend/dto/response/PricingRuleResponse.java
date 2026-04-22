@@ -23,8 +23,6 @@ public class PricingRuleResponse {
     private VehicleTypeEnum vehicleType;
     private PricingStrategyEnum pricingStrategy;
     private BigInteger basePrice;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
     private Integer blockMinutes;
     private Integer thresholdMinutes;
     private BigInteger thresholdPrice;

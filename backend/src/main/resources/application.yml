@@ -5,7 +5,7 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/parking_db}
     username: ${SPRING_DATASOURCE_USERNAME:admin}
-    password: ${SPRING_DATASOURCE_PASSWORD:password123}
+    password: ${SPRING_DATASOURCE_PASSWORD:dev_password_123}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -20,7 +20,10 @@ spring:
     redis:
       host: ${SPRING_REDIS_HOST:localhost}
       port: ${SPRING_REDIS_PORT:6379}
-
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
 
 server:
   port: 8080
@@ -48,3 +51,10 @@ ai:
 app:
   sms:
     enabled: false
+
+springdoc:
+  swagger-ui:
+    persistAuthorization: true
+
+file:
+    upload-dir: ${FILE_UPLOAD_DIR:C:/Users/hoang/Downloads/smart-parking-system/uploads}

@@ -35,7 +35,7 @@ public class ParkingSessionController {
 
     @PostMapping(value = "/check-out", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<CheckOutResponse>> checkOut(
-            @Valid @RequestPart CheckOutRequest request,
+            @Valid @RequestPart("request") CheckOutRequest request,
             @RequestPart("image") MultipartFile image) {
         CheckOutResponse response = parkingSessionService.processCheckOut(request, image);
         return ResponseEntity.ok(ApiResponse.success(response, "Check-out successful"));
@@ -55,11 +55,12 @@ public class ParkingSessionController {
         return ResponseEntity.ok(ApiResponse.success(null, "Check-out confirmed successfully"));
     }
 
-    @PostMapping("/report-incident/lost-card")
+    @PostMapping(value = "/report-incident/lost-card", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<CheckOutResponse>> reportLostCard(
-            @Valid @RequestBody CheckOutWithoutCardRequest request,
-            @RequestPart("image") MultipartFile image) {
-        CheckOutResponse response = parkingSessionService.reportLostCard(request, image);
+            @Valid @RequestPart("request") CheckOutWithoutCardRequest request,
+            @RequestPart("image") MultipartFile image,
+            @RequestPart(value = "evidenceImage") MultipartFile evidenceImage) {
+        CheckOutResponse response = parkingSessionService.reportLostCard(request, image, evidenceImage);
         return ResponseEntity.ok(ApiResponse.success(response, "Incident reported successfully"));
 
     }

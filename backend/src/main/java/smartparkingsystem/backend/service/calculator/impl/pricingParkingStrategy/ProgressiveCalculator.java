@@ -1,4 +1,4 @@
-package smartparkingsystem.backend.service.calculator.impl;
+package smartparkingsystem.backend.service.calculator.impl.pricingParkingStrategy;
 
 import org.springframework.stereotype.Component;
 import smartparkingsystem.backend.config.TimeWindowAndProgressiveConfig;
@@ -14,7 +14,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class ProgressiveCalculator implements FeeCalculationStrategy {
