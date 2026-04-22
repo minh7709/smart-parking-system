@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import { Card, Button, Space, Tooltip, message, Spin } from "antd";
 import {
   CameraOutlined,
@@ -6,16 +6,53 @@ import {
   SettingOutlined,
   ExpandOutlined,
 } from "@ant-design/icons";
-import axiosClient from "./../../../api/axiosClient";
+import { checkInApi, checkOutApi } from "../api/parkingSession.api";
+import {
+  getAccessToken,
+  getActiveParkingSessionId,
+  saveActiveParkingSessionId,
+  clearActiveParkingSessionId,
+} from "../../../utils/storage";
 
-const CameraCard = ({ title, type, laneId, videoSrc, onSuccess }) => {
+const CameraCard = ({
+  title,
+  type,
+  laneId,
+  videoSrc,
+  onSuccess,
+  vehicleType = "MOTOR",
+}) => {
   const imgRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [detectedPlate, setDetectedPlate] = useState(null);
   const [imgError, setImgError] = useState(false);
   const themeColor = "#ffffff";
+  const normalizeUuid = (value) => {
+    if (!value) {
+      return "";
+    }
 
-  // Hàm chụp ảnh từ thẻ img (frame hiện tại)
+    return String(value).replace(/^"|"$/g, "").trim();
+  };
+
+  const buildAuthRequestOptions = () => {
+    const rawToken = getAccessToken();
+    if (!rawToken) {
+      return {};
+    }
+
+    const normalizedToken = String(rawToken).replace(/^Bearer\s+/i, "").trim();
+    if (!normalizedToken) {
+      return {};
+    }
+
+    return {
+      headers: {
+        Authorization: `Bearer ${normalizedToken}`,
+      },
+    };
+  };
+
   const handleCaptureAndSend = async () => {
     const img = imgRef.current;
     if (!img || !img.complete || img.naturalWidth === 0) {
@@ -23,7 +60,6 @@ const CameraCard = ({ title, type, laneId, videoSrc, onSuccess }) => {
       return;
     }
 
-    // Tạo canvas từ img
     const canvas = document.createElement("canvas");
     canvas.width = img.naturalWidth;
     canvas.height = img.naturalHeight;
@@ -43,30 +79,75 @@ const CameraCard = ({ title, type, laneId, videoSrc, onSuccess }) => {
 
     setLoading(true);
     try {
+      const normalizedLaneId = normalizeUuid(laneId);
+      if (!normalizedLaneId) {
+        message.error("Thieu thong tin lane, vui long chon lai lane.");
+        return;
+      }
+
+      const normalizedVehicleType = String(vehicleType || "MOTOR")
+        .toUpperCase()
+        .trim();
+
+      if (type === "IN" && !["MOTOR", "CAR"].includes(normalizedVehicleType)) {
+        message.error("vehicleType khong hop le. Chi chap nhan MOTOR hoac CAR.");
+        return;
+      }
+
+      const requestPayload =
+        type === "IN"
+          ? {
+              entryLaneId: normalizedLaneId,
+              vehicleType: normalizedVehicleType,
+            }
+          : {
+              exitLaneId: normalizedLaneId,
+              parkingSessionId: normalizeUuid(getActiveParkingSessionId()),
+            };
+
+      if (type === "OUT" && !requestPayload.parkingSessionId) {
+        message.error("Thiếu parkingSessionId. Hãy check-in thành công trước khi check-out.");
+        return;
+      }
+
       const formData = new FormData();
-      const requestPayload = { laneId: laneId };
       formData.append(
         "request",
         new Blob([JSON.stringify(requestPayload)], {
-          type: "application/json",
+          type: "application/json;charset=UTF-8",
         }),
+        "request.json",
       );
       formData.append("image", file);
 
-      const endpoint =
-        type === "IN"
-          ? "/v1/guard/parking-session/check-in"
-          : "/v1/guard/parking-session/check-out";
+      const requestOptions = buildAuthRequestOptions();
 
-      const response = await axiosClient.postForm(endpoint, formData);
+      const response =
+        type === "IN"
+          ? await checkInApi(formData, requestOptions)
+          : await checkOutApi(formData, requestOptions);
 
       if (response?.success) {
-        const plate = response?.data?.plateNumber || "Đã nhận diện";
+        const plate =
+          response?.data?.plateNumber ||
+          response?.data?.finalPlate ||
+          response?.data?.plateInOcr ||
+          response?.data?.plateOutOcr ||
+          "Da nhan dien";
+
+        if (type === "IN" && response?.data?.id) {
+          saveActiveParkingSessionId(response.data.id);
+        }
+
+        if (type === "OUT") {
+          clearActiveParkingSessionId();
+        }
+
         setDetectedPlate(plate);
-        message.success(
-          `${type === "IN" ? "Check-in" : "Check-out"} thành công: ${plate}`,
-        );
-        if (onSuccess) onSuccess(response.data);
+        message.success(`${type === "IN" ? "Check-in" : "Check-out"} thành công: ${plate}`);
+        if (onSuccess) {
+          onSuccess(response.data);
+        }
       } else {
         message.error(response?.message || "Lỗi từ server");
       }
@@ -77,10 +158,6 @@ const CameraCard = ({ title, type, laneId, videoSrc, onSuccess }) => {
       setLoading(false);
     }
   };
-
-  // Nếu có lỗi CORS khi dùng canvas với ảnh từ nguồn ngoài,
-  // bạn cần cấu hình proxy trong vite.config.js (hướng dẫn bên dưới)
-  // Hiện tại code vẫn hoạt động nếu DroidCam cho phép CORS hoặc dùng proxy.
 
   return (
     <Card
@@ -95,14 +172,12 @@ const CameraCard = ({ title, type, laneId, videoSrc, onSuccess }) => {
               boxShadow: `0 0 8px ${themeColor}`,
             }}
           />
-          <span style={{ color: "#fff", fontWeight: 600, letterSpacing: 1 }}>
-            {title}
-          </span>
+          <span style={{ color: "#fff", fontWeight: 600, letterSpacing: 1 }}>{title}</span>
         </div>
       }
       extra={
         <Space size="small">
-          <Tooltip title="Chụp & gửi">
+          <Tooltip title="Chup va gui">
             <Button
               type="primary"
               shape="circle"
@@ -112,21 +187,21 @@ const CameraCard = ({ title, type, laneId, videoSrc, onSuccess }) => {
               style={{ backgroundColor: "#00b96b" }}
             />
           </Tooltip>
-          <Tooltip title="Phóng to">
+          <Tooltip title="Phong to">
             <Button
               type="text"
               shape="circle"
               icon={<ZoomInOutlined style={{ color: "#fff" }} />}
             />
           </Tooltip>
-          <Tooltip title="Cài đặt luồng">
+          <Tooltip title="Cai dat luong">
             <Button
               type="text"
               shape="circle"
               icon={<SettingOutlined style={{ color: "#fff" }} />}
             />
           </Tooltip>
-          <Tooltip title="Mở toàn màn hình">
+          <Tooltip title="Mo toan man hinh">
             <Button
               type="text"
               shape="circle"
@@ -170,9 +245,9 @@ const CameraCard = ({ title, type, laneId, videoSrc, onSuccess }) => {
             }}
           >
             <span>
-              Không thể kết nối camera.
+              Khong the ket noi camera.
               <br />
-              Kiểm tra IP DroidCam
+              Kiem tra IP DroidCam
             </span>
           </div>
         ) : (
@@ -183,10 +258,9 @@ const CameraCard = ({ title, type, laneId, videoSrc, onSuccess }) => {
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
             onError={() => {
               setImgError(true);
-              message.error("Lỗi kết nối camera. Kiểm tra IP DroidCam.");
+              message.error("Loi ket noi camera. Kiem tra IP DroidCam.");
             }}
             onLoad={() => setImgError(false)}
-            // Nếu gặp lỗi CORS khi dùng canvas, hãy bỏ dòng dưới hoặc cấu hình proxy
             crossOrigin="anonymous"
           />
         )}
@@ -194,8 +268,7 @@ const CameraCard = ({ title, type, laneId, videoSrc, onSuccess }) => {
           style={{
             position: "absolute",
             inset: 0,
-            background:
-              "linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 40%)",
+            background: "linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 40%)",
             pointerEvents: "none",
           }}
         />
@@ -210,9 +283,7 @@ const CameraCard = ({ title, type, laneId, videoSrc, onSuccess }) => {
             borderRadius: 4,
           }}
         >
-          <span style={{ color: "#fff", fontSize: 10, fontWeight: 700 }}>
-            LIVE
-          </span>
+          <span style={{ color: "#fff", fontSize: 10, fontWeight: 700 }}>LIVE</span>
         </div>
         {detectedPlate && (
           <div

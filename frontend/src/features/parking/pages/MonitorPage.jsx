@@ -56,6 +56,7 @@ const MonitorPage = () => {
             type="IN"
             title={checkInLane?.laneName || "LÀN VÀO"}
             laneId={checkInLane?.id}
+            vehicleType="MOTOR"
             videoSrc={cameraInUrl}
             onSuccess={(data) => console.log("Check-in success", data)}
           />
@@ -65,6 +66,7 @@ const MonitorPage = () => {
             type="OUT"
             title={checkOutLane?.laneName || "LÀN RA"}
             laneId={checkOutLane?.id}
+            vehicleType="MOTO"
             videoSrc={cameraInUrl} // tạm thời dùng chung, sau này thay bằng camera out riêng
             onSuccess={(data) => console.log("Check-out success", data)}
           />
