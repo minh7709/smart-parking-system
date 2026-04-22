@@ -10,7 +10,7 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: #1e2a38 url('/bg1.jpg') no-repeat;
+  background: #1e2a38 url("bg1.jpg") no-repeat;
   background-size: cover;
   background-position: center;
 }
@@ -80,15 +80,6 @@ body {
   margin-right: 3px;
 }
 
-.remember-forgot a {
-  color: #fff;
-  text-decoration: none;
-}
-
-.remember-forgot a:hover {
-  text-decoration: underline;
-}
-
 .remember-forgot .text-link {
   background: transparent;
   border: none;
@@ -149,6 +140,6 @@ body {
 }
 
 .error-message::before {
-  content: "⚠ ";
+  content: "! ";
   margin-right: 8px;
 }
