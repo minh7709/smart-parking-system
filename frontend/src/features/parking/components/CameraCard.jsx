@@ -20,7 +20,7 @@ const CameraCard = ({
   laneId,
   videoSrc,
   onSuccess,
-  vehicleType = "MOTO",
+  vehicleType = "MOTOR",
 }) => {
   const imgRef = useRef(null);
   const [loading, setLoading] = useState(false);
@@ -85,12 +85,12 @@ const CameraCard = ({
         return;
       }
 
-      const normalizedVehicleType = String(vehicleType || "MOTO")
+      const normalizedVehicleType = String(vehicleType || "MOTOR")
         .toUpperCase()
         .trim();
 
-      if (type === "IN" && !["MOTO", "CAR"].includes(normalizedVehicleType)) {
-        message.error("vehicleType khong hop le. Chi chap nhan MOTO hoac CAR.");
+      if (type === "IN" && !["MOTOR", "CAR"].includes(normalizedVehicleType)) {
+        message.error("vehicleType khong hop le. Chi chap nhan MOTOR hoac CAR.");
         return;
       }
 
