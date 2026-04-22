@@ -70,7 +70,7 @@ public class DataInitializer implements CommandLineRunner {
                     case CAR:
                         basePrice = BigInteger.valueOf(30000);
                         break;
-                    case MOTO:
+                    case MOTOR:
                         basePrice = BigInteger.valueOf(5000);
                         break;
                     default:
@@ -79,7 +79,6 @@ public class DataInitializer implements CommandLineRunner {
                 }
                 defaultRule.setBasePrice(basePrice);
 
-                defaultRule.setStartTime(LocalDateTime.now());
                 defaultRule.setActive(true);
                 defaultRule.setCreatedAt(LocalDateTime.now());
                 defaultRule.setCreator(admin);

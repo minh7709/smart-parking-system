@@ -3,8 +3,8 @@ package smartparkingsystem.backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.CurrentTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import smartparkingsystem.backend.entity.type.SessionStatus;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 
@@ -32,8 +32,9 @@ public class ParkingSession {
     @JoinColumn(name = "exit_lane_id")
     private Lane exitLane;
 
-    @JoinColumn(name = "vehicle_type", nullable = false)
+    @Column(name = "vehicle_type", nullable = false, columnDefinition = "vehicle_type")
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private VehicleTypeEnum vehicleType;
 
     @Column(name = "time_in", nullable = false)
@@ -67,8 +68,8 @@ public class ParkingSession {
     @Column(name = "is_month")
     private boolean month;
 
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", nullable = false, columnDefinition = "session_status")
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private SessionStatus status;
 }
-

@@ -47,8 +47,7 @@ public class PricingRuleController {
             @PathVariable UUID id,
             @Valid @RequestBody PricingRuleRequest request) {
         log.info("Updating pricing rule with id: {}", id);
-        UUID currentUserId = userService.getCurrentUser().getId();
-        PricingRuleResponse response = pricingRuleService.updatePricingRule(id, request, currentUserId);
+        PricingRuleResponse response = pricingRuleService.updatePricingRule(id, request);
         return ResponseEntity.ok(ApiResponse.success(response, "Pricing rule updated successfully"));
     }
 

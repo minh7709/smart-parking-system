@@ -58,8 +58,9 @@ public class ParkingSessionController {
     @PostMapping(value = "/report-incident/lost-card", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<CheckOutResponse>> reportLostCard(
             @Valid @RequestPart("request") CheckOutWithoutCardRequest request,
-            @RequestPart("image") MultipartFile image) {
-        CheckOutResponse response = parkingSessionService.reportLostCard(request, image);
+            @RequestPart("image") MultipartFile image,
+            @RequestPart(value = "evidenceImage") MultipartFile evidenceImage) {
+        CheckOutResponse response = parkingSessionService.reportLostCard(request, image, evidenceImage);
         return ResponseEntity.ok(ApiResponse.success(response, "Incident reported successfully"));
 
     }

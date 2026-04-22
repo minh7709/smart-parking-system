@@ -10,9 +10,6 @@ import java.util.UUID;
 @Data
 @Validated
 public class ConfirmCheckOutRequest {
-    @NotNull(message = "Plate number is required")
-    private String finalPlate;
-
     @NotNull(message = "Payment method is required")
     private PaymentMethod paymentMethod;
 

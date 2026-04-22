@@ -8,7 +8,6 @@ import smartparkingsystem.backend.entity.User;
 import smartparkingsystem.backend.entity.type.PaymentMethod;
 import smartparkingsystem.backend.entity.type.PaymentStatus;
 import smartparkingsystem.backend.repository.InvoiceRepository;
-import smartparkingsystem.backend.repository.ParkingSessionRepository;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
@@ -17,10 +16,12 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class InvoiceService {
     private final InvoiceRepository invoiceRepository;
-    public Invoice createInvoiceForParkingSession(ParkingSession session, BigInteger amount, User user) {
+    public Invoice createInvoiceForParkingSession(ParkingSession session, BigInteger parking_amount, User user) {
         Invoice invoice = new Invoice();
         invoice.setParkingSession(session);
-        invoice.setAmount(amount);
+        invoice.setParkingAmount(parking_amount);
+        invoice.setPenaltyAmount(BigInteger.ZERO);
+        invoice.setTotalAmount(parking_amount);
         invoice.setStatus(PaymentStatus.PENDING);
         invoice.setCashier(user);
         return invoiceRepository.save(invoice);
@@ -30,6 +31,17 @@ public class InvoiceService {
         invoice.setPaymentTime(LocalDateTime.now());
         invoice.setPaymentMethod(paymentMethod);
         invoice.setStatus(status);
+        return invoiceRepository.save(invoice);
+    }
+
+    public Invoice createInvoiceForPenalty(ParkingSession session, BigInteger penaltyAmount, BigInteger parkingAmount, User user) {
+        Invoice invoice = new Invoice();
+        invoice.setParkingSession(session);
+        invoice.setPenaltyAmount(penaltyAmount);
+        invoice.setParkingAmount(parkingAmount);
+        invoice.setTotalAmount(penaltyAmount.add(parkingAmount));
+        invoice.setStatus(PaymentStatus.SUCCESS);
+        invoice.setCashier(user);
         return invoiceRepository.save(invoice);
     }
 }

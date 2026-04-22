@@ -12,19 +12,16 @@ import smartparkingsystem.backend.dto.request.PricingRuleRequest;
 import smartparkingsystem.backend.dto.response.PricingRuleResponse;
 import smartparkingsystem.backend.entity.PricingRule;
 import smartparkingsystem.backend.entity.User;
-import smartparkingsystem.backend.entity.type.PricingStrategyEnum;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 import smartparkingsystem.backend.exception.DuplicateResourceException;
 import smartparkingsystem.backend.exception.InvalidStateException;
 import smartparkingsystem.backend.exception.ResourceNotFoundException;
 import smartparkingsystem.backend.exception.ValidationException;
 import smartparkingsystem.backend.mapper.PricingRuleMapper;
-import smartparkingsystem.backend.repository.UserRepository;
 import smartparkingsystem.backend.repository.PricingRuleRepository;
 import smartparkingsystem.backend.service.auth.UserService;
 import smartparkingsystem.backend.validation.pricingRule.PricingValidatorFactory;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -70,7 +67,7 @@ public class PricingRuleService {
      * Update existing pricing rule
      */
     @Transactional
-    public PricingRuleResponse updatePricingRule(UUID id, PricingRuleRequest request, UUID updatedByUserId) {
+    public PricingRuleResponse updatePricingRule(UUID id, PricingRuleRequest request) {
         log.info("Updating pricing rule with id: {}", id);
 
         PricingRule pricingRule = pricingRuleRepository.findById(id)
@@ -215,7 +212,6 @@ public class PricingRuleService {
                 .ifPresent(currentActiveRule -> {
                     // Nếu tìm thấy, tắt nó đi và chốt thời gian kết thúc
                     currentActiveRule.setActive(false);
-                    currentActiveRule.setEndTime(LocalDateTime.now());
                     pricingRuleRepository.save(currentActiveRule);
                     log.info("Auto-deactivated previous rule id: {} for vehicle type: {}",
                             currentActiveRule.getId(), currentActiveRule.getVehicleType());
@@ -223,8 +219,6 @@ public class PricingRuleService {
 
         // Bật Rule mới lên và ghi nhận thời gian bắt đầu
         newActiveRule.setActive(true);
-        newActiveRule.setStartTime(LocalDateTime.now());
-        newActiveRule.setEndTime(null);
     }
 
     /**

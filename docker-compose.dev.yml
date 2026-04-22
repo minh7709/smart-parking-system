@@ -36,6 +36,7 @@ services:
       # Mount code Python vào để hot-reload (nếu dùng Uvicorn --reload)
       - ./ai-service:/app 
       - ./ai-service/models:/app/models
+      - ./uploads:/app/shared_uploads
     networks:
       - parking-network-dev
   
@@ -53,10 +54,12 @@ services:
       # SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_REDIS_HOST: redis
       AI_SERVICE_URL: http://ai-service:8000/api/v1/ai/detect-plate
+      FILE_UPLOAD_DIR: /app/shared_uploads
       TZ: Asia/Ho_Chi_Minh
     volumes:
       - ./backend:/app          # Mount code Java
       - maven-cache:/root/.m2   # Cache thư viện
+      - ./uploads:/app/shared_uploads
     depends_on:
       - postgres
       - redis

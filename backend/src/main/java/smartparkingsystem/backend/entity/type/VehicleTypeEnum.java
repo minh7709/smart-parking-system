@@ -6,6 +6,6 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum VehicleTypeEnum {
-    CAR ("Xe hơi"), MOTO ("Xe máy");
+    CAR ("Xe hơi"), MOTOR ("Xe máy"), BICYCLE ("Xe đạp");
     private final String label;
 }

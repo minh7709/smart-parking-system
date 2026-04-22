@@ -16,7 +16,6 @@ public class FlatRateValidator implements PricingStrategyValidator {
             return check;
         }
         if(pricingRuleRequest.getRuleName() == null || pricingRuleRequest.getBasePrice() == null
-                || pricingRuleRequest.getStartTime() == null
                 || pricingRuleRequest.getVehicleType() == null
                 || pricingRuleRequest.getPenaltyFee() == null) {
             check = false;

@@ -14,8 +14,8 @@ class OCRProcessor:
         self.ocr = RapidOCR()
         print("Đã tải toàn bộ model AI thành công!")
 
-    def fix_exif_orientation(self, image_path):
-        """Đọc ảnh và tự động xoay đúng chiều thực tế dựa trên EXIF"""
+    def load_image_from_path(self, image_path):
+        """Đọc ảnh từ path và tự động xoay đúng chiều thực tế dựa trên EXIF"""
         try:
             img = Image.open(image_path)
             img = ImageOps.exif_transpose(img)
@@ -24,6 +24,10 @@ class OCRProcessor:
         except Exception as e:
             print(f"Lỗi đọc ảnh: {e}")
             return None
+
+    def fix_exif_orientation(self, image_path):
+        """Giữ tương thích ngược với code cũ."""
+        return self.load_image_from_path(image_path)
 
     def preprocess_yolo(self, img, size=(640, 640)):
         """Chuẩn bị ảnh đầu vào cho YOLOv8"""
@@ -40,11 +44,7 @@ class OCRProcessor:
         indices = cv2.dnn.NMSBoxes(boxes, scores, 0.25, iou_threshold)
         return indices
 
-    def process_image(self, image_path: str):
-        img = self.fix_exif_orientation(image_path)
-        if img is None:
-            return []
-
+    def process_loaded_image(self, img):
         orig_h, orig_w = img.shape[:2]
 
         # --- BƯỚC 1: TÌM BIỂN SỐ BẰNG YOLO ONNX ---
@@ -68,7 +68,8 @@ class OCRProcessor:
         found_plates = []
         # --- BƯỚC 2: CẮT ẢNH VÀ ĐỌC CHỮ BẰNG RAPIDOCR ---
         for i in result_indices:
-            x, y, w, h = boxes[i]
+            idx = int(i) if np.isscalar(i) else int(i[0])
+            x, y, w, h = boxes[idx]
 
             # Tăng padding lên một chút để bao trọn các biển số dài (như 29A-000.03)
             pad_x = int(w * 0.04)
@@ -112,6 +113,7 @@ class OCRProcessor:
                         lines.append(current_line)
 
                     plate_text = ""
+                    kept_confidences = []
                     for line in lines:
                         line.sort(key=lambda r: r[0][0][0])
                         for r in line:
@@ -121,12 +123,27 @@ class OCRProcessor:
                             # SỬA LỖI 2: Hạ ngưỡng tin cậy xuống 0.2 để không bị mất cụm số có chứa dấu chấm/gạch
                             if conf > 0.3:
                                 plate_text += text
+                                kept_confidences.append(float(conf))
 
                     # Làm sạch: Chỉ giữ lại chữ cái và số
                     clean_text = "".join(c for c in plate_text if c.isalnum())
-                    if clean_text:
-                        found_plates.append(clean_text)
+                    if clean_text and kept_confidences:
+                        # Gộp độ tin cậy từ YOLO (phát hiện) và OCR (nhận dạng) để có 1 điểm confidence dễ dùng.
+                        ocr_conf = float(np.mean(kept_confidences))
+                        final_conf = (float(scores[idx]) + ocr_conf) / 2.0
+                        found_plates.append(
+                            {
+                                "plate": clean_text,
+                                "confidence": round(final_conf, 4),
+                            }
+                        )
             except Exception as e:
                 print(f"Lỗi xử lý RapidOCR: {e}")
 
         return found_plates
+
+    def process_image(self, image_path: str):
+        img = self.load_image_from_path(image_path)
+        if img is None:
+            return []
+        return self.process_loaded_image(img)

@@ -14,7 +14,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TYPE user_role AS ENUM ('ADMIN', 'GUARD');
 CREATE TYPE user_status AS ENUM ('ACTIVE', 'INACTIVE');
 
-CREATE TYPE vehicle_type_enum AS ENUM ('CAR', 'MOTO', 'BICYCLE');
+CREATE TYPE vehicle_type_enum AS ENUM ('CAR', 'MOTOR', 'BICYCLE');
 CREATE TYPE sub_type AS ENUM ('MONTHLY', 'QUARTERLY', 'YEARLY');
 CREATE TYPE sub_status AS ENUM ('PENDING', 'ACTIVE', 'EXPIRED', 'CANCELLED');
 CREATE TYPE lane_type_enum AS ENUM ('IN', 'OUT');
@@ -66,12 +66,25 @@ CREATE TABLE vehicle (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 9. Bảng cấu hình gói vé (Dành cho Admin thiết lập giá)
+CREATE TABLE subscription_pricing (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    vehicle_type vehicle_type_enum NOT NULL, 
+    duration_type sub_type NOT NULL,         
+    price BIGINT NOT NULL,                   
+    description TEXT,                        
+    is_active BOOLEAN DEFAULT TRUE,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(vehicle_type, duration_type) 
+);
+
 -- 3. Bảng subscription (Vé tháng)
 CREATE TABLE subscription (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vehicle_id UUID NOT NULL REFERENCES vehicle(id),
-    type sub_type NOT NULL,
-    price BIGINT NOT NULL,
+    pricing_id UUID NOT NULL REFERENCES subscription_pricing(id), 
+    price_at_purchase BIGINT NOT NULL,
+    
     start_date TIMESTAMP NOT NULL,
     end_date TIMESTAMP NOT NULL,
     status sub_status DEFAULT 'PENDING',
@@ -94,9 +107,7 @@ CREATE TABLE pricing_rule (
     rule_name VARCHAR(100) NOT NULL,              
     vehicle_type vehicle_type_enum NOT NULL,      
     strategy pricing_strategy_enum NOT NULL,      
-    base_price BIGINT NOT NULL,                   
-    start_time TIME,                              
-    end_time TIME,                                
+    base_price BIGINT NOT NULL,                                          
     block_minutes INT,                            
     threshold_minutes INT,                        
     threshold_price BIGINT,                       
@@ -133,8 +144,9 @@ CREATE TABLE invoice (
     session_id UUID REFERENCES parking_session(id), 
     sub_id UUID REFERENCES subscription(id),             
     cashier_id UUID REFERENCES users(id),               
-    amount BIGINT NOT NULL,                                 
-    penalty_amount BIGINT DEFAULT 0,                        
+    parking_amount BIGINT NOT NULL,                                 
+    penalty_amount BIGINT DEFAULT 0,   
+    total_amount BIGINT NOT NULL,                     
     payment_time TIMESTAMP,
     payment_method VARCHAR(20),
     transaction_ref VARCHAR(50),
@@ -148,7 +160,8 @@ CREATE TABLE incident (
     reported_by UUID REFERENCES users(id),
     incident_type incident_type_enum NOT NULL, 
     description TEXT,
-    reported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    reported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    evidence_url TEXT
 );
 
 -- -- 9. Bảng audit_log (Nhật ký giám sát hệ thống - UC5)
@@ -164,6 +177,7 @@ CREATE TABLE incident (
 --     device_info VARCHAR(255),
 --     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP      
 -- );
+
 
 -- =========================================================================
 -- 4. ĐÁNH CHỈ MỤC (INDEXING) - TỐI ƯU HIỆU SUẤT TRUY VẤN

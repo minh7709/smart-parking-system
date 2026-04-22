@@ -28,6 +28,7 @@ public class LoginResponse {
         private UUID id;
         private String username;
         private String fullName;
+        private String phone;
         private String role;
         private String status;
         private Boolean rememberMe; // Remember Me status
