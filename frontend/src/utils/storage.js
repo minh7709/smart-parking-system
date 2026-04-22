@@ -43,3 +43,17 @@ export const clearLaneSelection = () => {
   localStorage.removeItem('selectedCheckInLane');
   localStorage.removeItem('selectedCheckOutLane');
 };
+
+export const saveActiveParkingSessionId = (parkingSessionId) => {
+  if (!parkingSessionId) {
+    return;
+  }
+  localStorage.setItem('activeParkingSessionId', String(parkingSessionId));
+};
+
+export const getActiveParkingSessionId = () =>
+  localStorage.getItem('activeParkingSessionId');
+
+export const clearActiveParkingSessionId = () => {
+  localStorage.removeItem('activeParkingSessionId');
+};

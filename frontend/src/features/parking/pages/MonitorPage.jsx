@@ -22,7 +22,7 @@ const MonitorPage = () => {
   //   : null;
 
   // Cách 2: dùng IP cứng để test (chú ý: IP này phải đúng và reachable)
-  const cameraInUrl = "http://10.251.11.26:4747/video";
+  const cameraInUrl = "http://192.168.14.201:4747/video";
 
   const [cameraStatus, setCameraStatus] = useState("checking");
 
@@ -57,6 +57,7 @@ const MonitorPage = () => {
             type="IN"
             title={checkInLane?.laneName || "LÀN VÀO"}
             laneId={checkInLane?.id}
+            vehicleType="MOTO"
             videoSrc={cameraInUrl}
             onSuccess={(data) => console.log("Check-in success", data)}
           />
@@ -66,6 +67,7 @@ const MonitorPage = () => {
             type="OUT"
             title={checkOutLane?.laneName || "LÀN RA"}
             laneId={checkOutLane?.id}
+            vehicleType="MOTO"
             videoSrc={cameraInUrl} // tạm thời dùng chung, sau này thay bằng camera out riêng
             onSuccess={(data) => console.log("Check-out success", data)}
           />
