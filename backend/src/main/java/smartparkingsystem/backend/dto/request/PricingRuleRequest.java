@@ -8,7 +8,6 @@ import smartparkingsystem.backend.entity.type.PricingStrategyEnum;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 
 import java.math.BigInteger;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Data

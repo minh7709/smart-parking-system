@@ -8,7 +8,6 @@ import smartparkingsystem.backend.entity.User;
 import smartparkingsystem.backend.entity.type.PaymentMethod;
 import smartparkingsystem.backend.entity.type.PaymentStatus;
 import smartparkingsystem.backend.repository.InvoiceRepository;
-import smartparkingsystem.backend.repository.ParkingSessionRepository;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
