@@ -46,13 +46,13 @@ const ChangePasswordPage = () => {
   };
 
   return (
-    <AppLayout>
+    <>
       <Card
         title="Đổi mật khẩu"
         style={{
           maxWidth: 500,
           margin: "0 auto",
-          background: "#141414",
+          background: "#909090",
           border: "1px solid #1f1f1f",
           borderRadius: 16,
         }}
@@ -65,7 +65,7 @@ const ChangePasswordPage = () => {
           showIcon
           style={{
             marginBottom: 24,
-            background: "#1a1a1a",
+            background: "#ff1a1a",
             border: "1px solid #1890ff",
           }}
         />
@@ -80,7 +80,7 @@ const ChangePasswordPage = () => {
               prefix={<LockOutlined />}
               placeholder="Nhập mật khẩu cũ"
               style={{
-                background: "#1a1a1a",
+                background: "#ffffff",
                 border: "1px solid #333",
                 color: "#fff",
               }}
@@ -96,7 +96,7 @@ const ChangePasswordPage = () => {
               prefix={<KeyOutlined />}
               placeholder="Nhập mật khẩu mới"
               style={{
-                background: "#1a1a1a",
+                background: "#fcfcfc",
                 border: "1px solid #333",
                 color: "#fff",
               }}
@@ -114,7 +114,7 @@ const ChangePasswordPage = () => {
               prefix={<LockOutlined />}
               placeholder="Xác nhận mật khẩu mới"
               style={{
-                background: "#1a1a1a",
+                background: "#ffffff",
                 border: "1px solid #333",
                 color: "#fff",
               }}
@@ -133,7 +133,7 @@ const ChangePasswordPage = () => {
           </Form.Item>
         </Form>
       </Card>
-    </AppLayout>
+    </>
   );
 };
 

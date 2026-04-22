@@ -15,14 +15,13 @@ const MonitorPage = () => {
   const checkOutLane =
     location.state?.checkOutLane || savedSelection.checkOutLane;
 
-  // THAY IP CỦA BẠN VÀO ĐÂY
-  // Cách 1: dùng IP từ lane (nếu có)
-  // const cameraInUrl = checkInLane?.ipCamera
-  //   ? `http://${checkInLane.ipCamera}:4747/video`
-  //   : null;
-
-  // Cách 2: dùng IP cứng để test (chú ý: IP này phải đúng và reachable)
-  const cameraInUrl = "http://10.251.11.26:4747/video";
+  const cameraInUrl = checkInLane?.ipCamera
+    ? `http://${checkInLane.ipCamera}:4747/video`
+    : null;
+  const cameraOutUrl = checkOutLane?.ipCamera
+    ? `http://${checkOutLane.ipCamera}:4747/video`
+    : null;
+  // const cameraInUrl = "http://10.251.11.26:4747/video";
 
   const [cameraStatus, setCameraStatus] = useState("checking");
 
@@ -40,7 +39,7 @@ const MonitorPage = () => {
   }
 
   return (
-    <AppLayout>
+    <>
       {cameraStatus === "error" && (
         <Alert
           message="Không kết nối được camera"
@@ -75,7 +74,7 @@ const MonitorPage = () => {
         <HistoryTable />
       </div>
       <Stats />
-    </AppLayout>
+    </>
   );
 };
 

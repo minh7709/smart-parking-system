@@ -32,83 +32,81 @@ const ProfilePage = () => {
   }
 
   return (
-    <AppLayout>
-      <Card
-        title="Thông tin cá nhân"
-        style={{
-          maxWidth: 800,
-          margin: "0 auto",
-          background: "#141414",
-          border: "1px solid #1f1f1f",
-          borderRadius: 16,
-        }}
-        headStyle={{ borderBottom: "1px solid #1f1f1f", color: "#fff" }}
+    <Card
+      title="Thông tin cá nhân"
+      style={{
+        maxWidth: 800,
+        margin: "0 auto",
+        background: "#141414",
+        border: "1px solid #1f1f1f",
+        borderRadius: 16,
+      }}
+      headStyle={{ borderBottom: "1px solid #1f1f1f", color: "#fff" }}
+    >
+      <div style={{ textAlign: "center", marginBottom: 24 }}>
+        <Avatar
+          size={80}
+          icon={<UserOutlined />}
+          style={{ backgroundColor: "#1890ff" }}
+        />
+      </div>
+
+      <Descriptions
+        bordered
+        column={1}
+        labelStyle={{ color: "#aaa", background: "#1a1a1a" }}
+        contentStyle={{ color: "#fff", background: "#141414" }}
       >
-        <div style={{ textAlign: "center", marginBottom: 24 }}>
-          <Avatar
-            size={80}
-            icon={<UserOutlined />}
-            style={{ backgroundColor: "#1890ff" }}
-          />
-        </div>
-
-        <Descriptions
-          bordered
-          column={1}
-          labelStyle={{ color: "#aaa", background: "#1a1a1a" }}
-          contentStyle={{ color: "#fff", background: "#141414" }}
+        <Descriptions.Item
+          label={
+            <>
+              <UserOutlined /> Họ và tên
+            </>
+          }
         >
-          <Descriptions.Item
-            label={
-              <>
-                <UserOutlined /> Họ và tên
-              </>
-            }
-          >
-            {user.fullName || "Chưa cập nhật"}
-          </Descriptions.Item>
-          <Descriptions.Item
-            label={
-              <>
-                <IdcardOutlined /> Tên đăng nhập
-              </>
-            }
-          >
-            {user.username || "Chưa cập nhật"}
-          </Descriptions.Item>
-          <Descriptions.Item
-            label={
-              <>
-                <MailOutlined /> Email
-              </>
-            }
-          >
-            {user.email || "Chưa cập nhật"}
-          </Descriptions.Item>
-          <Descriptions.Item
-            label={
-              <>
-                <PhoneOutlined /> Số điện thoại
-              </>
-            }
-          >
-            {user.phone || "Chưa cập nhật"}
-          </Descriptions.Item>
-          <Descriptions.Item label="Vai trò">
-            {user.role || "USER"}
-          </Descriptions.Item>
-          <Descriptions.Item label="Trạng thái">
-            {user.status || "ACTIVE"}
-          </Descriptions.Item>
-        </Descriptions>
+          {user.fullName || "Chưa cập nhật"}
+        </Descriptions.Item>
+        <Descriptions.Item
+          label={
+            <>
+              <IdcardOutlined /> Tên đăng nhập
+            </>
+          }
+        >
+          {user.username || "Chưa cập nhật"}
+        </Descriptions.Item>
+        <Descriptions.Item
+          label={
+            <>
+              <MailOutlined /> Email
+            </>
+          }
+        >
+          {user.email || "Chưa cập nhật"}
+        </Descriptions.Item>
+        <Descriptions.Item
+          label={
+            <>
+              <PhoneOutlined /> Số điện thoại
+            </>
+          }
+        >
+          {user.phone || "Chưa cập nhật"}
+        </Descriptions.Item>
+        <Descriptions.Item label="Vai trò">
+          {user.role || "USER"}
+        </Descriptions.Item>
+        <Descriptions.Item label="Trạng thái">
+          {user.status || "ACTIVE"}
+        </Descriptions.Item>
+      </Descriptions>
 
-        <div style={{ textAlign: "center", marginTop: 24 }}>
-          <Button onClick={() => navigate("/change-password")} type="primary">
-            Đổi mật khẩu
-          </Button>
-        </div>
-      </Card>
-    </AppLayout>
+      <div style={{ textAlign: "center", marginTop: 24 }}>
+        <Button onClick={() => navigate("/change-password")} type="primary">
+          Đổi mật khẩu
+        </Button>
+      </div>
+    </Card>
   );
 };
 
