@@ -1,8 +1,10 @@
 package smartparkingsystem.backend.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 import smartparkingsystem.backend.entity.type.SubType;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
@@ -20,10 +22,18 @@ import java.util.UUID;
                 )
         }
 )
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class SubscriptionPricing {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @Column(name = "pricing_name", nullable = false, unique = true, length = 100)
+    private String pricingName;
 
     @Column(name = "vehicle_type", nullable = false, columnDefinition = "vehicle_type_enum")
     @Enumerated(EnumType.STRING)
@@ -44,7 +54,11 @@ public class SubscriptionPricing {
     @Column(name = "is_active", nullable = false)
     private Boolean active;
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "created_at", nullable = false)
     @CreationTimestamp
-    private LocalDateTime UpdatedAt;
+    private LocalDateTime createdAt;
+
+    @ManyToOne
+    @JoinColumn(name = "created_by", nullable = false)
+    private User creator;
 }

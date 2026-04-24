@@ -19,6 +19,7 @@ import java.util.UUID;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SubscriptionPricingResponse {
     private UUID id;
+    private String pricingName;
     private VehicleTypeEnum vehicleType;
     private SubType durationType;
     private BigInteger price;

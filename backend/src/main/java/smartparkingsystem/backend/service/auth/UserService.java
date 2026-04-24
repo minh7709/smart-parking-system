@@ -41,7 +41,7 @@ public class UserService {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         UUID userId = userDetails.getId();
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByIdAndDeletedFalse(userId)
                 .orElseThrow(() -> {
                     log.warn("User not found in database: {}", userId);
                     return new ResourceNotFoundException("User not found");

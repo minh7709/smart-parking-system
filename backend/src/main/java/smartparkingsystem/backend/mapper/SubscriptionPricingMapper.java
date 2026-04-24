@@ -36,7 +36,7 @@ public class SubscriptionPricingMapper {
                 .active(request.getActive() != null && request.getActive())
                 .build();
     }
-    public void updateEntity(SubscriptionPricingRequest request, SubscriptionPricing entity) {
+    public void updateEntity(SubscriptionPricing entity, SubscriptionPricingRequest request) {
         if (entity == null || request == null) {
             return;
         }
