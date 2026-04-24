@@ -1,4 +1,4 @@
-package smartparkingsystem.backend.dto.request;
+package smartparkingsystem.backend.dto.request.user;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -9,14 +9,10 @@ import smartparkingsystem.backend.entity.type.UserRole;
 import smartparkingsystem.backend.entity.type.UserStatus;
 
 @Data
-public class UserCreateRequest {
+public class UserUpdateRequest {
     @NotBlank(message = "Username must not be blank")
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     private String username;
-
-    @NotBlank(message = "Password must not be blank")
-    @Size(min = 8, max = 100, message = "Password must be between 8 and 100 characters")
-    private String password;
 
     @NotBlank(message = "Full name must not be blank")
     @Size(max = 100, message = "Full name must be at most 100 characters")

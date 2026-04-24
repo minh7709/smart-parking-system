@@ -12,12 +12,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-import smartparkingsystem.backend.dto.request.auth.LoginRequest;
-import smartparkingsystem.backend.dto.request.auth.OtpVerifyRequest;
-import smartparkingsystem.backend.dto.request.auth.RefreshTokenRequest;
+import smartparkingsystem.backend.dto.request.auth.*;
 import smartparkingsystem.backend.dto.request.PhoneRequest;
-import smartparkingsystem.backend.dto.request.auth.ResetPasswordRequest;
-import smartparkingsystem.backend.dto.request.auth.LogoutRequest;
 import smartparkingsystem.backend.dto.response.LoginResponse;
 import smartparkingsystem.backend.entity.User;
 import smartparkingsystem.backend.service.auth.AuthService;
@@ -126,4 +122,12 @@ public class AuthController {
         authService.resetPasswordHandler(request);
         return ResponseEntity.ok(ApiResponse.success(null,"Password reset successful"));
     }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'GUARD')")
+    @GetMapping("/change-password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(ChangePasswordRequest request) {
+        userService.changePasswordHandler(request);
+        return ResponseEntity.ok(ApiResponse.success(null,"Password changed successfully"));
+    }
+
 }

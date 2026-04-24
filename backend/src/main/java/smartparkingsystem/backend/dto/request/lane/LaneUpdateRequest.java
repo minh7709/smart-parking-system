@@ -1,4 +1,4 @@
-package smartparkingsystem.backend.dto.request;
+package smartparkingsystem.backend.dto.request.lane;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
