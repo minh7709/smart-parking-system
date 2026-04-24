@@ -13,6 +13,7 @@ import {
   message,
   Space,
   Divider,
+  Checkbox,
 } from "antd";
 import {
   PlusOutlined,
@@ -35,9 +36,12 @@ const PricingRuleConfig = () => {
     try {
       setLoading(true);
       const res = await adminApi.getPricingRules();
-      // Không cần lọc nữa, lấy toàn bộ 5 chiến thuật hiển thị ra bảng
-      setRules(res.data || []);
+      // res.data is the ApiResponse.data (which is a Page object)
+      // the actual array is in res.data.content
+      const dataArray = res.data?.content || res.data || [];
+      setRules(dataArray);
     } catch (error) {
+      console.error("Fetch rules error:", error);
       message.error("Không thể tải danh sách cấu hình");
     } finally {
       setLoading(false);
@@ -51,18 +55,53 @@ const PricingRuleConfig = () => {
   const handleFinish = async (values) => {
     try {
       const payload = {
-        ...values,
-        startTime: values.startTime ? values.startTime.toISOString() : null,
-        // Ép basePrice về null nếu là Lũy tiến
-        basePrice:
-          values.pricingStrategy === "PROGRESSIVE" ? null : values.basePrice,
-        // Chỉ gửi mảng cấu hình động nếu chọn đúng 2 chiến thuật này
-        progressiveConfig: ["PROGRESSIVE", "TIME_WINDOW"].includes(
-          values.pricingStrategy,
-        )
-          ? values.progressiveConfig
+        ruleName: values.ruleName,
+        vehicleType: values.vehicleType,
+        pricingStrategy: values.pricingStrategy,
+        penaltyFee: values.penaltyFee,
+        isActive: true,
+        startTime: values.startTime
+          ? values.startTime.format("YYYY-MM-DDTHH:mm:ss")
           : null,
       };
+
+      // Các trường chung (không dùng cho PROGRESSIVE)
+      if (values.pricingStrategy !== "PROGRESSIVE") {
+        payload.basePrice = values.basePrice;
+      }
+      if (values.pricingStrategy === "ROLLING_BLOCK") {
+        payload.blockMinutes = values.blockMinutes;
+      }
+      if (values.pricingStrategy === "DAILY_CAPPED") {
+        payload.maxPricePerDay = values.maxPricePerDay;
+      }
+
+      // Xử lý progressiveConfig riêng
+      if (values.pricingStrategy === "PROGRESSIVE") {
+        const configArray = values.progressiveConfig || [];
+        if (configArray.length === 0) {
+          message.error("Vui lòng thêm ít nhất 1 mốc giá cho Lũy tiến!");
+          return;
+        }
+        // Chuyển đổi sang { timeMilestone, price }
+        payload.progressiveConfig = configArray.map((item) => ({
+          timeMilestone: item.fromHour * 60, // giả sử fromHour là số giờ, muốn phút thì *60
+          price: item.pricePerHour,
+        }));
+      } else if (values.pricingStrategy === "TIME_WINDOW") {
+        const configArray = values.progressiveConfig || [];
+        if (configArray.length === 0 || configArray.length > 2) {
+          message.error("Cần 1 hoặc 2 mốc cho Khung giờ!");
+          return;
+        }
+        payload.progressiveConfig = configArray.map((item) => ({
+          fromHour: item.fromHour,
+          toHour: item.toHour,
+          pricePerHour: item.pricePerHour,
+          isFixed: item.isFixed || false,
+        }));
+      }
+      // Gọi API
 
       await adminApi.createPricingRule(payload);
       message.success("Lưu cấu hình thành công!");
@@ -70,10 +109,14 @@ const PricingRuleConfig = () => {
       form.resetFields();
       fetchRules();
     } catch (error) {
-      message.error(
-        "Lỗi: " +
-          (error.response?.data?.message || "Kiểm tra lại dữ liệu nhập!"),
-      );
+      console.error("Lưu cấu hình thất bại:", error);
+      let errorMsg = error?.message || "Lỗi máy chủ!";
+      if (error?.payload?.message) errorMsg = error.payload.message;
+      if (error?.status === 409) {
+        message.warning("Tên cấu hình đã tồn tại. Vui lòng đổi tên khác.");
+      } else {
+        message.error("Lỗi: " + errorMsg);
+      }
     }
   };
 
@@ -177,7 +220,7 @@ const PricingRuleConfig = () => {
             >
               <Select placeholder="Chọn xe">
                 <Option value="CAR">Ô tô</Option>
-                <Option value="MOTORBIKE">Xe máy</Option>
+                <Option value="MOTOR">Xe máy</Option>
                 <Option value="BICYCLE">Xe đạp</Option>
               </Select>
             </Form.Item>
@@ -203,7 +246,7 @@ const PricingRuleConfig = () => {
             </Form.Item>
           </Space>
 
-          <Divider orientation="left" plain>
+          <Divider titlePlacement="left" plain>
             Thông số chi tiết
           </Divider>
 
@@ -287,23 +330,52 @@ const PricingRuleConfig = () => {
                       >
                         <Form.Item
                           {...restField}
-                          name={[name, "timeMilestone"]}
-                          label="Phút/Giờ (Mốc)"
+                          name={[name, "fromHour"]}
+                          label="Từ giờ"
                           rules={[{ required: true }]}
                         >
-                          <InputNumber placeholder="VD: 60" />
+                          <InputNumber
+                            placeholder="VD: 0"
+                            style={{ width: 90 }}
+                          />
                         </Form.Item>
+
                         <Form.Item
                           {...restField}
-                          name={[name, "price"]}
-                          label="Giá (VNĐ)"
+                          name={[name, "toHour"]}
+                          label="Đến giờ"
                           rules={[{ required: true }]}
                         >
-                          <InputNumber placeholder="VD: 15000" />
+                          <InputNumber
+                            placeholder="VD: 6"
+                            style={{ width: 90 }}
+                          />
                         </Form.Item>
+
+                        <Form.Item
+                          {...restField}
+                          name={[name, "pricePerHour"]}
+                          label="Giá/Giờ (VNĐ)"
+                          rules={[{ required: true }]}
+                        >
+                          <InputNumber
+                            placeholder="VD: 15000"
+                            style={{ width: 120 }}
+                          />
+                        </Form.Item>
+
+                        <Form.Item
+                          {...restField}
+                          name={[name, "isFixed"]}
+                          valuePropName="checked"
+                          style={{ paddingTop: 30 }}
+                        >
+                          <Checkbox>Cố định</Checkbox>
+                        </Form.Item>
+
                         <MinusCircleOutlined
                           onClick={() => remove(name)}
-                          style={{ color: "red" }}
+                          style={{ color: "red", marginTop: 40 }}
                         />
                       </Space>
                     ))}

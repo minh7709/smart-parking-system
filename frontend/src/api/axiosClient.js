@@ -115,16 +115,18 @@ const tryRefreshToken = async () => {
   return refreshPromise;
 };
 
-const executeRequest = (method, path, body, options = {}) =>
-  fetch(buildUrl(path), {
+const executeRequest = (method, path, body, options = {}) => {
+  const { headers: optHeaders, ...restOptions } = options;
+  return fetch(buildUrl(path), {
     method,
     headers: cleanHeaders({
       ...buildAuthHeaders(),
-      ...(options.headers || {}),
+      ...(optHeaders || {}),
     }),
     body,
-    ...options,
+    ...restOptions,
   });
+};
 
 const request = async (method, path, body, options = {}) => {
   const canRetryWithRefresh = options.retryOn401 !== false;

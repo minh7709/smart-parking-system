@@ -19,7 +19,7 @@ public class ProgressiveValidator implements PricingStrategyValidator {
                 pricingRuleRequest.getPenaltyFee() == null) {
             check = false;
         }
-        pricingRuleRequest.setBasePrice(null);
+        pricingRuleRequest.setBasePrice(java.math.BigInteger.ZERO);
         pricingRuleRequest.setMaxPricePerDay(null);
         pricingRuleRequest.setBlockMinutes(null);
         pricingRuleRequest.setThresholdPrice(null);

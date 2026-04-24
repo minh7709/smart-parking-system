@@ -38,7 +38,7 @@ public class DataInitializer implements CommandLineRunner {
             admin.setUsername("admin");
 
             // QUAN TRỌNG: Phải mã hóa mật khẩu trước khi lưu
-            admin.setPassword(passwordEncoder.encode("12345678Aa"));
+            admin.setPassword(passwordEncoder.encode("123456Aa"));
 
             admin.setRole(UserRole.ADMIN);
             admin.setFullName("System Administrator");
@@ -47,7 +47,7 @@ public class DataInitializer implements CommandLineRunner {
 
             User guard = new User();
             guard.setUsername("guard");
-            guard.setPassword(passwordEncoder.encode("12345678Aa"));
+            guard.setPassword(passwordEncoder.encode("123456Aa"));
             guard.setRole(UserRole.GUARD);
             guard.setFullName("System Guard");
             guard.setPhone("0987654321");
