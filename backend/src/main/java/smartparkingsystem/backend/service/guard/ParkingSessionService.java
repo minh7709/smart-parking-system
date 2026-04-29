@@ -11,6 +11,7 @@ import smartparkingsystem.backend.dto.request.parkingSessionRequest.*;
 import smartparkingsystem.backend.dto.response.ai.AiDetectionResult;
 import smartparkingsystem.backend.dto.response.parkingSession.CheckInResponse;
 import smartparkingsystem.backend.dto.response.parkingSession.CheckOutResponse;
+import smartparkingsystem.backend.dto.response.parkingSession.ParkingSessionResponse;
 import smartparkingsystem.backend.entity.Invoice;
 import smartparkingsystem.backend.entity.Lane;
 import smartparkingsystem.backend.entity.ParkingSession;
@@ -37,6 +38,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -246,21 +248,9 @@ public class ParkingSessionService {
         }
     }
 
-    public CheckInResponse getParkingSessionByPlate(String plate) {
-        ParkingSession session = parkingSessionRepository.findFirstByStatusAndFinalPlateIgnoreCase(
-                        SessionStatus.PARKED,
-                        plate
-                )
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe đang mở với biển số: " + plate));
-
-        return parkingSessionMapper.toCheckInResponse(session);
-    }
-
-    public Page<CheckInResponse> getAllParkingSessions(Pageable pageable, SessionStatus status) {
+    public Page<CheckInResponse> getAllParkingSessions(Pageable pageable) {
         Pageable safePageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
-        Page<ParkingSession> page = status == null
-                ? parkingSessionRepository.findAll(safePageable)
-                : parkingSessionRepository.findByStatus(status, safePageable);
+        Page<ParkingSession> page = parkingSessionRepository.findByStatus(SessionStatus.PARKED, safePageable);
 
         return page.map(parkingSessionMapper::toCheckInResponse);
     }

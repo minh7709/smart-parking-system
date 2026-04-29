@@ -14,8 +14,12 @@ import smartparkingsystem.backend.dto.request.parkingSessionRequest.*;
 import smartparkingsystem.backend.dto.response.ApiResponse;
 import smartparkingsystem.backend.dto.response.parkingSession.CheckInResponse;
 import smartparkingsystem.backend.dto.response.parkingSession.CheckOutResponse;
+import smartparkingsystem.backend.dto.response.parkingSession.ParkingSessionResponse;
+import smartparkingsystem.backend.entity.ParkingSession;
 import smartparkingsystem.backend.entity.type.SessionStatus;
 import smartparkingsystem.backend.service.guard.ParkingSessionService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/guard/parking-session")
@@ -65,16 +69,17 @@ public class ParkingSessionController {
 
     }
     @GetMapping("/{plate}")
-    public ResponseEntity<ApiResponse<CheckInResponse>> getParkingSessionByPlate(
-            @PathVariable @Valid String plate) {
-        CheckInResponse response = parkingSessionService.getParkingSessionByPlate(plate);
+    public ResponseEntity<ApiResponse<Page<ParkingSessionResponse>>> getParkingSessionByPlate(
+            @PathVariable @Valid String plate,
+            @RequestParam(required = false) SessionStatus status) {
+        Page<ParkingSessionResponse> response = parkingSessionService.getParkingSessionByPlate(plate, status);
         return ResponseEntity.ok(ApiResponse.success(response, "Parking session retrieved successfully"));
     }
     @GetMapping
     public ResponseEntity<ApiResponse<Page<CheckInResponse>>> getAllParkingSessions(
             @RequestParam(required = false) SessionStatus status,
             Pageable pageable) {
-        Page<CheckInResponse> page = parkingSessionService.getAllParkingSessions(pageable, status);
+        Page<CheckInResponse> page = parkingSessionService.getAllParkingSessions(pageable);
         return ResponseEntity.ok(ApiResponse.success(page, "Parking sessions retrieved successfully"));
     }
 }

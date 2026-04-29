@@ -2,7 +2,7 @@ package smartparkingsystem.backend.entity;
 
 import jakarta.persistence.*;
 import jdk.jfr.Timestamp;
-import lombok.Data;
+import lombok.*;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 
 import java.time.LocalDateTime;
@@ -11,6 +11,9 @@ import java.util.UUID;
 @Entity
 @Table(name = "vehicle")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Vehicle {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -33,7 +36,7 @@ public class Vehicle {
     private String customerPhone;
 
     @Column(name = "is_deleted", nullable = false)
-    private boolean isDeleted;
+    private boolean deleted;
 
     @Column(name = "created_at", nullable = false)
     @Timestamp
