@@ -5,6 +5,7 @@ import { AppLayout } from "../../../components/Layout/AppLayout";
 import CameraCard from "../components/CameraCard";
 import HistoryTable from "../components/HistoryTable";
 import Stats from "../components/Stats";
+import ConfirmModal from "../components/ConfirmModal";
 import { getLaneSelection } from "../../../utils/storage";
 
 const MonitorPage = () => {
@@ -22,9 +23,10 @@ const MonitorPage = () => {
   //   : null;
 
   // Cách 2: dùng IP cứng để test (chú ý: IP này phải đúng và reachable)
-  const cameraInUrl = "http://192.168.14.213:4747/video";
+  const cameraInUrl = "http://192.168.1.16:4747/video";
 
   const [cameraStatus, setCameraStatus] = useState("checking");
+  const [pendingConfirm, setPendingConfirm] = useState(null);
 
   if (!cameraInUrl) {
     return (
@@ -59,7 +61,10 @@ const MonitorPage = () => {
             laneId={checkInLane?.id}
             vehicleType="MOTOR"
             videoSrc={cameraInUrl}
-            onSuccess={(data) => console.log("Check-in success", data)}
+            onSuccess={(data) => {
+              // open confirm modal with returned session data
+              setPendingConfirm({ ...data, entryLaneId: checkInLane?.id });
+            }}
           />
         </Col>
         <Col span={12}>
@@ -77,6 +82,16 @@ const MonitorPage = () => {
         <HistoryTable />
       </div>
       <Stats />
+      <ConfirmModal
+        visible={!!pendingConfirm}
+        initialData={pendingConfirm}
+        onCancel={() => setPendingConfirm(null)}
+        onConfirmed={(confirmed) => {
+          // after confirm, clear modal and optionally refresh lists
+          setPendingConfirm(null);
+          console.log('confirm-check-in result', confirmed);
+        }}
+      />
     </AppLayout>
   );
 };
