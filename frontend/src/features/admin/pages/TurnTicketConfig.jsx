@@ -14,11 +14,15 @@ import {
   Space,
   Divider,
   Checkbox,
+  Tooltip,
+  Badge,
 } from "antd";
 import {
   PlusOutlined,
   DeleteOutlined,
   MinusCircleOutlined,
+  CheckCircleFilled,
+  StopOutlined,
 } from "@ant-design/icons";
 import { adminApi } from "../api/admin.api";
 
@@ -30,6 +34,7 @@ const PricingRuleConfig = () => {
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState("FLAT_RATE");
+  const [activatingId, setActivatingId] = useState(null);
   const [form] = Form.useForm();
 
   const fetchRules = async () => {
@@ -120,12 +125,38 @@ const PricingRuleConfig = () => {
     }
   };
 
+  const handleToggleActive = async (record) => {
+    try {
+      setActivatingId(record.id);
+      await adminApi.updatePricingRule(record.id, {
+        ...record,
+        isActive: !record.isActive,
+      });
+      message.success(
+        !record.isActive
+          ? `Đã kích hoạt "${record.ruleName}"!`
+          : `Đã vô hiệu hóa "${record.ruleName}"!`,
+      );
+      fetchRules();
+    } catch (error) {
+      console.error("Toggle active error:", error);
+      message.error("Không thể cập nhật trạng thái!");
+    } finally {
+      setActivatingId(null);
+    }
+  };
+
   const columns = [
     {
       title: "Tên quy tắc",
       dataIndex: "ruleName",
       key: "ruleName",
-      fontWeight: "bold",
+      render: (name, record) => (
+        <Space>
+          <Badge status={record.isActive ? "success" : "default"} dot />
+          <span style={{ fontWeight: 600 }}>{name}</span>
+        </Space>
+      ),
     },
     {
       title: "Chiến thuật",
@@ -156,7 +187,48 @@ const PricingRuleConfig = () => {
       ),
     },
     {
-      title: "Hành động",
+      title: "Trạng thái",
+      dataIndex: "isActive",
+      render: (isActive) =>
+        isActive ? (
+          <Tag color="success" icon={<CheckCircleFilled />}>
+            Đang hoạt động
+          </Tag>
+        ) : (
+          <Tag color="default" icon={<StopOutlined />}>
+            Chưa kích hoạt
+          </Tag>
+        ),
+    },
+    {
+      title: "Kích hoạt",
+      render: (_, record) => (
+        <Tooltip
+          title={
+            record.isActive
+              ? "Nhấn để vô hiệu hóa"
+              : "Nhấn để kích hoạt chiến thuật này"
+          }
+        >
+          <Button
+            type={record.isActive ? "primary" : "default"}
+            loading={activatingId === record.id}
+            onClick={() => handleToggleActive(record)}
+            icon={record.isActive ? <CheckCircleFilled /> : <StopOutlined />}
+            style={{
+              borderColor: record.isActive ? undefined : "#d9d9d9",
+              color: record.isActive ? undefined : "#8c8c8c",
+              minWidth: 130,
+              transition: "all 0.3s ease",
+            }}
+          >
+            {record.isActive ? "Đang kích hoạt" : "Kích hoạt"}
+          </Button>
+        </Tooltip>
+      ),
+    },
+    {
+      title: "Xóa",
       render: (_, record) => (
         <Button
           type="text"

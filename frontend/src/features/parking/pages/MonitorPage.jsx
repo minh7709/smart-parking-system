@@ -21,7 +21,7 @@ const MonitorPage = () => {
   const cameraOutUrl = checkOutLane?.ipCamera
     ? `http://${checkOutLane.ipCamera}:4747/video`
     : null;
-  // const cameraInUrl = "http://10.251.11.26:4747/video";
+  //const cameraInUrl = "http://192.168.111.160:4747/video";
 
   const [cameraStatus, setCameraStatus] = useState("checking");
 
@@ -67,7 +67,7 @@ const MonitorPage = () => {
             title={checkOutLane?.laneName || "LÀN RA"}
             laneId={checkOutLane?.id}
             vehicleType="MOTO"
-            videoSrc={cameraInUrl} // tạm thời dùng chung, sau này thay bằng camera out riêng
+            videoSrc={cameraOutUrl}
             onSuccess={(data) => console.log("Check-out success", data)}
           />
         </Col>
