@@ -24,3 +24,4 @@ ai-service/__pycache__/
 ai-service/*.pyc
 ai-service/venv/
 ai-service/.env
+uploads/

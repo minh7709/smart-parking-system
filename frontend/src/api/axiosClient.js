@@ -115,16 +115,21 @@ const tryRefreshToken = async () => {
   return refreshPromise;
 };
 
-const executeRequest = (method, path, body, options = {}) =>
-  fetch(buildUrl(path), {
+const executeRequest = (method, path, body, options = {}) => {
+  // Tách riêng headers ra khỏi các options khác
+  const { headers: customHeaders, ...restOptions } = options;
+
+  return fetch(buildUrl(path), {
     method,
+    // Đưa các options khác (ví dụ như signal, credentials...) lên trước
+    ...restOptions, 
     headers: cleanHeaders({
-      ...buildAuthHeaders(),
-      ...(options.headers || {}),
+      ...buildAuthHeaders(),      // Thêm token
+      ...(customHeaders || {}),   // Thêm Content-Type hoặc custom header khác
     }),
     body,
-    ...options,
   });
+};
 
 const request = async (method, path, body, options = {}) => {
   const canRetryWithRefresh = options.retryOn401 !== false;
