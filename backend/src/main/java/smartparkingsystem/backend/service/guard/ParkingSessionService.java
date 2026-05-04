@@ -5,8 +5,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import smartparkingsystem.backend.dto.request.IncidentRequest;
 import smartparkingsystem.backend.dto.request.parkingSessionRequest.*;
 import smartparkingsystem.backend.dto.response.ai.AiDetectionResult;
 import smartparkingsystem.backend.dto.response.parkingSession.CheckInResponse;
@@ -82,7 +84,7 @@ public class ParkingSessionService {
         AiDetectionResult aiResult = aiIntegrationService.getDetectionResultFromAi(buildAbsoluteImagePath(imageUrl));
         String licensePlate = aiResult.getPlateNumber();
 
-        parkingSessionRepository.findByFinalPlateAndStatus(licensePlate, SessionStatus.PARKED).ifPresent(existingSession -> {
+        parkingSessionRepository.findFirstByStatusAndFinalPlateIgnoreCase(SessionStatus.PARKED, licensePlate).ifPresent(existingSession -> {
                 throw new DuplicateResourceException("Đã tồn tại phiên đỗ xe với biển số này trong bãi : " + licensePlate);
         });
 
@@ -173,6 +175,14 @@ public class ParkingSessionService {
         invoiceService.updateInvoiceStatus(invoice, PaymentStatus.SUCCESS, request.getPaymentMethod());
     }
 
+    public void reportGeneralIncident(IncidentRequest request, MultipartFile evidenceImage) {
+        ParkingSession session = parkingSessionRepository.findById(request.getParkingSessionId())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe với ID: " + request.getParkingSessionId()));
+
+        String evidenceUrl = storeImage(evidenceImage, "evidence", "Không thể lưu ảnh bằng chứng");
+        incidentService.reportIncident(session, request.getDescription(), request.getIncidentType(), evidenceUrl);
+    }
+
     private BigInteger calculatePenalty(ParkingSession session) {
         PricingRule pricingRule = pricingRuleRepository.findByVehicleTypeAndActiveTrue(session.getVehicleType())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy quy tắc giá cho loại xe: " + session.getVehicleType()));
@@ -198,7 +208,7 @@ public class ParkingSessionService {
         AiDetectionResult aiResult = aiIntegrationService.getDetectionResultFromAi(buildAbsoluteImagePath(imageUrl));
         String licensePlate = aiResult.getPlateNumber();
 
-        ParkingSession session = parkingSessionRepository.findByFinalPlateAndStatus(licensePlate, SessionStatus.PARKED)
+        ParkingSession session = parkingSessionRepository.findFirstByStatusAndFinalPlateIgnoreCase(SessionStatus.PARKED, licensePlate)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe mở với biển số xe: " + licensePlate));
 
         String evidenceUrl = storeImage(evidenceImage, "evidence", "Không thể lưu ảnh bằng chứng");
@@ -248,11 +258,16 @@ public class ParkingSessionService {
         }
     }
 
-    public Page<CheckInResponse> getAllParkingSessions(Pageable pageable, SessionStatus status) {
-        Pageable safePageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
-        Page<ParkingSession> page = parkingSessionRepository.findByStatus(status, safePageable);
-
-        return page.map(parkingSessionMapper::toCheckInResponse);
+    public Page<ParkingSessionResponse> getAllParkingSessions(Pageable pageable, SessionStatus status) {
+        Sort sort = Sort.by("timeIn").descending();
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+        Page<ParkingSession> page;
+        if(status == null){
+            page = parkingSessionRepository.findAll(sortedPageable);
+        } else {
+            page = parkingSessionRepository.findByStatus(status, sortedPageable);
+        }
+        return page.map(parkingSessionMapper::toParkingSessionResponse);
     }
 
     private float confidenceOrRandom(Float confidenceFromAi) {
@@ -260,6 +275,16 @@ public class ParkingSessionService {
             return confidenceFromAi;
         }
         return (float) (0.9 + Math.random() * 0.1);
+    }
+
+    public ParkingSessionResponse getParkingSessionByPlate(String plate) {
+        ParkingSession session = parkingSessionRepository.findFirstByStatusAndFinalPlateIgnoreCase(
+                        SessionStatus.PARKED,
+                        plate
+                )
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe đang mở với biển số: " + plate));
+
+        return parkingSessionMapper.toParkingSessionResponse(session);
     }
 
     private String buildAbsoluteImagePath(String relativeImageUrl) {

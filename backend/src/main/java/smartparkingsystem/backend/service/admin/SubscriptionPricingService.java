@@ -115,4 +115,8 @@ public class SubscriptionPricingService {
         }
         throw new InvalidStateException("Cannot deactivate subscription pricing. Please activate another subscription pricing with the same vehicle type and duration type before deactivating this one.");
     }
+    public SubscriptionPricing getSubscriptionPricingByDurationTypeAndVehicleType(SubType subType, VehicleTypeEnum vehicleTypeEnum) {
+        return subscriptionPricingRepository.findByVehicleTypeAndDurationTypeAndActiveTrue(vehicleTypeEnum, subType)
+                .orElseThrow(() -> new RuntimeException("No active subscription pricing found for vehicle type: " + vehicleTypeEnum + " and duration type: " + subType));
+    }
 }

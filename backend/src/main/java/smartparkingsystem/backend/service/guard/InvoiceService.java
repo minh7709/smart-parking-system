@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import smartparkingsystem.backend.entity.Invoice;
 import smartparkingsystem.backend.entity.ParkingSession;
+import smartparkingsystem.backend.entity.Subscription;
 import smartparkingsystem.backend.entity.User;
 import smartparkingsystem.backend.entity.type.PaymentMethod;
 import smartparkingsystem.backend.entity.type.PaymentStatus;
@@ -34,6 +35,11 @@ public class InvoiceService {
         return invoiceRepository.save(invoice);
     }
 
+    public Invoice updateInvoiceStatus(Invoice invoice, PaymentStatus status) {
+        invoice.setStatus(status);
+        return invoiceRepository.save(invoice);
+    }
+
     public Invoice createInvoiceForPenalty(ParkingSession session, BigInteger penaltyAmount, BigInteger parkingAmount, User user) {
         Invoice invoice = new Invoice();
         invoice.setParkingSession(session);
@@ -42,6 +48,19 @@ public class InvoiceService {
         invoice.setTotalAmount(penaltyAmount.add(parkingAmount));
         invoice.setStatus(PaymentStatus.SUCCESS);
         invoice.setCashier(user);
+        return invoiceRepository.save(invoice);
+    }
+
+    public Invoice createInvoiceForSubscription(Subscription subscription, User user, PaymentMethod paymentMethod) {
+        Invoice invoice = new Invoice();
+        invoice.setPaymentTime(LocalDateTime.now());
+        invoice.setSubscription(subscription);
+        invoice.setParkingAmount(subscription.getPrice());
+        invoice.setPenaltyAmount(BigInteger.ZERO);
+        invoice.setTotalAmount(subscription.getPrice());
+        invoice.setStatus(PaymentStatus.PENDING);
+        invoice.setCashier(user);
+        invoice.setPaymentMethod(paymentMethod);
         return invoiceRepository.save(invoice);
     }
 }

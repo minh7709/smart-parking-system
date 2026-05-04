@@ -45,7 +45,8 @@ public class VehicleService {
     public VehicleReponse deleteVehicle(UUID id){
         Vehicle vehicle = vehicleRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phương tiện để cập nhật"));
-        vehicleRepository.delete(vehicle);
+        vehicle.setDeleted(true);
+        vehicleRepository.save(vehicle);
         return vehicleMapper.toResponse(vehicle);
     }
     /*
@@ -82,4 +83,9 @@ public class VehicleService {
         return vehicleMapper.toResponse(vehicle);
     }
 
+    public VehicleReponse getVehicleByLicensePlate(String licensePlate){
+        Vehicle vehicle = vehicleRepository.findByLicensePlateAndDeletedFalse(licensePlate)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phương tiện"));
+        return vehicleMapper.toResponse(vehicle);
+    }
 }

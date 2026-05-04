@@ -2,7 +2,10 @@ package smartparkingsystem.backend.entity;
 
 import jakarta.persistence.*;
 import jdk.jfr.Timestamp;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import smartparkingsystem.backend.entity.type.SubType;
@@ -14,6 +17,9 @@ import java.util.UUID;
 
 @Entity
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "subscription")
 public class Subscription {
     @Id
@@ -26,7 +32,7 @@ public class Subscription {
 
     @ManyToOne
     @JoinColumn(name = "pricing_id", nullable = false)
-    private SubscriptionPricing pricing;
+    private SubscriptionPricing subscriptionPricing;
 
     @Column(name = "price_at_purchase", nullable = false)
     private BigInteger price;

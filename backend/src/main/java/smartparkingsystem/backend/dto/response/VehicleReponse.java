@@ -20,4 +20,6 @@ public class VehicleReponse {
     private String customerName;
     private String customerPhone;
     private boolean deleted;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

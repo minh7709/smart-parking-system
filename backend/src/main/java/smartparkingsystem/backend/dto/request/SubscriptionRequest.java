@@ -6,7 +6,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import smartparkingsystem.backend.entity.type.PaymentMethod;
+import smartparkingsystem.backend.entity.type.SubType;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -15,6 +18,8 @@ import java.util.UUID;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SubscriptionRequest {
-    private String VehiclePlate;
-
+    private UUID vehicleId;
+    private SubType subType;
+    private LocalDateTime startDate;
+    private PaymentMethod paymentMethod;
 }
