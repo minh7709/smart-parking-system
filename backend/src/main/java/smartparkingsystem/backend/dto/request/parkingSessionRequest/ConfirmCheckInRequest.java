@@ -9,9 +9,6 @@ import java.util.UUID;
 @Data
 @Validated
 public class ConfirmCheckInRequest {
-    @NotNull(message = "Entry lane ID is required")
-    private UUID entryLaneId;
-
     @NotNull(message = "Plate number is required")
     private String finalPlate;
 

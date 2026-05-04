@@ -248,9 +248,9 @@ public class ParkingSessionService {
         }
     }
 
-    public Page<CheckInResponse> getAllParkingSessions(Pageable pageable) {
+    public Page<CheckInResponse> getAllParkingSessions(Pageable pageable, SessionStatus status) {
         Pageable safePageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
-        Page<ParkingSession> page = parkingSessionRepository.findByStatus(SessionStatus.PARKED, safePageable);
+        Page<ParkingSession> page = parkingSessionRepository.findByStatus(status, safePageable);
 
         return page.map(parkingSessionMapper::toCheckInResponse);
     }
