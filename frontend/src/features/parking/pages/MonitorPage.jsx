@@ -24,6 +24,9 @@ const MonitorPage = () => {
 
   // Cách 2: dùng IP cứng để test (chú ý: IP này phải đúng và reachable)
   const cameraInUrl = "http://192.168.1.9:4747/video";
+  const cameraOutUrl = "http://192.168.1.10:4747/video";
+
+ 
 
   const [cameraStatus, setCameraStatus] = useState("checking");
   const [pendingConfirm, setPendingConfirm] = useState(null);
@@ -42,7 +45,7 @@ const MonitorPage = () => {
   }
 
   return (
-    <AppLayout>
+    <>
       {cameraStatus === "error" && (
         <Alert
           message="Không kết nối được camera"
@@ -73,7 +76,7 @@ const MonitorPage = () => {
             title={checkOutLane?.laneName || "LÀN RA"}
             laneId={checkOutLane?.id}
             vehicleType="MOTO"
-            videoSrc={cameraInUrl} // tạm thời dùng chung, sau này thay bằng camera out riêng
+            videoSrc={cameraOutUrl}
             onSuccess={(data) => console.log("Check-out success", data)}
           />
         </Col>
@@ -82,6 +85,7 @@ const MonitorPage = () => {
         <HistoryTable />
       </div>
       <Stats />
+
       <ConfirmModal
         visible={!!pendingConfirm}
         initialData={pendingConfirm}
@@ -92,7 +96,7 @@ const MonitorPage = () => {
           console.log('confirm-check-in result', confirmed);
         }}
       />
-    </AppLayout>
+    </>
   );
 };
 

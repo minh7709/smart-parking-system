@@ -29,7 +29,7 @@ const RegisterPage = () => {
   };
 
   return (
-    <AppLayout>
+    <>
       <div style={{ maxWidth: 900, margin: "0 auto", paddingBottom: 40 }}>
         <h2
           style={{
@@ -264,7 +264,7 @@ const RegisterPage = () => {
           </Row>
         </Form>
       </div>
-    </AppLayout>
+    </>
   );
 };
 
