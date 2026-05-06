@@ -1,5 +1,6 @@
 import React from "react";
-import { Card, Table, Tag } from "antd";
+import { Card, Table, Tag, Input } from "antd";
+import { SearchOutlined } from "@ant-design/icons";
 
 const styles = {
   card: {
@@ -9,6 +10,13 @@ const styles = {
     borderRadius: 16,
   },
   cardHead: { borderBottom: "1px solid rgba(255,255,255,0.05)", color: "#fff" },
+  searchInCard: {
+    width: 220,
+    background: "#1a1a1a",
+    border: "1px solid rgba(255,255,255,0.1)",
+    color: "#fff",
+    borderRadius: 8,
+  },
 };
 
 const HistoryTable = () => {
@@ -61,7 +69,21 @@ const HistoryTable = () => {
   ];
 
   return (
-    <Card title="Lịch sử" style={styles.card} headStyle={styles.cardHead}>
+    <Card
+      title="Lịch sử"
+      style={styles.card}
+      styles={{
+        header: styles.cardHead,
+      }}
+      // ĐƯA Ô SEARCH VÀO ĐÂY
+      extra={
+        <Input
+          placeholder="Tìm biển số..."
+          prefix={<SearchOutlined style={{ color: "rgba(255,255,255,0.4)" }} />}
+          style={styles.searchInCard}
+        />
+      }
+    >
       <Table columns={columns} dataSource={data} pagination={false} />
     </Card>
   );
