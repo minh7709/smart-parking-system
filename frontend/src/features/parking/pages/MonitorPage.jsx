@@ -5,6 +5,7 @@ import { AppLayout } from "../../../components/Layout/AppLayout";
 import CameraCard from "../components/CameraCard";
 import HistoryTable from "../components/HistoryTable";
 import Stats from "../components/Stats";
+import ConfirmModal from "../components/ConfirmModal";
 import { getLaneSelection } from "../../../utils/storage";
 
 const MonitorPage = () => {
@@ -15,15 +16,20 @@ const MonitorPage = () => {
   const checkOutLane =
     location.state?.checkOutLane || savedSelection.checkOutLane;
 
-  const cameraInUrl = checkInLane?.ipCamera
-    ? `http://${checkInLane.ipCamera}:4747/video`
-    : null;
-  const cameraOutUrl = checkOutLane?.ipCamera
-    ? `http://${checkOutLane.ipCamera}:4747/video`
-    : null;
-  //const cameraInUrl = "http://192.168.111.160:4747/video";
+  // THAY IP CỦA BẠN VÀO ĐÂY
+  // Cách 1: dùng IP từ lane (nếu có)
+  // const cameraInUrl = checkInLane?.ipCamera
+  //   ? `http://${checkInLane.ipCamera}:4747/video`
+  //   : null;
+
+  // Cách 2: dùng IP cứng để test (chú ý: IP này phải đúng và reachable)
+  const cameraInUrl = "http://192.168.1.9:4747/video";
+  const cameraOutUrl = "http://192.168.1.10:4747/video";
+
+ 
 
   const [cameraStatus, setCameraStatus] = useState("checking");
+  const [pendingConfirm, setPendingConfirm] = useState(null);
 
   if (!cameraInUrl) {
     return (
@@ -58,7 +64,10 @@ const MonitorPage = () => {
             laneId={checkInLane?.id}
             vehicleType="MOTOR"
             videoSrc={cameraInUrl}
-            onSuccess={(data) => console.log("Check-in success", data)}
+            onSuccess={(data) => {
+              // open confirm modal with returned session data
+              setPendingConfirm({ ...data, entryLaneId: checkInLane?.id });
+            }}
           />
         </Col>
         <Col span={12}>
@@ -76,6 +85,17 @@ const MonitorPage = () => {
         <HistoryTable />
       </div>
       <Stats />
+
+      <ConfirmModal
+        visible={!!pendingConfirm}
+        initialData={pendingConfirm}
+        onCancel={() => setPendingConfirm(null)}
+        onConfirmed={(confirmed) => {
+          // after confirm, clear modal and optionally refresh lists
+          setPendingConfirm(null);
+          console.log('confirm-check-in result', confirmed);
+        }}
+      />
     </>
   );
 };
