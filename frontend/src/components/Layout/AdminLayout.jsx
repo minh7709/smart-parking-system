@@ -14,11 +14,13 @@ import {
   LockOutlined,
 } from "@ant-design/icons";
 import { Outlet, useNavigate } from "react-router-dom";
+import { useNotification } from "../../hooks/useNotification";
 
 const { Header, Sider, Content } = Layout;
 
 export const AdminLayout = () => {
   const navigate = useNavigate();
+  const notify = useNotification();
   const [userName, setUserName] = useState("Admin");
 
   // Lấy thông tin admin từ localStorage
@@ -36,7 +38,7 @@ export const AdminLayout = () => {
 
   const handleLogout = () => {
     localStorage.clear();
-    message.success("Đăng xuất thành công!");
+    notify.success("Đăng xuất thành công!");
     navigate("/login");
   };
 

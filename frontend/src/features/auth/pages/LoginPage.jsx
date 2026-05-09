@@ -17,9 +17,11 @@ import {
   validatePhone,
 } from "../../../utils/validators";
 import "./LoginPage.css";
+import { useNotification } from "../../../hooks/useNotification";
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const notify = useNotification();
   const [step, setStep] = useState("login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -82,18 +84,19 @@ const LoginPage = () => {
         response.data?.refreshToken
       ) {
         saveAuthToLocalStorage(response.data);
+        notify.success("Đăng nhập thành công!");
         if (response.data.user.role === "ADMIN") {
           navigate("/admin/dashboard");
         } else {
           navigate("/lane");
         }
       } else {
-        showError(response.message || "Du lieu dang nhap khong hop le.");
+        notify.error(response.message || "Dữ liệu đăng nhập không hợp lệ.");
       }
     } catch (err) {
       console.error("Login error:", err);
-      showError(
-        err.message || "Khong the ket noi toi server. Hay kiem tra backend.",
+      notify.error(
+        err.message || "Không thể kết nối tới server. Hãy kiểm tra backend.",
       );
     } finally {
       setLoading(false);
@@ -121,13 +124,14 @@ const LoginPage = () => {
 
       if (response.success) {
         setStep("otp");
+        notify.success("Đã gửi OTP thành công!");
         setError("");
       } else {
-        showError(response.message || "Khong the gui OTP.");
+        notify.error(response.message || "Không thể gửi OTP.");
       }
     } catch (err) {
       console.error("Send OTP error:", err);
-      showError(err.message || "Khong the ket noi toi server.");
+      notify.error(err.message || "Không thể kết nối tới server.");
     } finally {
       setLoading(false);
     }
@@ -150,14 +154,15 @@ const LoginPage = () => {
       if (response.success && response.data) {
         setResetToken(response.data);
         setStep("reset");
+        notify.success("Xác minh OTP thành công!");
         setError("");
       } else {
-        showError(response.message || "OTP khong hop le.", "otp");
+        notify.error(response.message || "OTP không hợp lệ.", "otp");
       }
     } catch (err) {
       console.error("Verify OTP error:", err);
-      showError(
-        err.message || "Khong the xac minh OTP. Vui long thu lai.",
+      notify.error(
+        err.message || "Không thể xác minh OTP. Vui lòng thử lại.",
         "otp",
       );
     } finally {
@@ -198,25 +203,25 @@ const LoginPage = () => {
       if (response.success) {
         setOtp("");
         setNewPassword("");
-        setPhone("");
         setResetToken("");
         setStep("login");
-        setError("");
+        notify.success("Đổi mật khẩu thành công! Vui lòng đăng nhập lại.");
+        clearErrors();
       } else {
-        showError(response.message || "Khong the dat lai mat khau.");
+        notify.error(response.message || "Không thể đổi mật khẩu.");
       }
     } catch (err) {
       console.error("Reset password error:", err);
-      showError(err.message || "Khong the ket noi toi server.");
+      notify.error(err.message || "Đã có lỗi xảy ra khi đổi mật khẩu.");
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="login-page">
-      <div className="wrapper">
-        {step === "login" && (
+  const renderStep = () => {
+    switch (step) {
+      case "login":
+        return (
           <LoginForm
             username={username}
             password={password}
@@ -232,9 +237,9 @@ const LoginPage = () => {
               clearErrors();
             }}
           />
-        )}
-
-        {step === "forgot" && (
+        );
+      case "forgot":
+        return (
           <ForgotPasswordForm
             phone={phone}
             loading={loading}
@@ -244,9 +249,9 @@ const LoginPage = () => {
             onSubmit={handleSendOtp}
             onBack={resetForgotFlow}
           />
-        )}
-
-        {step === "otp" && (
+        );
+      case "otp":
+        return (
           <VerifyOtpForm
             otp={otp}
             loading={loading}
@@ -256,9 +261,9 @@ const LoginPage = () => {
             onSubmit={handleVerifyOtp}
             onBack={() => setStep("forgot")}
           />
-        )}
-
-        {step === "reset" && (
+        );
+      case "reset":
+        return (
           <ResetPasswordForm
             newPassword={newPassword}
             loading={loading}
@@ -268,7 +273,14 @@ const LoginPage = () => {
             onSubmit={handleResetPassword}
             onBack={() => setStep("otp")}
           />
-        )}
+        );
+    }
+  };
+
+  return (
+    <div className="login-page">
+      <div className="wrapper">
+        {renderStep()}
       </div>
     </div>
   );

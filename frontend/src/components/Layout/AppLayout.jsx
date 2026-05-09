@@ -21,6 +21,7 @@ import {
   LogoutOutlined,
 } from "@ant-design/icons";
 import { Outlet } from "react-router-dom";
+import { useNotification } from "../../hooks/useNotification";
 
 const { Header, Sider, Content } = Layout;
 
@@ -56,6 +57,7 @@ const styles = {
 export const AppLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const notify = useNotification();
   const [userName, setUserName] = useState("Người dùng");
 
   // Lấy thông tin user từ localStorage khi component mount
@@ -94,7 +96,7 @@ export const AppLayout = () => {
     localStorage.removeItem("selectedCheckInLane");
     localStorage.removeItem("selectedCheckOutLane");
 
-    message.success("Đăng xuất thành công!");
+    notify.success("Đăng xuất thành công!");
     navigate("/login");
   };
 

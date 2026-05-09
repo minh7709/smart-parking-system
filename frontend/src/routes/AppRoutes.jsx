@@ -21,9 +21,10 @@ const AppRoutes = () => {
       <Route path="/login" element={<LoginPage />} />
 
       {/* NHÓM ROUTE CHO BẢO VỆ */}
+      <Route path="/lane" element={<LanePage />} />
+      
       <Route element={<AppLayout />}>
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/lane" element={<LanePage />} />
         <Route path="/monitor" element={<MonitorPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/profile" element={<ProfilePage />} />

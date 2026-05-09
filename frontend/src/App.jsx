@@ -1,7 +1,13 @@
+import { NotificationContainer } from "./components/Notification/NotificationContainer";
 import AppRoutes from "./routes/AppRoutes";
 
 function App() {
-  return <AppRoutes />;
+  return (
+    <>
+      <NotificationContainer />
+      <AppRoutes />
+    </>
+  );
 }
 
 export default App;
