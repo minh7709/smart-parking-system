@@ -1,8 +1,11 @@
 package smartparkingsystem.backend.entity;
 
 import jakarta.persistence.*;
-import jdk.jfr.Timestamp;
-import lombok.Data;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 
 import java.time.LocalDateTime;
@@ -11,6 +14,9 @@ import java.util.UUID;
 @Entity
 @Table(name = "vehicle")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Vehicle {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -20,7 +26,8 @@ public class Vehicle {
     private String licensePlate;
 
     @Column(name = "vehicle_type", nullable = false, length = 20)
-        @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private VehicleTypeEnum vehicleType;
 
     @Column(name = "brand", length = 50)
@@ -33,14 +40,14 @@ public class Vehicle {
     private String customerPhone;
 
     @Column(name = "is_deleted", nullable = false)
-    private boolean isDeleted;
+    private boolean deleted;
 
     @Column(name = "created_at", nullable = false)
-    @Timestamp
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
-    @Timestamp
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
 
 }

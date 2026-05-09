@@ -24,4 +24,12 @@ ai-service/__pycache__/
 ai-service/*.pyc
 ai-service/venv/
 ai-service/.env
+<<<<<<< HEAD
+=======
+
+
+# Logs and temporary files
+logs/
+temp/
+>>>>>>> origin/feature/backend-subscription
 uploads/

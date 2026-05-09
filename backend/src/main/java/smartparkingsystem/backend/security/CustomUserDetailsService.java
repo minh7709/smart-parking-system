@@ -21,7 +21,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     @NonNull
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findByUsernameAndDeletedFalse(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
         return CustomUserDetails.build(user);
@@ -31,7 +31,7 @@ public class CustomUserDetailsService implements UserDetailsService {
      * Load user by ID - used for JWT token validation
      */
     public UserDetails loadUserById(UUID userId) throws UsernameNotFoundException {
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByIdAndDeletedFalse(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + userId));
 
         return CustomUserDetails.build(user);

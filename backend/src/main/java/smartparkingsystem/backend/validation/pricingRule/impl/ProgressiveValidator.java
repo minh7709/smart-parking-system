@@ -5,6 +5,8 @@ import smartparkingsystem.backend.dto.request.PricingRuleRequest;
 import smartparkingsystem.backend.entity.type.PricingStrategyEnum;
 import smartparkingsystem.backend.validation.pricingRule.PricingStrategyValidator;
 
+import java.math.BigInteger;
+
 @Component
 public class ProgressiveValidator implements PricingStrategyValidator {
     @Override
@@ -19,7 +21,11 @@ public class ProgressiveValidator implements PricingStrategyValidator {
                 pricingRuleRequest.getPenaltyFee() == null) {
             check = false;
         }
+<<<<<<< HEAD
         pricingRuleRequest.setBasePrice(java.math.BigInteger.ZERO);
+=======
+        pricingRuleRequest.setBasePrice(BigInteger.ZERO);
+>>>>>>> origin/feature/backend-subscription
         pricingRuleRequest.setMaxPricePerDay(null);
         pricingRuleRequest.setBlockMinutes(null);
         pricingRuleRequest.setThresholdPrice(null);

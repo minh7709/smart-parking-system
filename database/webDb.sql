@@ -69,12 +69,14 @@ CREATE TABLE vehicle (
 -- 9. Bảng cấu hình gói vé (Dành cho Admin thiết lập giá)
 CREATE TABLE subscription_pricing (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    pricing_name VARCHAR(100) NOT NULL UNIQUE,
     vehicle_type vehicle_type_enum NOT NULL, 
     duration_type sub_type NOT NULL,         
     price BIGINT NOT NULL,                   
     description TEXT,                        
     is_active BOOLEAN DEFAULT TRUE,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by UUID REFERENCES users(id),
     UNIQUE(vehicle_type, duration_type) 
 );
 
@@ -97,7 +99,8 @@ CREATE TABLE lane (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     lane_name VARCHAR(50) NOT NULL,
     lane_type lane_type_enum NOT NULL,
-    ip_camera VARCHAR(100),
+    ip_camera VARCHAR(100) NOT NULL UNIQUE,
+    is_deleted BOOLEAN DEFAULT FALSE,
     status lane_status DEFAULT 'ACTIVE'
 );
 

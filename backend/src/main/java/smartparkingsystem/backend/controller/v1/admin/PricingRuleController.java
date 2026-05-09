@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import smartparkingsystem.backend.dto.request.PricingRuleRequest;
 import smartparkingsystem.backend.dto.response.ApiResponse;
 import smartparkingsystem.backend.dto.response.PricingRuleResponse;
+import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 import smartparkingsystem.backend.service.admin.PricingRuleService;
 import smartparkingsystem.backend.service.auth.UserService;
 
@@ -66,7 +67,7 @@ public class PricingRuleController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse<Page<PricingRuleResponse>>> getAllPricingRules(
-            @RequestParam(required = false) String vehicleType,
+            @RequestParam(required = false) VehicleTypeEnum vehicleType,
             Pageable pageable) {
         log.info("Fetching pricing rules with pagination");
         Page<PricingRuleResponse> page = pricingRuleService.getAllPricingRules(pageable, vehicleType);

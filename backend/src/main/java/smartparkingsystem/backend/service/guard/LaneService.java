@@ -15,7 +15,7 @@ public class LaneService {
     private final LaneRepository laneRepository;
     private final LaneMapper laneMapper;
     public List<LaneResponse> getActiveLanes() {
-        return laneRepository.findAllByStatus(LaneStatus.ACTIVE)
+        return laneRepository.findAllByStatusAndDeletedFalse(LaneStatus.ACTIVE)
                 .stream().map(laneMapper::toLaneResponse).toList();
     }
 }
