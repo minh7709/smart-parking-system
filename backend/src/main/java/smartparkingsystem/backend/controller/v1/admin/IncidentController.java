@@ -15,7 +15,7 @@ import org.springframework.http.HttpHeaders;
 import smartparkingsystem.backend.dto.response.ApiResponse;
 import smartparkingsystem.backend.dto.response.IncidentResponse;
 import smartparkingsystem.backend.entity.type.IncidentTypeEnum;
-import smartparkingsystem.backend.service.admin.IncidentService;
+import smartparkingsystem.backend.service.admin.AdminIncidentService;
 import org.springframework.data.domain.Page;
 
 import java.nio.file.Files;
@@ -29,19 +29,19 @@ import java.io.IOException;
 @PreAuthorize("hasRole('ADMIN')")
 public class IncidentController {
 
-    private final IncidentService incidentService;
+    private final AdminIncidentService adminIncidentService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<Page<IncidentResponse>>> getIncidents(
             Pageable pageable,
             @RequestParam(required = false) IncidentTypeEnum incidentType) {
-        Page<IncidentResponse> incidents = incidentService.getIncidents(pageable, incidentType);
+        Page<IncidentResponse> incidents = adminIncidentService.getIncidents(pageable, incidentType);
         return ResponseEntity.ok(ApiResponse.success(incidents, "Lấy danh sách sự cố thành công"));
     }
 
     @GetMapping("/evidence")
     public ResponseEntity<Resource> getEvidence(@RequestParam String evidencePath) throws IOException {
-        Resource resource = incidentService.getEvidence(evidencePath);
+        Resource resource = adminIncidentService.getEvidence(evidencePath);
 
         String contentType = Files.probeContentType(Paths.get(resource.getFile().getAbsolutePath()));
         if (contentType == null) {

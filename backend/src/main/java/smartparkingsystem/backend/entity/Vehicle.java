@@ -3,7 +3,9 @@ package smartparkingsystem.backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 
 import java.time.LocalDateTime;
@@ -24,7 +26,8 @@ public class Vehicle {
     private String licensePlate;
 
     @Column(name = "vehicle_type", nullable = false, length = 20)
-        @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private VehicleTypeEnum vehicleType;
 
     @Column(name = "brand", length = 50)

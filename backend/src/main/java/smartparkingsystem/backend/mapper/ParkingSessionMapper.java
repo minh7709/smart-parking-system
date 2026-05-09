@@ -14,7 +14,7 @@ import java.math.BigInteger;
 @Component
 public class ParkingSessionMapper {
 
-    public ParkingSession toEntityForCheckIn(CheckInRequest request, Lane entryLane, String plateInOcr, float confidenceIn) {
+    public ParkingSession toEntityForCheckIn(CheckInRequest request, Lane entryLane, String plateInOcr, float confidenceIn, boolean isMonth) {
         if (request == null || entryLane == null) {
             return null;
         }
@@ -24,7 +24,7 @@ public class ParkingSessionMapper {
                 .vehicleType(request.getVehicleType())
                 .plateInOcr(plateInOcr)
                 .status(SessionStatus.PARKED)
-                .month(false)
+                .month(isMonth)
                 .confidenceIn(confidenceIn)
                 .build();
     }

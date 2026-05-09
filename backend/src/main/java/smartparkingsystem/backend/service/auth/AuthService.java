@@ -124,16 +124,23 @@ public class AuthService {
 
         // Extract user info from refresh token
         String username = tokenProvider.getUsernameFromToken(refreshToken);
-        String userId = tokenProvider.getUserIdFromToken(refreshToken);
-        String role = tokenProvider.getRoleFromToken(refreshToken);
         boolean rememberMe = tokenProvider.getRememberMeFromToken(refreshToken);
 
-        // Generate new access token
-        String newAccessToken = tokenProvider.generateToken(username, userId, role);
-
-        // Get user details
+        // Get fresh user details from DB to ensure they still exist and are active
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UnauthorizedException("User not found"));
+
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            tokenRedisService.revokeRefreshToken(refreshToken);
+            throw new UnauthorizedException("User account is no longer active");
+        }
+
+        // Generate new access token using FRESH data from DB
+        String newAccessToken = tokenProvider.generateToken(
+                user.getUsername(),
+                user.getId().toString(),
+                user.getRole().toString()
+        );
 
         return LoginResponse.builder()
                 .accessToken(newAccessToken)

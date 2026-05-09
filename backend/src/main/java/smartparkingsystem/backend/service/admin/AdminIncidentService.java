@@ -21,7 +21,7 @@ import java.nio.file.Paths;
 
 @Service
 @RequiredArgsConstructor
-public class IncidentService {
+public class AdminIncidentService {
     private final IncidentRepository incidentRepository;
     private final IncidentMapper incidentMapper;
 

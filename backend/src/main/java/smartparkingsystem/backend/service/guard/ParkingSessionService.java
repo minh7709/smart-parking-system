@@ -42,6 +42,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -54,7 +55,7 @@ public class ParkingSessionService {
     private final InvoiceService invoiceService;
     private final UserService userService;
     private final InvoiceRepository invoiceRepository;
-    private final IncidentService incidentService;
+    private final GuardIncidentService guardIncidentService;
     private final ParkingSessionMapper parkingSessionMapper;
 
     @Value("${file.upload-dir}")
@@ -65,7 +66,8 @@ public class ParkingSessionService {
                 request,
                 lane,
                 "BICYCLE",
-                1.0f
+                1.0f,
+                true
         );
         newSession.setImageInUrl(imageUrl);
         parkingSessionRepository.save(newSession);
@@ -88,11 +90,14 @@ public class ParkingSessionService {
                 throw new DuplicateResourceException("Đã tồn tại phiên đỗ xe với biển số này trong bãi : " + licensePlate);
         });
 
+        boolean isMonth = true;
+
         ParkingSession newSession = parkingSessionMapper.toEntityForCheckIn(
                 request,
                 lane,
                 licensePlate,
-                confidenceOrRandom(aiResult.getConfidence())
+                confidenceOrRandom(aiResult.getConfidence()),
+                isMonth
         );
         newSession.setImageInUrl(imageUrl);
 
@@ -104,7 +109,7 @@ public class ParkingSessionService {
         ParkingSession session = parkingSessionRepository.findById(request.getParkingSessionId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe với ID: " + request.getParkingSessionId()));
         if (!session.getPlateInOcr().equals(request.getFinalPlate())) {
-            incidentService.reportIncident(session, "Biển số xác nhận không khớp với biển số OCR", IncidentTypeEnum.WRONG_PLATE);
+            guardIncidentService.reportIncident(session, "Biển số xác nhận không khớp với biển số OCR", IncidentTypeEnum.WRONG_PLATE);
         }
         session.setFinalPlate(request.getFinalPlate());
         session.setMonth(false);
@@ -180,7 +185,7 @@ public class ParkingSessionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe với ID: " + request.getParkingSessionId()));
 
         String evidenceUrl = storeImage(evidenceImage, "evidence", "Không thể lưu ảnh bằng chứng");
-        incidentService.reportIncident(session, request.getDescription(), request.getIncidentType(), evidenceUrl);
+        guardIncidentService.reportIncident(session, request.getDescription(), request.getIncidentType(), evidenceUrl);
     }
 
     private BigInteger calculatePenalty(ParkingSession session) {
@@ -212,7 +217,7 @@ public class ParkingSessionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe mở với biển số xe: " + licensePlate));
 
         String evidenceUrl = storeImage(evidenceImage, "evidence", "Không thể lưu ảnh bằng chứng");
-        incidentService.reportIncident(session, request.getDescription(), IncidentTypeEnum.LOST_CARD, evidenceUrl);
+        guardIncidentService.reportIncident(session, request.getDescription(), IncidentTypeEnum.LOST_CARD, evidenceUrl);
 
 
         session.setExitLane(lane);
@@ -277,14 +282,21 @@ public class ParkingSessionService {
         return (float) (0.9 + Math.random() * 0.1);
     }
 
-    public ParkingSessionResponse getParkingSessionByPlate(String plate) {
-        ParkingSession session = parkingSessionRepository.findFirstByStatusAndFinalPlateIgnoreCase(
-                        SessionStatus.PARKED,
-                        plate
-                )
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe đang mở với biển số: " + plate));
+    public List<ParkingSessionResponse> getParkingSessionsByPlate(String plate, SessionStatus status) {
+        List<ParkingSession> sessions;
+        if (status == null) {
+            sessions = parkingSessionRepository.findAllByFinalPlateIgnoreCase(plate);
+        } else {
+            sessions = parkingSessionRepository.findAllByFinalPlateIgnoreCaseAndStatus(plate, status);
+        }
 
-        return parkingSessionMapper.toParkingSessionResponse(session);
+        if (sessions.isEmpty()) {
+            throw new ResourceNotFoundException("Không có phiên đỗ xe nào được tìm thấy với biển số: " + plate);
+        }
+
+        return sessions.stream()
+                .map(parkingSessionMapper::toParkingSessionResponse)
+                .collect(Collectors.toList());
     }
 
     private String buildAbsoluteImagePath(String relativeImageUrl) {

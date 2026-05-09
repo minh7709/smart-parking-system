@@ -7,7 +7,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 import smartparkingsystem.backend.entity.type.SubType;
 import smartparkingsystem.backend.entity.type.SubStatus;
 import java.math.BigInteger;
@@ -44,6 +46,7 @@ public class Subscription {
     private LocalDateTime endDate;
 
     @Column(name = "status", nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Enumerated(EnumType.STRING)
     private SubStatus status;
 

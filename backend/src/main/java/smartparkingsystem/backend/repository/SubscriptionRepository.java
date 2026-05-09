@@ -15,13 +15,15 @@ import java.util.UUID;
 
 @Repository
 public interface SubscriptionRepository extends JpaRepository<Subscription, UUID> {
-    Optional<Subscription> findByVehicleIdAndSubStatusActiveTrue(UUID vehicleId);
+    Optional<Subscription> findByVehicleIdAndStatus(UUID vehicleId, SubStatus status);
 
     List<Subscription> findAllByStatusAndEndDateBefore(SubStatus status, LocalDateTime endDate);
 
+    long countByStatus(SubStatus active);
+
     Page<Subscription> findAllByStatus(SubStatus subStatus, Pageable pageable);
 
-    Page<Subscription> findAllSubscriptionPricing_DurationType(SubType subType, Pageable pageable);
-
     Page<Subscription> findAllByStatusAndSubscriptionPricing_DurationType(SubStatus subStatus, SubType subType, Pageable pageable);
+
+    Page<Subscription> findAllBySubscriptionPricing_DurationType(SubType subType, Pageable pageable);
 }

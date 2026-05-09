@@ -49,7 +49,7 @@ public class GuardSubscriptionService {
         Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phương tiện với ID: " + request.getVehicleId()));
         Subscription subscription = subscriptionRepository
-                .findByVehicleIdAndSubStatusActiveTrue(request.getVehicleId())
+                .findByVehicleIdAndStatus(request.getVehicleId(), SubStatus.ACTIVE)
                 .orElse(null);
 
         if(subscription != null && subscription.getEndDate().isAfter(now)){
@@ -132,7 +132,7 @@ public class GuardSubscriptionService {
     }
 
     public SubscriptionResponse getSubscriptionByVehicleId(UUID vehicleId){
-        Subscription subscription = subscriptionRepository.findByVehicleIdAndSubStatusActiveTrue(vehicleId)
+        Subscription subscription = subscriptionRepository.findByVehicleIdAndStatus(vehicleId, SubStatus.ACTIVE)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đăng ký hoạt động cho phương tiện với ID: " + vehicleId));
         return subscriptionMapper.toResponse(subscription);
     }
@@ -147,7 +147,7 @@ public class GuardSubscriptionService {
         } else if (subStatus != null) {
             page = subscriptionRepository.findAllByStatus(subStatus, sortedPageable);
         } else if (subType != null) {
-            page = subscriptionRepository.findAllSubscriptionPricing_DurationType(subType, sortedPageable);
+            page = subscriptionRepository.findAllBySubscriptionPricing_DurationType(subType, sortedPageable);
         } else {
             page = subscriptionRepository.findAll(sortedPageable);
         }
