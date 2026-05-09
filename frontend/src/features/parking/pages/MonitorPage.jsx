@@ -11,6 +11,7 @@ import { getLaneSelection } from "../../../utils/storage";
 const MonitorPage = () => {
   const location = useLocation();
   const savedSelection = getLaneSelection();
+  const historyTableRef = React.useRef();
 
   const checkInLane = location.state?.checkInLane || savedSelection.checkInLane;
   const checkOutLane =
@@ -23,7 +24,10 @@ const MonitorPage = () => {
   //   : null;
 
   // Cách 2: dùng IP cứng để test (chú ý: IP này phải đúng và reachable)
-  const cameraInUrl = "http://192.168.1.9:4747/video";
+  const cameraInUrl = "http://192.168.1.38:4747/video";
+  const cameraOutUrl = "http://192.168.1.10:4747/video";
+
+ 
 
   const [cameraStatus, setCameraStatus] = useState("checking");
   const [pendingConfirm, setPendingConfirm] = useState(null);
@@ -42,7 +46,7 @@ const MonitorPage = () => {
   }
 
   return (
-    <AppLayout>
+    <>
       {cameraStatus === "error" && (
         <Alert
           message="Không kết nối được camera"
@@ -62,7 +66,6 @@ const MonitorPage = () => {
             vehicleType="MOTOR"
             videoSrc={cameraInUrl}
             onSuccess={(data) => {
-              // open confirm modal with returned session data
               setPendingConfirm({ ...data, entryLaneId: checkInLane?.id });
             }}
           />
@@ -73,26 +76,28 @@ const MonitorPage = () => {
             title={checkOutLane?.laneName || "LÀN RA"}
             laneId={checkOutLane?.id}
             vehicleType="MOTO"
-            videoSrc={cameraInUrl} // tạm thời dùng chung, sau này thay bằng camera out riêng
+            videoSrc={cameraOutUrl}
             onSuccess={(data) => console.log("Check-out success", data)}
           />
         </Col>
       </Row>
       <div style={{ marginTop: 20 }}>
-        <HistoryTable />
+        <HistoryTable ref={historyTableRef} />
       </div>
       <Stats />
+
       <ConfirmModal
         visible={!!pendingConfirm}
         initialData={pendingConfirm}
         onCancel={() => setPendingConfirm(null)}
         onConfirmed={(confirmed) => {
-          // after confirm, clear modal and optionally refresh lists
+          // after confirm, clear modal and refresh history table
           setPendingConfirm(null);
           console.log('confirm-check-in result', confirmed);
+          historyTableRef.current?.refresh();
         }}
       />
-    </AppLayout>
+    </>
   );
 };
 

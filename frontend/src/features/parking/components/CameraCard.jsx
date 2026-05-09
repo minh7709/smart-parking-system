@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { Card, Button, Space, Tooltip, message, Spin } from "antd";
+import { Card, Button, Space, Tooltip, Spin, Select } from "antd";
 import {
   CameraOutlined,
   ZoomInOutlined,
@@ -13,6 +13,7 @@ import {
   saveActiveParkingSessionId,
   clearActiveParkingSessionId,
 } from "../../../utils/storage";
+import { useNotification } from "../../../hooks/useNotification";
 
 const CameraCard = ({
   title,
@@ -22,10 +23,13 @@ const CameraCard = ({
   onSuccess,
   vehicleType = "MOTOR",
 }) => {
+  const notify = useNotification();
   const imgRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [detectedPlate, setDetectedPlate] = useState(null);
   const [imgError, setImgError] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [localVehicleType, setLocalVehicleType] = useState(vehicleType || "MOTOR");
   const themeColor = "#ffffff";
   const normalizeUuid = (value) => {
     if (!value) {
@@ -33,6 +37,11 @@ const CameraCard = ({
     }
 
     return String(value).replace(/^"|"$/g, "").trim();
+  };
+
+  const handleZoom = () => {
+    const newZoom = zoom >= 2 ? 1 : zoom + 0.5;
+    setZoom(newZoom);
   };
 
   const buildAuthRequestOptions = () => {
@@ -56,7 +65,7 @@ const CameraCard = ({
   const handleCaptureAndSend = async () => {
     const img = imgRef.current;
     if (!img || !img.complete || img.naturalWidth === 0) {
-      message.error("Hình ảnh chưa sẵn sàng");
+      notify.error("Hình ảnh chưa sẵn sàng");
       return;
     }
 
@@ -70,7 +79,7 @@ const CameraCard = ({
       canvas.toBlob(resolve, "image/jpeg", 0.9),
     );
     if (!blob) {
-      message.error("Không thể chụp ảnh");
+      notify.error("Không thể chụp ảnh");
       return;
     }
     const file = new File([blob], `capture_${Date.now()}.jpg`, {
@@ -81,16 +90,16 @@ const CameraCard = ({
     try {
       const normalizedLaneId = normalizeUuid(laneId);
       if (!normalizedLaneId) {
-        message.error("Thieu thong tin lane, vui long chon lai lane.");
+        notify.error("Thieu thong tin lane, vui long chon lai lane.");
         return;
       }
 
-      const normalizedVehicleType = String(vehicleType || "MOTOR")
+      const normalizedVehicleType = String(localVehicleType || "MOTOR")
         .toUpperCase()
         .trim();
 
-      if (type === "IN" && !["MOTOR", "CAR"].includes(normalizedVehicleType)) {
-        message.error("vehicleType khong hop le. Chi chap nhan MOTOR hoac CAR.");
+      if (type === "IN" && !["MOTOR", "CAR", "BICYCLE"].includes(normalizedVehicleType)) {
+        notify.error("vehicleType khong hop le. Chi chap nhan MOTOR, CAR hoac BICYCLE.");
         return;
       }
 
@@ -106,7 +115,7 @@ const CameraCard = ({
             };
 
       if (type === "OUT" && !requestPayload.parkingSessionId) {
-        message.error("Thiếu parkingSessionId. Hãy check-in thành công trước khi check-out.");
+        notify.error("Thiếu parkingSessionId. Hãy check-in thành công trước khi check-out.");
         return;
       }
 
@@ -144,16 +153,19 @@ const CameraCard = ({
         }
 
         setDetectedPlate(plate);
-        message.success(`${type === "IN" ? "Check-in" : "Check-out"} thành công: ${plate}`);
+        notify.success(
+          `Biển số xe: ${plate}`,
+          `${type === "IN" ? "Check-in" : "Check-out"} Thành Công`
+        );
         if (onSuccess) {
           onSuccess(response.data);
         }
       } else {
-        message.error(response?.message || "Lỗi từ server");
+        notify.error(response?.message || "Lỗi từ server");
       }
     } catch (error) {
       console.error(error);
-      message.error(error.message || "Gửi ảnh thất bại");
+      notify.error(error.message || "Gửi ảnh thất bại");
     } finally {
       setLoading(false);
     }
@@ -177,6 +189,18 @@ const CameraCard = ({
       }
       extra={
         <Space size="small">
+          {type === "IN" && (
+            <Select
+              value={localVehicleType}
+              onChange={setLocalVehicleType}
+              options={[
+                { label: "MOTOR", value: "MOTOR" },
+                { label: "CAR", value: "CAR" },
+                { label: "BICYCLE", value: "BICYCLE" },
+              ]}
+              style={{ width: 100 }}
+            />
+          )}
           <Tooltip title="Chup va gui">
             <Button
               type="primary"
@@ -187,11 +211,12 @@ const CameraCard = ({
               style={{ backgroundColor: "#00b96b" }}
             />
           </Tooltip>
-          <Tooltip title="Phong to">
+          <Tooltip title="Phóng to">
             <Button
               type="text"
               shape="circle"
               icon={<ZoomInOutlined style={{ color: "#fff" }} />}
+              onClick={handleZoom}
             />
           </Tooltip>
           <Tooltip title="Cai dat luong">
@@ -224,7 +249,7 @@ const CameraCard = ({
     >
       <div
         style={{
-          height: 260,
+          height: 450,
           borderRadius: 8,
           overflow: "hidden",
           position: "relative",
@@ -255,10 +280,16 @@ const CameraCard = ({
             ref={imgRef}
             src={videoSrc}
             alt="camera-feed"
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            style={{ 
+              width: "100%", 
+              height: "100%", 
+              objectFit: "cover",
+              transform: `scale(${zoom})`,
+              transition: "transform 0.3s ease"
+            }}
             onError={() => {
               setImgError(true);
-              message.error("Loi ket noi camera. Kiem tra IP DroidCam.");
+              notify.error("Loi ket noi camera. Kiem tra IP DroidCam.");
             }}
             onLoad={() => setImgError(false)}
             crossOrigin="anonymous"
