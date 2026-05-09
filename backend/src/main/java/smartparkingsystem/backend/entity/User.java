@@ -25,7 +25,7 @@ public class User {
     @Column(name = "password", nullable = false, unique = true)
     String password;
 
-    @Column(name = "full_name", nullable = false, unique = true, length = 100)
+    @Column(name = "full_name", nullable = false, length = 100)
     String fullName;
 
     @Column(name = "phone", nullable = false, unique = true, length = 11)
@@ -46,5 +46,5 @@ public class User {
     LocalDateTime createdAt;
 
     @Column(name = "is_deleted", nullable = false)
-    boolean isDeleted;
+    boolean deleted;
 }

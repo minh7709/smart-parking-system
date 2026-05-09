@@ -13,10 +13,10 @@ import java.util.UUID;
 
 
 @Entity
+@Table(name = "parking_session")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "parking_session")
 @Getter
 @Setter
 public class ParkingSession {

@@ -112,7 +112,7 @@ public class PricingRuleService {
      * Get all pricing rules with pagination
      */
     @Transactional(readOnly = true)
-    public Page<PricingRuleResponse> getAllPricingRules(Pageable pageable, String vehicleType) {
+    public Page<PricingRuleResponse> getAllPricingRules(Pageable pageable, VehicleTypeEnum vehicleType) {
         log.info("Fetching all pricing rules with pagination");
         // Luôn sort active trước, sau đó mới tới sort client
         Sort sort = Sort.by(Sort.Direction.DESC, "active");
@@ -122,11 +122,10 @@ public class PricingRuleService {
                 sort
         );
         Page<PricingRule> page;
-        if (vehicleType == null || vehicleType.isBlank()) {
+        if (vehicleType == null) {
             page = pricingRuleRepository.findAll(sortedPageable);
         } else {
-            VehicleTypeEnum typeEnum = VehicleTypeEnum.valueOf(vehicleType);
-            page = pricingRuleRepository.findByVehicleType(typeEnum, sortedPageable);
+            page = pricingRuleRepository.findByVehicleType(vehicleType, sortedPageable);
         }
 
         return page.map(pricingRuleMapper::toResponse);

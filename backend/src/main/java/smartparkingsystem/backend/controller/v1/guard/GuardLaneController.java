@@ -17,7 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @PreAuthorize("hasRole('GUARD')")
-public class LaneController {
+public class GuardLaneController {
     private final LaneService laneService;
     @GetMapping("/")
     public ResponseEntity<ApiResponse<List<LaneResponse>>> getActiveLanes() {

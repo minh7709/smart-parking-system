@@ -7,6 +7,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import smartparkingsystem.backend.dto.request.auth.ChangePasswordRequest;
 import smartparkingsystem.backend.entity.User;
 import smartparkingsystem.backend.exception.ResourceNotFoundException;
 import smartparkingsystem.backend.exception.UnauthorizedException;
@@ -41,7 +42,7 @@ public class UserService {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         UUID userId = userDetails.getId();
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByIdAndDeletedFalse(userId)
                 .orElseThrow(() -> {
                     log.warn("User not found in database: {}", userId);
                     return new ResourceNotFoundException("User not found");
@@ -57,5 +58,19 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         user.setPassword(passwordEncoder.encode(newPassword)); // Password should be encoded before calling this method
         userRepository.save(user);
+    }
+
+    @Transactional
+    public void changePasswordHandler(ChangePasswordRequest request) {
+        User currentUser = getCurrentUser();
+
+        // Verify current password
+        if (!passwordEncoder.matches(request.getCurrentPassword(), currentUser.getPassword())) {
+            throw new UnauthorizedException("Current password is incorrect");
+        }
+
+        // Update to new password
+        currentUser.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(currentUser);
     }
 }
