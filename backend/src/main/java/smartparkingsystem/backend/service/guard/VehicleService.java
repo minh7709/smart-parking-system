@@ -1,6 +1,5 @@
 package smartparkingsystem.backend.service.guard;
 
-import com.sun.jdi.request.DuplicateRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -10,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import smartparkingsystem.backend.dto.request.VehicleRequest;
 import smartparkingsystem.backend.dto.response.VehicleReponse;
-import smartparkingsystem.backend.entity.Subscription;
 import smartparkingsystem.backend.entity.Vehicle;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 import smartparkingsystem.backend.exception.DuplicateResourceException;
@@ -26,7 +24,6 @@ import java.util.UUID;
 public class VehicleService {
     private final VehicleRepository vehicleRepository;
     private final VehicleMapper vehicleMapper;
-    private final SubscriptionRepository subscriptionRepository;
     @Transactional
     public VehicleReponse createVehicle(VehicleRequest request){
         if(vehicleRepository.existsByLicensePlateAndDeletedFalse(request.getLicensePlate())){

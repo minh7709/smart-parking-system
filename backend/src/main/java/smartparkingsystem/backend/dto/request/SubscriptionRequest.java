@@ -12,8 +12,6 @@ import smartparkingsystem.backend.entity.type.PaymentMethod;
 import smartparkingsystem.backend.entity.type.SubType;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

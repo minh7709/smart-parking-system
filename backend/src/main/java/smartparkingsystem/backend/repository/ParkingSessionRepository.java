@@ -18,7 +18,6 @@ import smartparkingsystem.backend.dto.response.admin.TrafficTimelineResponse;
 
 @Repository
 public interface ParkingSessionRepository extends JpaRepository<ParkingSession, UUID> {
-    Optional<ParkingSession> findByFinalPlate(String finalPlate);
 
     Optional<ParkingSession> findFirstByStatusAndFinalPlateIgnoreCase(SessionStatus status, String finalPlate);
 

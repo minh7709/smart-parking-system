@@ -42,7 +42,6 @@ public class GuardSubscriptionService {
     private final VehicleRepository vehicleRepository;
     private final InvoiceRepository invoiceRepository;
     private final InvoiceService invoiceService;
-    private final SubscriptionPricingMapper subscriptionPricingMapper;
     private final UserService userService;
 
     public SubscriptionResponse createSubscription(SubscriptionRequest request){
