@@ -13,6 +13,7 @@ public class VehicleMapper {
         }
         return Vehicle.builder()
                 .licensePlate(request.getLicensePlate())
+                .vehicleType(request.getVehicleType())
                 .brand(request.getBrand())
                 .customerName(request.getCustomerName())
                 .customerName(request.getCustomerName())

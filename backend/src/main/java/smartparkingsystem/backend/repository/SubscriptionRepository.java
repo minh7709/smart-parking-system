@@ -17,6 +17,8 @@ import java.util.UUID;
 public interface SubscriptionRepository extends JpaRepository<Subscription, UUID> {
     Optional<Subscription> findByVehicleIdAndStatus(UUID vehicleId, SubStatus status);
 
+    Optional<Subscription> findByVehicle_LicensePlateIgnoreCaseAndStatus(String licensePlate, SubStatus status);
+
     List<Subscription> findAllByStatusAndEndDateBefore(SubStatus status, LocalDateTime endDate);
 
     long countByStatus(SubStatus active);

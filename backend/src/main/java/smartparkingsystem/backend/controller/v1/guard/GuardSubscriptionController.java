@@ -65,4 +65,9 @@ public class GuardSubscriptionController {
         SubscriptionResponse response = subscriptionService.getSubscriptionByVehicleId(vehicleId);
         return ResponseEntity.ok(ApiResponse.success(response, "Subscription retrieved successfully"));
     }
+    @GetMapping("/license-plate/{licensePlate}")
+    public ResponseEntity<ApiResponse<SubscriptionResponse>> getSubscriptionByLicensePlate(@PathVariable String licensePlate) {
+        SubscriptionResponse response = subscriptionService.getSubscriptionByLicensePlate(licensePlate);
+        return ResponseEntity.ok(ApiResponse.success(response, "Subscription retrieved successfully"));
+    }
 }

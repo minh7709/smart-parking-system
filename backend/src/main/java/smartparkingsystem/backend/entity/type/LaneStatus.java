@@ -6,6 +6,6 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum LaneStatus {
-    ACTIVE ("Hoạt động"), MAINTENANCE ("Đang sửa"), DELETED ("Đã xóa");
+    ACTIVE ("Hoạt động"), INACTIVE ("Không hoạt động");
     private final String label;
     }

@@ -67,7 +67,7 @@ public class ParkingSessionService {
                 lane,
                 "BICYCLE",
                 1.0f,
-                true
+                false
         );
         newSession.setImageInUrl(imageUrl);
         parkingSessionRepository.save(newSession);

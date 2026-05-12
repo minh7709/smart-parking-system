@@ -18,7 +18,7 @@ import java.util.UUID;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SubscriptionRequest {
-    private UUID vehicleId;
+    private String licensePlate;
     private SubType subType;
     private LocalDateTime startDate;
     private PaymentMethod paymentMethod;

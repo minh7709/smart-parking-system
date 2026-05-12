@@ -58,13 +58,11 @@ public class AdminUserService {
     public UserResponse updateUser(UUID id, UserUpdateRequest request) {
         User existing = userRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
-
         validateUniqueForUpdate(request.getUsername(), request.getPhone(), id);
 
         existing.setUsername(request.getUsername());
         existing.setFullName(request.getFullName());
         existing.setPhone(request.getPhone());
-        existing.setRole(request.getRole());
         existing.setStatus(request.getStatus());
 
         User updated = userRepository.save(existing);

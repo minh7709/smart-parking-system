@@ -10,10 +10,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import smartparkingsystem.backend.dto.request.VehicleRequest;
 import smartparkingsystem.backend.dto.response.VehicleReponse;
+import smartparkingsystem.backend.entity.Subscription;
 import smartparkingsystem.backend.entity.Vehicle;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 import smartparkingsystem.backend.exception.ResourceNotFoundException;
 import smartparkingsystem.backend.mapper.VehicleMapper;
+import smartparkingsystem.backend.repository.SubscriptionRepository;
 import smartparkingsystem.backend.repository.VehicleRepository;
 
 import java.util.UUID;
@@ -23,6 +25,7 @@ import java.util.UUID;
 public class VehicleService {
     private final VehicleRepository vehicleRepository;
     private final VehicleMapper vehicleMapper;
+    private final SubscriptionRepository subscriptionRepository;
     @Transactional
     public VehicleReponse createVehicle(VehicleRequest request){
         if(vehicleRepository.existsByLicensePlateAndDeletedFalse(request.getLicensePlate())){
@@ -37,6 +40,7 @@ public class VehicleService {
     public VehicleReponse updateVehicle(VehicleRequest request, UUID id){
         Vehicle vehicle = vehicleRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phương tiện để cập nhật"));
+        vehicleMapper.updateEntity(request, vehicle);
         vehicleRepository.save(vehicle);
         return vehicleMapper.toResponse(vehicle);
     }
@@ -78,7 +82,7 @@ public class VehicleService {
 
     @Transactional(readOnly = true)
     public VehicleReponse getVehicleById(UUID id){
-        Vehicle vehicle = vehicleRepository.findById(id)
+        Vehicle vehicle = vehicleRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phương tiện"));
         return vehicleMapper.toResponse(vehicle);
     }

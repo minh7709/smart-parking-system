@@ -1,5 +1,6 @@
 package smartparkingsystem.backend.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import org.springframework.validation.annotation.Validated;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;

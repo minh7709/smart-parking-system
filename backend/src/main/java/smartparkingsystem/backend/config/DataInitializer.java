@@ -197,7 +197,7 @@ public class DataInitializer implements CommandLineRunner {
                 SubscriptionPricing subPricingCar = subscriptionPricingRepository.findAll().stream()
                         .filter(p -> p.getVehicleType() == VehicleTypeEnum.CAR && p.getDurationType() == SubType.MONTHLY)
                         .findFirst().orElse(null);
-                System.out.println(subPricingCar);
+                System.out.println(subPricingCar + "1");
                 if (subPricingCar != null) {
                     Subscription subscription1 = Subscription.builder()
                             .vehicle(vehicle1)
