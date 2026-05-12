@@ -39,6 +39,7 @@ public class AdminSubscriptionService {
             throw new ValidationException("Invalid status: " + newStatus + ". Only ACTIVE or REJECTED are allowed");
         }
         subscriptionRepository.save(subscription);
+        invoiceRepository.save(invoice);
     }
 
 }

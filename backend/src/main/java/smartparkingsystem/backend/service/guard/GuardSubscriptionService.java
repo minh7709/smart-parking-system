@@ -85,7 +85,7 @@ public class GuardSubscriptionService {
 
     public SubscriptionResponse updateSubscription(SubscriptionRequest request, UUID subscriptionId){
         Subscription subscription = subscriptionRepository.findById(subscriptionId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đăng ký với ID: " + subscriptionId));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đăng ký với ID: " + subscriptionId));
         if(subscription.getStatus() != SubStatus.PENDING){
             throw new InvalidStateException("chỉ thể cập nhật đăng ký đang được xử lý");
         }
@@ -112,7 +112,9 @@ public class GuardSubscriptionService {
         if(subscription.getStatus() != SubStatus.PENDING){
             throw new InvalidStateException("chỉ thể xóa đăng ký đang được xử lý");
         }
-        subscriptionRepository.deleteById(subscriptionId);
+        subscription.setStatus(SubStatus.CANCELLED);
+        subscriptionRepository.save(subscription);
+
         Invoice invoice = invoiceRepository.findBySubscriptionId(subscriptionId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy hóa đơn cho đăng ký với ID: " + subscriptionId));
         invoiceService.updateInvoiceStatus(invoice, PaymentStatus.FAILED);

@@ -127,7 +127,7 @@ public class AuthService {
         boolean rememberMe = tokenProvider.getRememberMeFromToken(refreshToken);
 
         // Get fresh user details from DB to ensure they still exist and are active
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findByUsernameAndDeletedFalse(username)
                 .orElseThrow(() -> new UnauthorizedException("User not found"));
 
         if (user.getStatus() != UserStatus.ACTIVE) {

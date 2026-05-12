@@ -12,6 +12,7 @@ import smartparkingsystem.backend.dto.response.SubscriptionPricingResponse;
 import smartparkingsystem.backend.entity.SubscriptionPricing;
 import smartparkingsystem.backend.entity.type.SubType;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
+import smartparkingsystem.backend.exception.DuplicateResourceException;
 import smartparkingsystem.backend.exception.InvalidStateException;
 import smartparkingsystem.backend.exception.ValidationException;
 import smartparkingsystem.backend.mapper.SubscriptionPricingMapper;
@@ -50,8 +51,8 @@ public class SubscriptionPricingService {
             throw new ValidationException("Duration type '" + existing.getDurationType() + "' cannot be changed to '");
         }
 
-        if(subscriptionPricingRepository.existsByPricingName(request.getPricingName())){
-            throw new RuntimeException("Subscription pricing with name '" + request.getPricingName() + "' already exists");
+        if(!existing.getPricingName().equals(request.getPricingName()) && subscriptionPricingRepository.existsByPricingName(request.getPricingName())){
+            throw new DuplicateResourceException("Subscription pricing with name '" + request.getPricingName() + "' already exists");
         }
         if(request.getActive() != null && request.getActive() != existing.getActive() && request.getActive()){
             this.handleSubscriptionPricingActivation(request.getVehicleType(), request.getDurationType());
@@ -94,8 +95,8 @@ public class SubscriptionPricingService {
         if(existing.getActive()){
             throw new RuntimeException("Subscription pricing is already active");
         }
-        existing.setActive(true);
         handleSubscriptionPricingActivation(existing.getVehicleType(), existing.getDurationType());
+        existing.setActive(true);
         subscriptionPricingRepository.save(existing);
         return true;
     }

@@ -80,19 +80,19 @@ public class AdminUserService {
     }
 
     private void validateUniqueForCreate(String username, String phone) {
-        if (userRepository.existsByUsername(username)) {
+        if (userRepository.existsByUsernameAndDeletedFalse(username)) {
             throw new DuplicateResourceException("User with username '" + username + "' already exists");
         }
-        if (userRepository.existsByPhone(phone)) {
+        if (userRepository.existsByPhoneAndDeletedFalse(phone)) {
             throw new DuplicateResourceException("User with phone '" + phone + "' already exists");
         }
     }
 
     private void validateUniqueForUpdate(String username, String phone, UUID id) {
-        if (userRepository.existsByUsernameAndIdNot(username, id)) {
+        if (userRepository.existsByUsernameAndDeletedFalseAndIdNot(username, id)) {
             throw new DuplicateResourceException("User with username '" + username + "' already exists");
         }
-        if (userRepository.existsByPhoneAndIdNot(phone, id)) {
+        if (userRepository.existsByPhoneAndDeletedFalseAndIdNot(phone, id)) {
             throw new DuplicateResourceException("User with phone '" + phone + "' already exists");
         }
     }

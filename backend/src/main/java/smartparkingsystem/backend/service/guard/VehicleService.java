@@ -13,6 +13,7 @@ import smartparkingsystem.backend.dto.response.VehicleReponse;
 import smartparkingsystem.backend.entity.Subscription;
 import smartparkingsystem.backend.entity.Vehicle;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
+import smartparkingsystem.backend.exception.DuplicateResourceException;
 import smartparkingsystem.backend.exception.ResourceNotFoundException;
 import smartparkingsystem.backend.mapper.VehicleMapper;
 import smartparkingsystem.backend.repository.SubscriptionRepository;
@@ -29,7 +30,7 @@ public class VehicleService {
     @Transactional
     public VehicleReponse createVehicle(VehicleRequest request){
         if(vehicleRepository.existsByLicensePlateAndDeletedFalse(request.getLicensePlate())){
-            throw new DuplicateRequestException("Đã tồn tại phương tiện này");
+            throw new DuplicateResourceException("Đã tồn tại phương tiện này");
         }
         Vehicle vehicle = vehicleMapper.toEntity(request);
         vehicleRepository.save(vehicle);

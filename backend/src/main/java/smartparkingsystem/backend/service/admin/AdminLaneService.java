@@ -25,7 +25,7 @@ public class AdminLaneService {
     private final LaneMapper laneMapper;
 
     public LaneResponse createLane(LaneCreateRequest request) {
-        if (laneRepository.existsByIpCamera(request.getIpCamera())) {
+        if (laneRepository.existsByIpCameraAndDeletedFalse(request.getIpCamera())) {
             throw new DuplicateResourceException("Lane with ipCamera '" + request.getIpCamera() + "' already exists");
         }
 
@@ -60,7 +60,7 @@ public class AdminLaneService {
         Lane existing = laneRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Lane not found with id: " + id));
 
-        if (laneRepository.existsByIpCameraAndIdNot(request.getIpCamera(), id)) {
+        if (laneRepository.existsByIpCameraAndDeletedFalseAndIdNot(request.getIpCamera(), id)) {
             throw new DuplicateResourceException("Lane with ipCamera '" + request.getIpCamera() + "' already exists");
         }
 

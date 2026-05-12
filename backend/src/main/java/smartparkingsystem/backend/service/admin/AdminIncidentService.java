@@ -37,7 +37,13 @@ public class AdminIncidentService {
         return page.map(incidentMapper::toResponse);
     }
 
-    public Resource getEvidence(String evidencePath) {
+    public Resource getEvidence(java.util.UUID incidentId) {
+        Incident incident = incidentRepository.findById(incidentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sự cố với ID: " + incidentId));
+        String evidencePath = incident.getEvidenceUrl();
+        if(evidencePath == null || evidencePath.trim().isEmpty()) {
+            throw new ResourceNotFoundException("Sự cố này không có file chứng cứ");
+        }
         try {
             Path filePath = Paths.get(evidencePath).normalize();
             Resource resource = new UrlResource(filePath.toUri());
@@ -45,10 +51,10 @@ public class AdminIncidentService {
             if (resource.exists() && resource.isReadable()) {
                 return resource;
             } else {
-                throw new ResourceNotFoundException("Không tìm thấy hoặc không thể đọc file ảnh: " + evidencePath);
+                throw new ResourceNotFoundException("Không tìm thấy hoặc không thể đọc file ảnh.");
             }
         } catch (MalformedURLException e) {
-            throw new ResourceNotFoundException("Đường dẫn file không hợp lệ: " + evidencePath);
+            throw new ResourceNotFoundException("Đường dẫn file không hợp lệ.");
         }
     }
 }

@@ -61,16 +61,11 @@ public interface ParkingSessionRepository extends JpaRepository<ParkingSession, 
     @Query(
         nativeQuery = true,
         value = "SELECT " +
-                "    l.name AS laneName, " +
-                "    COUNT(ps_in.id) AS entryCount, " +
-                "    COUNT(ps_out.id) AS exitCount " +
+                "    l.lane_name AS laneName, " +
+                "    (SELECT COUNT(ps.id) FROM parking_session ps WHERE ps.entry_lane_id = l.id AND ps.time_in >= :startDate AND ps.time_in < :endDate) AS entryCount, " +
+                "    (SELECT COUNT(ps.id) FROM parking_session ps WHERE ps.exit_lane_id = l.id AND ps.time_out >= :startDate AND ps.time_out < :endDate) AS exitCount " +
                 "FROM lane l " +
-                "LEFT JOIN parking_session ps_in ON l.id = ps_in.entry_lane_id " +
-                "    AND ps_in.time_in >= :startDate AND ps_in.time_in < :endDate " +
-                "LEFT JOIN parking_session ps_out ON l.id = ps_out.exit_lane_id " +
-                "    AND ps_out.time_out >= :startDate AND ps_out.time_out < :endDate " +
-                "GROUP BY l.name " +
-                "ORDER BY l.name")
+                "ORDER BY l.lane_name")
     List<LaneUtilizationResponse> getLaneUtilization(@Param("startDate") LocalDateTime startDate,
                                                      @Param("endDate") LocalDateTime endDate);
 }
