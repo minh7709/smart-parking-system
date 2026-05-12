@@ -1,12 +1,26 @@
-import React from "react";
-import { Layout, Menu, Input, Badge, Avatar, ConfigProvider } from "antd";
+import React, { useState, useEffect } from "react";
 import {
-  DashboardOutlined,
+  Layout,
+  Menu,
+  Input,
+  Badge,
+  Avatar,
+  ConfigProvider,
+  Dropdown,
+  message,
+} from "antd";
+import { useNavigate, useLocation } from "react-router-dom";
+import {
+  StarOutlined,
   VideoCameraOutlined,
   SearchOutlined,
   BellOutlined,
   UserOutlined,
+  InfoCircleOutlined,
+  LockOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
+import { Outlet } from "react-router-dom";
 
 const { Header, Sider, Content } = Layout;
 
@@ -23,9 +37,93 @@ const styles = {
     padding: "0 24px",
   },
   search: { width: 250, background: "#1a1a1a", border: "none", color: "#fff" },
+  userInfo: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    cursor: "pointer",
+  },
+  userName: {
+    color: "#fff",
+    fontSize: 14,
+    maxWidth: 120,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
 };
 
-export const AppLayout = ({ children }) => {
+export const AppLayout = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [userName, setUserName] = useState("Người dùng");
+
+  // Lấy thông tin user từ localStorage khi component mount
+  useEffect(() => {
+    const userInfo = localStorage.getItem("user");
+    if (userInfo) {
+      try {
+        const user = JSON.parse(userInfo);
+        setUserName(
+          user.fullName || user.username || user.email || "Người dùng",
+        );
+      } catch (e) {
+        console.error("Lỗi parse userInfo:", e);
+      }
+    }
+  }, []);
+
+  // Xác định menu nào đang được chọn dựa trên URL hiện tại
+  const selectedKey = location.pathname.includes("/register") ? "1" : "2";
+
+  // Hàm xử lý khi click vào Menu
+  const handleMenuClick = (e) => {
+    if (e.key === "1") navigate("/register");
+    if (e.key === "2") navigate("/monitor");
+  };
+
+  // Xử lý đăng xuất
+  const handleLogout = () => {
+    // Xóa tất cả dữ liệu trong localStorage
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("tokenType");
+    localStorage.removeItem("expiresIn");
+    localStorage.removeItem("expiresAt");
+    localStorage.removeItem("user");
+    localStorage.removeItem("selectedCheckInLane");
+    localStorage.removeItem("selectedCheckOutLane");
+
+    message.success("Đăng xuất thành công!");
+    navigate("/login");
+  };
+
+  // Menu items cho dropdown
+  const menuItems = [
+    {
+      key: "profile",
+      icon: <InfoCircleOutlined />,
+      label: "Thông tin",
+      onClick: () => navigate("/profile"),
+    },
+    {
+      key: "change-password",
+      icon: <LockOutlined />,
+      label: "Đổi mật khẩu",
+      onClick: () => navigate("/change-password"),
+    },
+    {
+      type: "divider",
+    },
+    {
+      key: "logout",
+      icon: <LogoutOutlined />,
+      label: "Đăng xuất",
+      onClick: handleLogout,
+      danger: true,
+    },
+  ];
+
   return (
     <ConfigProvider
       theme={{
@@ -34,6 +132,12 @@ export const AppLayout = ({ children }) => {
           colorBgBase: "#0b0b0b",
           colorTextBase: "#ffffff",
           borderRadius: 14,
+        },
+        components: {
+          Dropdown: {
+            colorBgElevated: "#1a1a1a",
+            controlItemBgHover: "#2a2a2a",
+          },
         },
       }}
     >
@@ -44,10 +148,11 @@ export const AppLayout = ({ children }) => {
           <Menu
             theme="dark"
             mode="inline"
-            defaultSelectedKeys={["2"]}
+            selectedKeys={[selectedKey]}
+            onClick={handleMenuClick}
             style={{ background: "transparent" }}
             items={[
-              { key: "1", icon: <DashboardOutlined />, label: "Dashboard" },
+              { key: "1", icon: <StarOutlined />, label: "Register" },
               { key: "2", icon: <VideoCameraOutlined />, label: "Camera" },
             ]}
           />
@@ -59,20 +164,22 @@ export const AppLayout = ({ children }) => {
           <Header style={styles.header}>
             <h2 style={{ color: "#fff", margin: 0 }}>Camera</h2>
             <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-              <Input
-                placeholder="Search..."
-                prefix={<SearchOutlined />}
-                style={styles.search}
-              />
               <Badge dot>
                 <BellOutlined style={{ fontSize: 18, color: "#aaa" }} />
               </Badge>
-              <Avatar icon={<UserOutlined />} />
+
+              {/* Dropdown Avatar với thông tin user */}
+              <Dropdown menu={{ items: menuItems }} trigger={["click"]}>
+                <div style={styles.userInfo}>
+                  <Avatar icon={<UserOutlined />} />
+                  <span style={styles.userName}>{userName}</span>
+                </div>
+              </Dropdown>
             </div>
           </Header>
-
-          {/* NỘI DUNG TỪNG TRANG */}
-          <Content style={{ margin: 20 }}>{children}</Content>
+          <Content style={{ margin: 20 }}>
+            <Outlet />
+          </Content>
         </Layout>
       </Layout>
     </ConfigProvider>

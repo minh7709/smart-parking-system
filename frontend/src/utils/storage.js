@@ -23,3 +23,37 @@ export const clearAuthFromLocalStorage = () => {
 export const saveResetPasswordToken = (token) => {
     localStorage.setItem('resetPasswordToken', token);
 };
+
+export const saveLaneSelection = ({ checkInLane, checkOutLane }) => {
+  localStorage.setItem('selectedCheckInLane', JSON.stringify(checkInLane));
+  localStorage.setItem('selectedCheckOutLane', JSON.stringify(checkOutLane));
+};
+
+export const getLaneSelection = () => {
+  const checkInRaw = localStorage.getItem('selectedCheckInLane');
+  const checkOutRaw = localStorage.getItem('selectedCheckOutLane');
+
+  return {
+    checkInLane: checkInRaw ? JSON.parse(checkInRaw) : null,
+    checkOutLane: checkOutRaw ? JSON.parse(checkOutRaw) : null,
+  };
+};
+
+export const clearLaneSelection = () => {
+  localStorage.removeItem('selectedCheckInLane');
+  localStorage.removeItem('selectedCheckOutLane');
+};
+
+export const saveActiveParkingSessionId = (parkingSessionId) => {
+  if (!parkingSessionId) {
+    return;
+  }
+  localStorage.setItem('activeParkingSessionId', String(parkingSessionId));
+};
+
+export const getActiveParkingSessionId = () =>
+  localStorage.getItem('activeParkingSessionId');
+
+export const clearActiveParkingSessionId = () => {
+  localStorage.removeItem('activeParkingSessionId');
+};

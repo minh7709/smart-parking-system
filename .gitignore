@@ -25,7 +25,6 @@ ai-service/*.pyc
 ai-service/venv/
 ai-service/.env
 
-
 # Logs and temporary files
 logs/
 temp/
