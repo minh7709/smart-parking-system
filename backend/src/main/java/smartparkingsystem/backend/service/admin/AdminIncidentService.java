@@ -26,7 +26,7 @@ public class AdminIncidentService {
     private final IncidentRepository incidentRepository;
     private final IncidentMapper incidentMapper;
 
-    @Value("${app.upload.root-path}")
+    @Value("${file.upload-dir}")
     private String uploadRootPath;
 
     public Page<IncidentResponse> getIncidents(Pageable pageable, IncidentTypeEnum incidentTypeEnum) {
