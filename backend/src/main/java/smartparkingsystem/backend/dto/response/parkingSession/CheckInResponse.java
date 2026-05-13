@@ -4,11 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import smartparkingsystem.backend.entity.type.SessionStatus;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Data
 @Builder

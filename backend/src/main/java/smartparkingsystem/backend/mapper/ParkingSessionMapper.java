@@ -1,7 +1,6 @@
 package smartparkingsystem.backend.mapper;
 
 import org.springframework.stereotype.Component;
-import smartparkingsystem.backend.dto.request.parkingSessionRequest.CheckInRequest;
 import smartparkingsystem.backend.dto.request.parkingSessionRequest.ConfirmCheckInRequest;
 import smartparkingsystem.backend.dto.response.parkingSession.CheckInResponse;
 import smartparkingsystem.backend.dto.response.parkingSession.CheckOutResponse;
@@ -10,7 +9,6 @@ import smartparkingsystem.backend.entity.Lane;
 import smartparkingsystem.backend.entity.ParkingSession;
 import smartparkingsystem.backend.entity.type.SessionStatus;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
-import smartparkingsystem.backend.repository.LaneRepository;
 
 import java.math.BigInteger;
 
