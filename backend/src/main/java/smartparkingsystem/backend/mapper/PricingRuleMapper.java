@@ -70,7 +70,6 @@ public class PricingRuleMapper {
         }
 
         entity.setRuleName(request.getRuleName());
-        entity.setVehicleType(request.getVehicleType());
         entity.setStrategy(request.getPricingStrategy());
         entity.setBasePrice(request.getBasePrice());
         entity.setBlockMinutes(request.getBlockMinutes());

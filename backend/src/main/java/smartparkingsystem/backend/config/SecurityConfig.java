@@ -87,6 +87,15 @@ public class SecurityConfig {
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
+        /*                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Tạm thời tắt config ngoại lệ JWT
+                // .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(jwtAuthenticationEntryPoint))
+                .authorizeHttpRequests(authz -> authz
+                        .anyRequest().permitAll() // Cho phép tất cả request đi qua
+                );
+        */
+
         return http.build();
     }
 }

@@ -18,8 +18,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ParkingSessionResponse {
     private UUID id; //
-    private Lane entryLane;
-    private Lane exitLane;
+    private UUID entryLaneId;
+    private UUID exitLaneId;
 
     private String plateInOcr;
     private String plateOutOcr; //
@@ -27,6 +27,9 @@ public class ParkingSessionResponse {
 
     private LocalDateTime timeIn;
     private LocalDateTime timeOut; //
+
+    private String imageInUrl;
+    private String imageOutUrl; //
 
     private SessionStatus status; //
     private BigInteger fee; //

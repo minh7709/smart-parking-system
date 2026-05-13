@@ -1,6 +1,7 @@
 package smartparkingsystem.backend.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -12,18 +13,19 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "subscription_pricing",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_subscription_pricing_vehicle_duration",
-                        columnNames = {"vehicle_type", "duration_type"}
-                )
-        }
-)
+@Table(name = "subscription_pricing")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class SubscriptionPricing {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @Column(name = "pricing_name", nullable = false, unique = true, length = 100)
+    private String pricingName;
 
     @Column(name = "vehicle_type", nullable = false, columnDefinition = "vehicle_type_enum")
     @Enumerated(EnumType.STRING)
@@ -38,13 +40,17 @@ public class SubscriptionPricing {
     @Column(name = "price", nullable = false)
     private BigInteger price;
 
-    @Column(name = "description", length = 255)
+    @Column(name = "description", length = 500)
     private String description;
 
     @Column(name = "is_active", nullable = false)
     private Boolean active;
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "created_at", nullable = false)
     @CreationTimestamp
-    private LocalDateTime UpdatedAt;
+    private LocalDateTime createdAt;
+
+    @ManyToOne
+    @JoinColumn(name = "created_by")
+    private User creator;
 }

@@ -21,7 +21,7 @@ public class Lane {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "lane_name", nullable = false, unique = true, length = 50)
+    @Column(name = "lane_name", nullable = false, length = 50)
     private  String laneName;
 
     @Column(name = "lane_type", nullable = false)
@@ -34,6 +34,10 @@ public class Lane {
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private LaneStatus status;
 
-    @Column(name = "ip_camera", nullable = false, length = 100)
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    private Boolean deleted = false;
+
+    @Column(name = "ip_camera", nullable = false,  unique = true, length = 100)
     private String ipCamera;
 }

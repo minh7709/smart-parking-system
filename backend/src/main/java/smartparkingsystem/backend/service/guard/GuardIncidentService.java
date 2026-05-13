@@ -11,7 +11,7 @@ import smartparkingsystem.backend.service.auth.UserService;
 
 @Service
 @RequiredArgsConstructor
-public class IncidentService {
+public class GuardIncidentService {
     private final IncidentRepository incidentRepository;
     private final UserService userService;
 
