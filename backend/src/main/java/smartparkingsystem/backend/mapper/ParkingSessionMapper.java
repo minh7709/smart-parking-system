@@ -2,47 +2,48 @@ package smartparkingsystem.backend.mapper;
 
 import org.springframework.stereotype.Component;
 import smartparkingsystem.backend.dto.request.parkingSessionRequest.CheckInRequest;
+import smartparkingsystem.backend.dto.request.parkingSessionRequest.ConfirmCheckInRequest;
 import smartparkingsystem.backend.dto.response.parkingSession.CheckInResponse;
 import smartparkingsystem.backend.dto.response.parkingSession.CheckOutResponse;
 import smartparkingsystem.backend.dto.response.parkingSession.ParkingSessionResponse;
 import smartparkingsystem.backend.entity.Lane;
 import smartparkingsystem.backend.entity.ParkingSession;
 import smartparkingsystem.backend.entity.type.SessionStatus;
+import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
+import smartparkingsystem.backend.repository.LaneRepository;
 
 import java.math.BigInteger;
 
 @Component
 public class ParkingSessionMapper {
-
-    public ParkingSession toEntityForCheckIn(CheckInRequest request, Lane entryLane, String plateInOcr, float confidenceIn, boolean isMonth) {
+    public ParkingSession toEntityForConfirmCheckIn(ConfirmCheckInRequest request, Lane entryLane, boolean isMonth) {
         if (request == null || entryLane == null) {
             return null;
         }
-
         return ParkingSession.builder()
                 .entryLane(entryLane)
                 .vehicleType(request.getVehicleType())
-                .plateInOcr(plateInOcr)
+                .plateInOcr(request.getPlateInOcr())
                 .status(SessionStatus.PARKED)
+                .confidenceIn(request.getConfidenceIn())
                 .month(isMonth)
-                .confidenceIn(confidenceIn)
+                .timeIn(request.getTimeIn())
+                .imageInUrl(request.getImageInUrl())
                 .build();
     }
 
-    public CheckInResponse toCheckInResponse(ParkingSession session) {
-        if (session == null) {
+    public CheckInResponse toCheckInResponse(String plateInOrc, String imageUrl, float confidenceIn, VehicleTypeEnum vehicleType) {
+        if (plateInOrc == null || imageUrl == null || vehicleType == null || confidenceIn < 0 || confidenceIn > 1) {
             return null;
         }
 
         return CheckInResponse.builder()
-                .id(session.getId())
-                .plateInOcr(session.getPlateInOcr())
-                .finalPlate(session.getFinalPlate())
-                .timeIn(session.getTimeIn())
-                .status(session.getStatus())
-                .isMonth(session.isMonth())
-                .vehicleType(session.getVehicleType())
+                .plateInOcr(plateInOrc)
+                .imageInUrl(imageUrl)
+                .confidenceIn(confidenceIn)
+                .vehicleType(vehicleType)
                 .build();
+
     }
 
     public CheckOutResponse toCheckOutResponse(ParkingSession session, BigInteger fee) {

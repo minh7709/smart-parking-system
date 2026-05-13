@@ -31,7 +31,7 @@ public class SubscriptionPricingService {
 
     public SubscriptionPricingResponse createSubscriptionPricing(SubscriptionPricingRequest request) {
         if(subscriptionPricingRepository.existsByPricingName(request.getPricingName())){
-            throw new RuntimeException("Subscription pricing with name '" + request.getPricingName() + "' already exists");
+            throw new ResourceNotFoundException("Subscription pricing with name '" + request.getPricingName() + "' already exists");
         }
         if(request.getActive()){
             this.handleSubscriptionPricingActivation(request.getVehicleType(), request.getDurationType());
@@ -43,7 +43,7 @@ public class SubscriptionPricingService {
 
     public SubscriptionPricingResponse updateSubscriptionPricing(UUID id, SubscriptionPricingRequest request) {
         SubscriptionPricing existing = subscriptionPricingRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Subscription pricing not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Subscription pricing not found with id: " + id));
 
         if(!request.getVehicleType().equals(existing.getVehicleType())){
             throw new ValidationException("Vehicle type '" + existing.getVehicleType() + "' cannot be changed to '");
@@ -65,7 +65,7 @@ public class SubscriptionPricingService {
 
     public void deleteSubscriptionPricing(UUID id) {
         SubscriptionPricing existing = subscriptionPricingRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Subscription pricing not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Subscription pricing not found with id: " + id));
         if(existing.getActive()){
             throw new RuntimeException("Cannot delete active subscription pricing. Please deactivate it first.");
         }
@@ -74,7 +74,7 @@ public class SubscriptionPricingService {
     @Transactional(readOnly = true)
     public SubscriptionPricingResponse getSubscriptionPricingById(UUID id) {
         SubscriptionPricing existing = subscriptionPricingRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Subscription pricing not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Subscription pricing not found with id: " + id));
         return subscriptionPricingMapper.toResponse(existing);
     }
     @Transactional(readOnly = true)

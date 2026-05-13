@@ -15,11 +15,9 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CheckInResponse {
-    private UUID id;
     private String plateInOcr; // Biển số cuối cùng được xác nhận
-    private String finalPlate; // Biển số cuối cùng được xác nhận
-    private LocalDateTime timeIn;
-    private SessionStatus status;
-    private boolean isMonth; //
+    private String imageInUrl; // URL hình ảnh lúc check-in
+    private LocalDateTime timeIn; // Thời gian check-in
+    private Float confidenceIn;
     private VehicleTypeEnum vehicleType; //
 }

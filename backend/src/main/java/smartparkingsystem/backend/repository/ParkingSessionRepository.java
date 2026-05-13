@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import smartparkingsystem.backend.entity.Lane;
 import smartparkingsystem.backend.entity.ParkingSession;
 import smartparkingsystem.backend.entity.type.SessionStatus;
 
@@ -32,6 +33,12 @@ public interface ParkingSessionRepository extends JpaRepository<ParkingSession, 
     long countByTimeInBetween(LocalDateTime startDate, LocalDateTime endDate);
 
     long countByStatus(SessionStatus status);
+
+    boolean existsByEntryLaneAndStatus(Lane lane, SessionStatus status);
+
+    boolean existsByExitLaneAndStatus(Lane lane, SessionStatus status);
+
+
 
     @Query(
         nativeQuery = true,

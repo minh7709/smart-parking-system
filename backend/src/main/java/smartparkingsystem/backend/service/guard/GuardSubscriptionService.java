@@ -28,6 +28,7 @@ import smartparkingsystem.backend.repository.VehicleRepository;
 import smartparkingsystem.backend.service.admin.SubscriptionPricingService;
 import smartparkingsystem.backend.service.auth.UserService;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -55,7 +56,7 @@ public class GuardSubscriptionService {
                 .findByVehicleIdAndStatus(vehicle.getId(), SubStatus.ACTIVE)
                 .orElse(null);
 
-        if(subscription != null && subscription.getEndDate().isAfter(now)){
+        if(subscription != null && subscription.getEndDate().isAfter(request.getStartDate())){
                  throw new DuplicateResourceException("Phương tiện đã có đăng ký đang hoạt động, vui lòng đăng ký sau thời gian hết hạn: " + subscription.getEndDate());
         } else {
             SubscriptionPricing subscriptionPricing  = subscriptionPricingService.
@@ -99,6 +100,16 @@ public class GuardSubscriptionService {
             subscription.setStartDate(request.getStartDate());
             subscription.setEndDate(calculateEndDate(request.getStartDate(), request.getSubType()));
         }
+        if(!vehicle.getVehicleType().equals(subscription.getVehicle().getVehicleType())){
+            Invoice invoice = invoiceRepository.findBySubscriptionId(subscriptionId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy hóa đơn cho đăng ký với ID: " + subscriptionId));
+
+            SubscriptionPricing subscriptionPricing  = subscriptionPricingService.
+                    getSubscriptionPricingByDurationTypeAndVehicleType(request.getSubType(), vehicle.getVehicleType());
+            subscription.setSubscriptionPricing(subscriptionPricing);
+
+            invoiceService.updateInvoiceAmount(invoice, subscriptionPricing.getPrice(), BigInteger.ZERO);
+        }
         subscription.setVehicle(vehicle);
 
         subscriptionRepository.save(subscription);
@@ -115,7 +126,7 @@ public class GuardSubscriptionService {
         subscriptionRepository.save(subscription);
 
         Invoice invoice = invoiceRepository.findBySubscriptionId(subscriptionId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy hóa đơn cho đăng ký với ID: " + subscriptionId));
+                .orElseThrow(() -> new ResourceNotFoundException ("Không tìm thấy hóa đơn cho đăng ký với ID: " + subscriptionId));
         invoiceService.updateInvoiceStatus(invoice, PaymentStatus.FAILED);
     }
 
@@ -142,7 +153,7 @@ public class GuardSubscriptionService {
     }
 
     public SubscriptionResponse getSubscriptionByLicensePlate(String licensePlate){
-        Subscription subscription = subscriptionRepository.findByVehicle_LicensePlateIgnoreCaseAndStatus(licensePlate.trim().toLowerCase(), SubStatus.ACTIVE)
+        Subscription subscription = subscriptionRepository.findByVehicle_LicensePlateIgnoreCaseAndStatus(licensePlate.trim(), SubStatus.ACTIVE)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đăng ký hoạt động cho phương tiện với biển số: " + licensePlate));
         return subscriptionMapper.toResponse(subscription);
     }

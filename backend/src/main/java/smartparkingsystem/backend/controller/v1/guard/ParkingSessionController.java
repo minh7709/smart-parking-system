@@ -45,10 +45,10 @@ public class ParkingSessionController {
     }
 
     @PostMapping("/confirm-check-in")
-    public ResponseEntity<ApiResponse<CheckInResponse>> confirmCheckIn(
+    public ResponseEntity<ApiResponse<ParkingSessionResponse>> confirmCheckIn(
             @Valid @RequestBody ConfirmCheckInRequest request) {
-        CheckInResponse checkInResponse = parkingSessionService.processConfirmCheckIn(request);
-        return ResponseEntity.ok(ApiResponse.success(checkInResponse, "Check-in confirmed successfully"));
+        ParkingSessionResponse parkingSessionResponse = parkingSessionService.processConfirmCheckIn(request);
+        return ResponseEntity.ok(ApiResponse.success(parkingSessionResponse, "Check-in confirmed successfully"));
     }
 
     @PostMapping("/confirm-check-out")
