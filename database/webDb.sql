@@ -76,8 +76,7 @@ CREATE TABLE subscription_pricing (
     description TEXT,                        
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by UUID REFERENCES users(id),
-    UNIQUE(vehicle_type, duration_type) 
+    created_by UUID REFERENCES users(id)
 );
 
 -- 3. Bảng subscription (Vé tháng)

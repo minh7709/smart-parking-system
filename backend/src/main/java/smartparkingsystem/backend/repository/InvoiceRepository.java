@@ -8,7 +8,7 @@ import smartparkingsystem.backend.entity.ParkingSession;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,8 +21,8 @@ public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
     Optional<Invoice> findByParkingSession(ParkingSession parkingSession);
     Optional<Invoice> findBySubscriptionId(UUID subscriptionId);
 
-    @Query("SELECT SUM(i.totalAmount) FROM Invoice i WHERE i.paymentTime BETWEEN :startDate AND :endDate")
-    BigDecimal findTotalRevenueBetween(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    @Query("SELECT COALESCE(SUM(i.totalAmount), 0) FROM Invoice i WHERE i.paymentTime BETWEEN :startDate AND :endDate AND i.status = 'SUCCESS'")
+    BigInteger findTotalRevenueBetween(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
     @Query(nativeQuery = true, value = "WITH time_series AS ( " +
             "    SELECT generate_series( " +
@@ -50,6 +50,6 @@ public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
             "WHERE i.payment_time >= :startDate AND i.payment_time < :endDate AND i.status = 'SUCCESS'")
     RevenueBreakdownResponse getRevenueBreakdown(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
-    @Query("SELECT SUM(i.penaltyAmount) FROM Invoice i WHERE i.paymentTime BETWEEN :startDate AND :endDate")
-    BigDecimal getTotalPenalties(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    @Query("SELECT COALESCE(SUM(i.penaltyAmount), 0) FROM Invoice i WHERE i.paymentTime BETWEEN :startDate AND :endDate AND i.status = 'SUCCESS'")
+    BigInteger getTotalPenalties(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 }

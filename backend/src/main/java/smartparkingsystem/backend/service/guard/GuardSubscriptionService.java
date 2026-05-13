@@ -22,7 +22,6 @@ import smartparkingsystem.backend.exception.InvalidStateException;
 import smartparkingsystem.backend.exception.ResourceNotFoundException;
 import smartparkingsystem.backend.exception.ValidationException;
 import smartparkingsystem.backend.mapper.SubscriptionMapper;
-import smartparkingsystem.backend.mapper.SubscriptionPricingMapper;
 import smartparkingsystem.backend.repository.InvoiceRepository;
 import smartparkingsystem.backend.repository.SubscriptionRepository;
 import smartparkingsystem.backend.repository.VehicleRepository;
@@ -44,6 +43,7 @@ public class GuardSubscriptionService {
     private final InvoiceService invoiceService;
     private final UserService userService;
 
+    @Transactional
     public SubscriptionResponse createSubscription(SubscriptionRequest request){
         LocalDateTime now = LocalDateTime.now();
         if(request.getStartDate().isBefore(now)){
@@ -81,14 +81,14 @@ public class GuardSubscriptionService {
                 throw new ValidationException("Invalid subscription type: " + subType);
         }
     }
-
+    @Transactional
     public SubscriptionResponse updateSubscription(SubscriptionRequest request, UUID subscriptionId){
         Subscription subscription = subscriptionRepository.findById(subscriptionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đăng ký với ID: " + subscriptionId));
         if(subscription.getStatus() != SubStatus.PENDING){
             throw new InvalidStateException("chỉ thể cập nhật đăng ký đang được xử lý");
         }
-        Vehicle vehicle = vehicleRepository.findByLicensePlate(request.getLicensePlate()).orElseThrow(
+        Vehicle vehicle = vehicleRepository.findByLicensePlateAndDeletedFalse(request.getLicensePlate()).orElseThrow(
                 () -> new ResourceNotFoundException("Không tìm thấy phương tiện với biển số xe: " + request.getLicensePlate())
         );
         LocalDateTime now = LocalDateTime.now();
@@ -104,7 +104,7 @@ public class GuardSubscriptionService {
         subscriptionRepository.save(subscription);
         return subscriptionMapper.toResponse(subscription);
     }
-
+    @Transactional
     public void deleteSubscription(UUID subscriptionId){
         Subscription subscription = subscriptionRepository.findById(subscriptionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đăng ký với ID: " + subscriptionId));

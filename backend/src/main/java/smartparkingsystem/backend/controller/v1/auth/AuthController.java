@@ -125,7 +125,8 @@ public class AuthController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'GUARD')")
     @PatchMapping("/change-password")
-    public ResponseEntity<ApiResponse<Void>> changePassword(ChangePasswordRequest request) {
+    public ResponseEntity<ApiResponse<Void>> changePassword( @Valid @RequestBody
+            ChangePasswordRequest request) {
         userService.changePasswordHandler(request);
         return ResponseEntity.ok(ApiResponse.success(null,"Password changed successfully"));
     }

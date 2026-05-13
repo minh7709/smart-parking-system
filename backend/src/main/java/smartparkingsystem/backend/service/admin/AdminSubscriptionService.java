@@ -2,6 +2,7 @@ package smartparkingsystem.backend.service.admin;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import smartparkingsystem.backend.entity.Invoice;
 import smartparkingsystem.backend.entity.Subscription;
 import smartparkingsystem.backend.entity.type.PaymentStatus;
@@ -20,9 +21,10 @@ public class AdminSubscriptionService {
     private final SubscriptionRepository subscriptionRepository;
     private final InvoiceRepository invoiceRepository;
 
+    @Transactional
     public void confirmSubscription (UUID subscriptionId, SubStatus newStatus) {
         Subscription subscription = subscriptionRepository.findById(subscriptionId)
-                .orElseThrow(() -> new RuntimeException("Subscription not found with id: " + subscriptionId));
+                .orElseThrow(() -> new ResourceNotFoundException("Subscription not found with id: " + subscriptionId));
         if(subscription.getStatus() != SubStatus.PENDING && subscription.getStatus() != SubStatus.ACTIVE){
             throw new InvalidStateException("Only pending or active subscriptions can be confirmed or rejected");
         }

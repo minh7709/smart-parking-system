@@ -14,6 +14,7 @@ import smartparkingsystem.backend.entity.type.SubType;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 import smartparkingsystem.backend.exception.DuplicateResourceException;
 import smartparkingsystem.backend.exception.InvalidStateException;
+import smartparkingsystem.backend.exception.ResourceNotFoundException;
 import smartparkingsystem.backend.exception.ValidationException;
 import smartparkingsystem.backend.mapper.SubscriptionPricingMapper;
 import smartparkingsystem.backend.repository.SubscriptionPricingRepository;
@@ -91,9 +92,9 @@ public class SubscriptionPricingService {
 
     public Boolean activateSubscriptionPricing(UUID id) {
         SubscriptionPricing existing = subscriptionPricingRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Subscription pricing not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Subscription pricing not found with id: " + id));
         if(existing.getActive()){
-            throw new RuntimeException("Subscription pricing is already active");
+            throw new InvalidStateException("Subscription pricing is already active");
         }
         handleSubscriptionPricingActivation(existing.getVehicleType(), existing.getDurationType());
         existing.setActive(true);
@@ -110,14 +111,14 @@ public class SubscriptionPricingService {
     }
     public void handleSubscriptionPricingDeactivation(UUID id) {
         SubscriptionPricing existing = subscriptionPricingRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Subscription pricing not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Subscription pricing not found with id: " + id));
         if (!existing.getActive()) {
-            throw new RuntimeException("Subscription pricing is already inactive");
+            throw new InvalidStateException("Subscription pricing is already inactive");
         }
         throw new InvalidStateException("Cannot deactivate subscription pricing. Please activate another subscription pricing with the same vehicle type and duration type before deactivating this one.");
     }
     public SubscriptionPricing getSubscriptionPricingByDurationTypeAndVehicleType(SubType subType, VehicleTypeEnum vehicleTypeEnum) {
         return subscriptionPricingRepository.findByVehicleTypeAndDurationTypeAndActiveTrue(vehicleTypeEnum, subType)
-                .orElseThrow(() -> new RuntimeException("No active subscription pricing found for vehicle type: " + vehicleTypeEnum + " and duration type: " + subType));
+                .orElseThrow(() -> new ResourceNotFoundException("No active subscription pricing found for vehicle type: " + vehicleTypeEnum + " and duration type: " + subType));
     }
 }

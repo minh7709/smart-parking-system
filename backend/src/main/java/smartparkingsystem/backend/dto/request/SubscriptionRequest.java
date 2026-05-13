@@ -20,10 +20,10 @@ import java.time.LocalDateTime;
 public class SubscriptionRequest {
     @NotBlank(message = "license plate is required")
     private String licensePlate;
-    @NotNull(message = "Vehicle type is required")
+    @NotNull(message = "Subscription duration is required")
     private SubType subType;
     @NotNull(message = "Start date is required")
     private LocalDateTime startDate;
-    @NotNull(message = "End date is required")
+    @NotNull(message = "payment method is required")
     private PaymentMethod paymentMethod;
 }

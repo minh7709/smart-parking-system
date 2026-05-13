@@ -14,7 +14,6 @@ import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 import smartparkingsystem.backend.exception.DuplicateResourceException;
 import smartparkingsystem.backend.exception.ResourceNotFoundException;
 import smartparkingsystem.backend.mapper.VehicleMapper;
-import smartparkingsystem.backend.repository.SubscriptionRepository;
 import smartparkingsystem.backend.repository.VehicleRepository;
 
 import java.util.UUID;

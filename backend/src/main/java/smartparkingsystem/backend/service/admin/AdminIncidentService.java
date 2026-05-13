@@ -18,12 +18,16 @@ import smartparkingsystem.backend.repository.IncidentRepository;
 import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 @RequiredArgsConstructor
 public class AdminIncidentService {
     private final IncidentRepository incidentRepository;
     private final IncidentMapper incidentMapper;
+
+    @Value("${app.upload.root-path}")
+    private String uploadRootPath;
 
     public Page<IncidentResponse> getIncidents(Pageable pageable, IncidentTypeEnum incidentTypeEnum) {
         Sort sort = Sort.by(Sort.Direction.DESC, "reportedAt");
@@ -45,7 +49,13 @@ public class AdminIncidentService {
             throw new ResourceNotFoundException("Sự cố này không có file chứng cứ");
         }
         try {
-            Path filePath = Paths.get(evidencePath).normalize();
+            Path baseDir = Paths.get(uploadRootPath, "images").toAbsolutePath().normalize();
+            Path filePath = baseDir.resolve(evidencePath).toAbsolutePath().normalize();
+
+            if (!filePath.startsWith(baseDir)) {
+                throw new ResourceNotFoundException("Đường dẫn file không hợp lệ (Path Traversal attempted).");
+            }
+
             Resource resource = new UrlResource(filePath.toUri());
 
             if (resource.exists() && resource.isReadable()) {

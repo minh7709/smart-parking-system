@@ -83,7 +83,7 @@ public class ParkingSessionController {
         List<ParkingSessionResponse> response = parkingSessionService.getParkingSessionsByPlate(plate, sessionStatus);
         return ResponseEntity.ok(ApiResponse.success(response, "Parking sessions retrieved successfully"));
     }
-    @GetMapping
+    @GetMapping("/parked")
     public ResponseEntity<ApiResponse<Page<ParkingSessionResponse>>> getAllParkingSessions(
             Pageable pageable) {
         Page<ParkingSessionResponse> page = parkingSessionService.getAllParkingSessions(pageable, SessionStatus.PARKED);
