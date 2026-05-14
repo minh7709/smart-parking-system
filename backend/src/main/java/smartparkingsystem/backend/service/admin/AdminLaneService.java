@@ -8,10 +8,14 @@ import smartparkingsystem.backend.dto.request.lane.LaneCreateRequest;
 import smartparkingsystem.backend.dto.request.lane.LaneUpdateRequest;
 import smartparkingsystem.backend.dto.response.LaneResponse;
 import smartparkingsystem.backend.entity.Lane;
+import smartparkingsystem.backend.entity.type.LaneTypeEnum;
+import smartparkingsystem.backend.entity.type.SessionStatus;
 import smartparkingsystem.backend.exception.DuplicateResourceException;
+import smartparkingsystem.backend.exception.InvalidStateException;
 import smartparkingsystem.backend.exception.ResourceNotFoundException;
 import smartparkingsystem.backend.mapper.LaneMapper;
 import smartparkingsystem.backend.repository.LaneRepository;
+import smartparkingsystem.backend.repository.ParkingSessionRepository;
 
 import java.util.List;
 import java.util.UUID;
@@ -23,9 +27,10 @@ import java.util.UUID;
 public class AdminLaneService {
     private final LaneRepository laneRepository;
     private final LaneMapper laneMapper;
+    private final ParkingSessionRepository parkingSessionRepository;
 
     public LaneResponse createLane(LaneCreateRequest request) {
-        if (laneRepository.existsByIpCamera(request.getIpCamera())) {
+        if (laneRepository.existsByIpCameraAndDeletedFalse(request.getIpCamera())) {
             throw new DuplicateResourceException("Lane with ipCamera '" + request.getIpCamera() + "' already exists");
         }
 
@@ -60,7 +65,7 @@ public class AdminLaneService {
         Lane existing = laneRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Lane not found with id: " + id));
 
-        if (laneRepository.existsByIpCameraAndIdNot(request.getIpCamera(), id)) {
+        if (laneRepository.existsByIpCameraAndDeletedFalseAndIdNot(request.getIpCamera(), id)) {
             throw new DuplicateResourceException("Lane with ipCamera '" + request.getIpCamera() + "' already exists");
         }
 
@@ -77,7 +82,15 @@ public class AdminLaneService {
     public void deleteLane(UUID id) {
         Lane existing = laneRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Lane not found with id: " + id));
-
+        boolean hasActiveSessions;
+        if(existing.getLaneType() == LaneTypeEnum.IN){
+            hasActiveSessions = parkingSessionRepository.existsByEntryLaneAndStatus(existing, SessionStatus.PARKED);
+        } else {
+            hasActiveSessions = parkingSessionRepository.existsByExitLaneAndStatus(existing, SessionStatus.PARKED);
+        }
+        if (hasActiveSessions) {
+            throw new InvalidStateException("Cannot delete lane with active parking sessions. Please resolve them first.");
+        }
         existing.setDeleted(true);
         laneRepository.save(existing);
         log.info("Soft deleted lane with id: {}", id);

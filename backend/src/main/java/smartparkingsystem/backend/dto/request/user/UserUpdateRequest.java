@@ -22,9 +22,6 @@ public class UserUpdateRequest {
     @Pattern(regexp = "^\\d{10,11}$", message = "Phone must contain 10 or 11 digits")
     private String phone;
 
-    @NotNull(message = "Role must not be null")
-    private UserRole role;
-
     @NotNull(message = "Status must not be null")
     private UserStatus status;
 }

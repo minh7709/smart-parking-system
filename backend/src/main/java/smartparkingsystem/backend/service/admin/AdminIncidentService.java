@@ -18,12 +18,16 @@ import smartparkingsystem.backend.repository.IncidentRepository;
 import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 @RequiredArgsConstructor
 public class AdminIncidentService {
     private final IncidentRepository incidentRepository;
     private final IncidentMapper incidentMapper;
+
+    @Value("${file.upload-dir}")
+    private String uploadRootPath;
 
     public Page<IncidentResponse> getIncidents(Pageable pageable, IncidentTypeEnum incidentTypeEnum) {
         Sort sort = Sort.by(Sort.Direction.DESC, "reportedAt");
@@ -37,18 +41,30 @@ public class AdminIncidentService {
         return page.map(incidentMapper::toResponse);
     }
 
-    public Resource getEvidence(String evidencePath) {
+    public Resource getEvidence(java.util.UUID incidentId) {
+        Incident incident = incidentRepository.findById(incidentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sự cố với ID: " + incidentId));
+        String evidencePath = incident.getEvidenceUrl();
+        if(evidencePath == null || evidencePath.trim().isEmpty()) {
+            throw new ResourceNotFoundException("Sự cố này không có file chứng cứ");
+        }
         try {
-            Path filePath = Paths.get(evidencePath).normalize();
+            Path baseDir = Paths.get(uploadRootPath, "images").toAbsolutePath().normalize();
+            Path filePath = baseDir.resolve(evidencePath).toAbsolutePath().normalize();
+
+            if (!filePath.startsWith(baseDir)) {
+                throw new ResourceNotFoundException("Đường dẫn file không hợp lệ (Path Traversal attempted).");
+            }
+
             Resource resource = new UrlResource(filePath.toUri());
 
             if (resource.exists() && resource.isReadable()) {
                 return resource;
             } else {
-                throw new ResourceNotFoundException("Không tìm thấy hoặc không thể đọc file ảnh: " + evidencePath);
+                throw new ResourceNotFoundException("Không tìm thấy hoặc không thể đọc file ảnh.");
             }
         } catch (MalformedURLException e) {
-            throw new ResourceNotFoundException("Đường dẫn file không hợp lệ: " + evidencePath);
+            throw new ResourceNotFoundException("Đường dẫn file không hợp lệ.");
         }
     }
 }

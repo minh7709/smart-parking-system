@@ -40,8 +40,8 @@ public class IncidentController {
     }
 
     @GetMapping("/evidence")
-    public ResponseEntity<Resource> getEvidence(@RequestParam String evidencePath) throws IOException {
-        Resource resource = adminIncidentService.getEvidence(evidencePath);
+    public ResponseEntity<Resource> getEvidence(@RequestParam java.util.UUID incidentId) throws IOException {
+        Resource resource = adminIncidentService.getEvidence(incidentId);
 
         String contentType = Files.probeContentType(Paths.get(resource.getFile().getAbsolutePath()));
         if (contentType == null) {

@@ -2,10 +2,14 @@ package smartparkingsystem.backend.service.admin;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import smartparkingsystem.backend.entity.Invoice;
 import smartparkingsystem.backend.entity.Subscription;
 import smartparkingsystem.backend.entity.type.PaymentStatus;
 import smartparkingsystem.backend.entity.type.SubStatus;
+import smartparkingsystem.backend.exception.InvalidStateException;
+import smartparkingsystem.backend.exception.ResourceNotFoundException;
+import smartparkingsystem.backend.exception.ValidationException;
 import smartparkingsystem.backend.repository.InvoiceRepository;
 import smartparkingsystem.backend.repository.SubscriptionRepository;
 
@@ -17,14 +21,15 @@ public class AdminSubscriptionService {
     private final SubscriptionRepository subscriptionRepository;
     private final InvoiceRepository invoiceRepository;
 
+    @Transactional
     public void confirmSubscription (UUID subscriptionId, SubStatus newStatus) {
         Subscription subscription = subscriptionRepository.findById(subscriptionId)
-                .orElseThrow(() -> new RuntimeException("Subscription not found with id: " + subscriptionId));
-        if(subscription.getStatus() != SubStatus.PENDING){
-            throw new RuntimeException("Only pending subscriptions can be confirmed or rejected");
+                .orElseThrow(() -> new ResourceNotFoundException("Subscription not found with id: " + subscriptionId));
+        if(subscription.getStatus() != SubStatus.PENDING && subscription.getStatus() != SubStatus.ACTIVE){
+            throw new InvalidStateException("Only pending or active subscriptions can be confirmed or rejected");
         }
         Invoice invoice = invoiceRepository.findBySubscriptionId(subscriptionId)
-                .orElseThrow(() -> new RuntimeException("Invoice not found for subscription id: " + subscriptionId));
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice not found for subscription id: " + subscriptionId));
 
         if(newStatus == SubStatus.ACTIVE){
             subscription.setStatus(SubStatus.ACTIVE);
@@ -33,8 +38,10 @@ public class AdminSubscriptionService {
             subscription.setStatus(SubStatus.CANCELLED);
             invoice.setStatus(PaymentStatus.FAILED);
         } else {
-            throw new RuntimeException("Invalid status: " + newStatus + ". Only ACTIVE or REJECTED are allowed");
+            throw new ValidationException("Invalid status: " + newStatus + ". Only ACTIVE or REJECTED are allowed");
         }
+        subscriptionRepository.save(subscription);
+        invoiceRepository.save(invoice);
     }
 
 }

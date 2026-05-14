@@ -1,6 +1,5 @@
 package smartparkingsystem.backend.service.guard;
 
-import com.sun.jdi.request.DuplicateRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -12,6 +11,7 @@ import smartparkingsystem.backend.dto.request.VehicleRequest;
 import smartparkingsystem.backend.dto.response.VehicleReponse;
 import smartparkingsystem.backend.entity.Vehicle;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
+import smartparkingsystem.backend.exception.DuplicateResourceException;
 import smartparkingsystem.backend.exception.ResourceNotFoundException;
 import smartparkingsystem.backend.mapper.VehicleMapper;
 import smartparkingsystem.backend.repository.VehicleRepository;
@@ -26,7 +26,7 @@ public class VehicleService {
     @Transactional
     public VehicleReponse createVehicle(VehicleRequest request){
         if(vehicleRepository.existsByLicensePlateAndDeletedFalse(request.getLicensePlate())){
-            throw new DuplicateRequestException("Đã tồn tại phương tiện này");
+            throw new DuplicateResourceException("Đã tồn tại phương tiện này");
         }
         Vehicle vehicle = vehicleMapper.toEntity(request);
         vehicleRepository.save(vehicle);
@@ -37,6 +37,7 @@ public class VehicleService {
     public VehicleReponse updateVehicle(VehicleRequest request, UUID id){
         Vehicle vehicle = vehicleRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phương tiện để cập nhật"));
+        vehicleMapper.updateEntity(request, vehicle);
         vehicleRepository.save(vehicle);
         return vehicleMapper.toResponse(vehicle);
     }
@@ -78,7 +79,7 @@ public class VehicleService {
 
     @Transactional(readOnly = true)
     public VehicleReponse getVehicleById(UUID id){
-        Vehicle vehicle = vehicleRepository.findById(id)
+        Vehicle vehicle = vehicleRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phương tiện"));
         return vehicleMapper.toResponse(vehicle);
     }
