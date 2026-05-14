@@ -12,6 +12,7 @@ import smartparkingsystem.backend.entity.User;
 import smartparkingsystem.backend.exception.DuplicateResourceException;
 import smartparkingsystem.backend.exception.ResourceNotFoundException;
 import smartparkingsystem.backend.repository.UserRepository;
+import smartparkingsystem.backend.service.auth.TokenRedisService;
 
 import java.util.List;
 import java.util.UUID;
@@ -23,6 +24,7 @@ import java.util.UUID;
 public class AdminUserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TokenRedisService tokenRedisService;
 
     public UserResponse createUser(UserCreateRequest request) {
         validateUniqueForCreate(request.getUsername(), request.getPhone());
@@ -76,7 +78,10 @@ public class AdminUserService {
 
         existing.setDeleted(true);
         userRepository.save(existing);
-        log.info("Soft deleted user with id: {}", id);
+
+        // Invalidate all tokens for this user to prevent them from using old tokens
+        tokenRedisService.markUserAsDeleted(id);
+        log.info("Soft deleted user with id: {} and invalidated all tokens", id);
     }
 
     private void validateUniqueForCreate(String username, String phone) {

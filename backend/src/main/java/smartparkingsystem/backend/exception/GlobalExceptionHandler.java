@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -207,6 +208,41 @@ public class GlobalExceptionHandler {
                 path
         );
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(response);
+    }
+
+    /**
+     * Handle database constraint violations (NOT NULL, UNIQUE, etc.)
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Object>> handleDataIntegrityViolation(@Nullable DataIntegrityViolationException ex, WebRequest request) {
+        log.warn("Database constraint violation: {}", ex != null ? ex.getMessage() : "Unknown");
+
+        String path = request.getDescription(false).replace("uri=", "");
+        String message = "Database constraint violated";
+
+        if (ex != null && ex.getCause() != null) {
+            String causeMessage = ex.getCause().getMessage();
+            if (causeMessage != null) {
+                // Extract constraint name from error message
+                if (causeMessage.contains("NOT NULL")) {
+                    message = "One or more required fields are missing or null";
+                } else if (causeMessage.contains("UNIQUE") || causeMessage.contains("unique")) {
+                    message = "This value already exists and must be unique";
+                } else if (causeMessage.contains("FOREIGN KEY") || causeMessage.contains("foreign key")) {
+                    message = "Referenced data does not exist or is invalid";
+                } else {
+                    message = "Database constraint violated: " + causeMessage;
+                }
+            }
+        }
+
+        ApiResponse<Object> response = ApiResponse.error(
+                "DATABASE_CONSTRAINT_VIOLATION",
+                message,
+                path
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     /**

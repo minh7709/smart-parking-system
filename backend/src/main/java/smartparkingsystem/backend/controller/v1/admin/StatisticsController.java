@@ -3,6 +3,8 @@ package smartparkingsystem.backend.controller.v1.admin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -10,8 +12,11 @@ import smartparkingsystem.backend.dto.response.ApiResponse;
 import smartparkingsystem.backend.dto.response.admin.*;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 import smartparkingsystem.backend.service.admin.StatisticsService;
+import smartparkingsystem.backend.util.ExcelExporter;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @PreAuthorize("hasRole('ADMIN')")
@@ -29,6 +34,26 @@ public class StatisticsController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
         SummaryResponse summary = statisticsService.getSummary(startDate, endDate);
         return ResponseEntity.ok(ApiResponse.success(summary, "Summary retrieved successfully"));
+    }
+
+    @GetMapping("/summary/export")
+    public ResponseEntity<byte[]> exportSummaryToExcel(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        try {
+            SummaryResponse summary = statisticsService.getSummary(startDate, endDate);
+            byte[] excelFile = ExcelExporter.exportSummaryToExcel(summary, startDate, endDate);
+
+            String filename = "summary_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx";
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .body(excelFile);
+        } catch (IOException e) {
+            log.error("Error exporting summary to Excel", e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     @GetMapping("/traffic/timeline")

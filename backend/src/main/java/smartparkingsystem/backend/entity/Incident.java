@@ -28,7 +28,7 @@ public class Incident {
     @JoinColumn(name = "reported_by", nullable = false)
     private User reporter;
 
-    @Column(name = "description", nullable = false)
+    @Column(name = "description")
     private String description;
 
     @Column(name = "reported_at", nullable = false)

@@ -246,6 +246,7 @@ public class DataInitializer implements CommandLineRunner {
                 // Seed sample Invoices
                 if (invoiceRepository.count() == 0) {
                     Invoice invoice1 = Invoice.builder()
+                            .invoiceType(InvoiceTypeEnum.PARKING_FEE)
                             .parkingSession(session2)
                             .parkingAmount(BigInteger.valueOf(5000))
                             .totalAmount(BigInteger.valueOf(5000))
