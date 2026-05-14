@@ -46,6 +46,26 @@ const HistoryTable = React.forwardRef(({ refreshTrigger }, ref) => {
     refresh: fetchParkingSessions,
   }));
 
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        // Nếu không parse được, thử parse lại
+        const timestamp = parseInt(dateString);
+        if (!isNaN(timestamp)) {
+          const parsedDate = new Date(timestamp);
+          return parsedDate.toLocaleDateString("vi-VN") + " " + parsedDate.toLocaleTimeString("vi-VN");
+        }
+        return "N/A";
+      }
+      return date.toLocaleDateString("vi-VN") + " " + date.toLocaleTimeString("vi-VN");
+    } catch (error) {
+      console.error("Error parsing date:", dateString, error);
+      return "N/A";
+    }
+  };
+
   const fetchParkingSessions = async () => {
     setLoading(true);
     try {
@@ -58,9 +78,9 @@ const HistoryTable = React.forwardRef(({ refreshTrigger }, ref) => {
       if (response?.data?.content) {
         const formattedData = response.data.content.map((session, index) => ({
           key: session.id || index,
-          time: new Date(session.createdAt).toLocaleDateString("vi-VN") + " " + new Date(session.createdAt).toLocaleTimeString("vi-VN"),
+          time: formatDateTime(session.timeIn),
           vehicleType: session.vehicleType || "N/A",
-          month: session.month ? "Có" : "Không",
+          month: session.month != null ? (session.month ? "Có" : "Không") : "N/A",
           plateInOcr: session.plateInOcr || "N/A",
           finalPlate: session.finalPlate || "N/A",
           fullData: session,

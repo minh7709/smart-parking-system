@@ -21,11 +21,8 @@ public class ProgressiveValidator implements PricingStrategyValidator {
                 pricingRuleRequest.getPenaltyFee() == null) {
             check = false;
         }
-<<<<<<< HEAD
-        pricingRuleRequest.setBasePrice(java.math.BigInteger.ZERO);
-=======
+
         pricingRuleRequest.setBasePrice(BigInteger.ZERO);
->>>>>>> origin/feature/backend-subscription
         pricingRuleRequest.setMaxPricePerDay(null);
         pricingRuleRequest.setBlockMinutes(null);
         pricingRuleRequest.setThresholdPrice(null);
