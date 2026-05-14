@@ -88,7 +88,7 @@ const ConfirmModal = ({ visible, initialData, onCancel, onConfirmed }) => {
           </Col>
           <Col span={12}>
             <div style={{ marginBottom: 8, fontSize: 12, color: '#666' }}>
-              🤖 Biển số AI đọc được:
+               Biển số AI đọc được:
             </div>
             <div style={{ 
               marginBottom: 16, 
@@ -105,7 +105,7 @@ const ConfirmModal = ({ visible, initialData, onCancel, onConfirmed }) => {
             </div>
             
             <div style={{ marginBottom: 8, fontSize: 12, color: '#666' }}>
-              ✎ Nhập/Sửa biển số thực tế:
+               Nhập/Sửa biển số thực tế:
             </div>
             <Input 
               value={plate} 

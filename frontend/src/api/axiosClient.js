@@ -194,6 +194,16 @@ const axiosClient = {
         ...(options.headers || {}),
       },
     }),
+  patch: async (path, body, options = {}) =>
+    request('PATCH', path, JSON.stringify(body), {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(options.headers || {}),
+      },
+    }),
 };
+
+
 
 export default axiosClient;

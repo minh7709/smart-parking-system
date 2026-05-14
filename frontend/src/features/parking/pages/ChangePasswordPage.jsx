@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Card, Form, Input, Button, message, Alert } from "antd";
+import { Card, Form, Input, Button, notification, Alert } from "antd";
 import { LockOutlined, KeyOutlined } from "@ant-design/icons";
 import { AppLayout } from "../../../components/Layout/AppLayout";
 import { useNavigate } from "react-router-dom";
 import { validatePassword } from "../../../utils/validators";
+import { changePasswordApi } from "../../auth/api/auth.api";
 
 const ChangePasswordPage = () => {
   const navigate = useNavigate();
@@ -12,35 +13,43 @@ const ChangePasswordPage = () => {
 
   const onFinish = async (values) => {
     if (values.newPassword !== values.confirmPassword) {
-      message.error("Mật khẩu xác nhận không khớp!");
+      notification.error({ message: "Lỗi", description: "Mật khẩu xác nhận không khớp!" });
       return;
     }
 
     if (!validatePassword(values.newPassword)) {
-      message.error(
-        "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số!",
-      );
+      notification.error({
+        message: "Mật khẩu không hợp lệ",
+        description: "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số!",
+      });
       return;
     }
 
     setLoading(true);
 
     try {
-      // Gọi API đổi mật khẩu ở đây
-      // const response = await changePasswordApi({
-      //   oldPassword: values.oldPassword,
-      //   newPassword: values.newPassword,
-      // });
+      await changePasswordApi({
+        currentPassword: values.currentPassword,
+        newPassword: values.newPassword,
+      });
 
-      // Tạm thời giả lập thành công
-      setTimeout(() => {
-        message.success("Đổi mật khẩu thành công!");
-        form.resetFields();
-        navigate("/profile");
-        setLoading(false);
-      }, 1000);
+      notification.success({ 
+        message: "Thành công", 
+        description: "Đổi mật khẩu thành công!" 
+      });
+      form.resetFields();
+      navigate("/profile");
     } catch (error) {
-      message.error(error.message || "Đổi mật khẩu thất bại!");
+      let errorMsg = "Đổi mật khẩu thất bại!";
+      // Lấy thông báo lỗi từ backend nếu có (thường là error.response.data.message)
+      if (error.response && error.response.data && error.response.data.message) {
+          errorMsg = error.response.data.message;
+      }
+      notification.error({ 
+        message: "Thất bại", 
+        description: errorMsg 
+      });
+    } finally {
       setLoading(false);
     }
   };
@@ -52,11 +61,11 @@ const ChangePasswordPage = () => {
         style={{
           maxWidth: 500,
           margin: "0 auto",
-          background: "#909090",
-          border: "1px solid #1f1f1f",
+          background: "#ffffff",
+          border: "1px solid #f0f0f0",
           borderRadius: 16,
         }}
-        headStyle={{ borderBottom: "1px solid #1f1f1f", color: "#fff" }}
+        headStyle={{ borderBottom: "1px solid #f0f0f0", color: "#141414", fontSize: 18 }}
       >
         <Alert
           message="Yêu cầu mật khẩu"
@@ -65,59 +74,42 @@ const ChangePasswordPage = () => {
           showIcon
           style={{
             marginBottom: 24,
-            background: "#ff1a1a",
-            border: "1px solid #1890ff",
           }}
         />
 
         <Form form={form} layout="vertical" onFinish={onFinish} size="large">
           <Form.Item
-            name="oldPassword"
-            label="Mật khẩu cũ"
+            name="currentPassword"
+            label={<span style={{ color: "#555" }}>Mật khẩu cũ</span>}
             rules={[{ required: true, message: "Vui lòng nhập mật khẩu cũ!" }]}
           >
             <Input.Password
-              prefix={<LockOutlined />}
+              prefix={<LockOutlined style={{ color: "#888" }} />}
               placeholder="Nhập mật khẩu cũ"
-              style={{
-                background: "#ffffff",
-                border: "1px solid #333",
-                color: "#fff",
-              }}
             />
           </Form.Item>
 
           <Form.Item
             name="newPassword"
-            label="Mật khẩu mới"
+            label={<span style={{ color: "#555" }}>Mật khẩu mới</span>}
             rules={[{ required: true, message: "Vui lòng nhập mật khẩu mới!" }]}
           >
             <Input.Password
-              prefix={<KeyOutlined />}
+              prefix={<KeyOutlined style={{ color: "#888" }} />}
               placeholder="Nhập mật khẩu mới"
-              style={{
-                background: "#fcfcfc",
-                border: "1px solid #333",
-                color: "#fff",
-              }}
             />
           </Form.Item>
 
           <Form.Item
             name="confirmPassword"
-            label="Xác nhận mật khẩu mới"
+            label={<span style={{ color: "#555" }}>Xác nhận mật khẩu mới</span>}
             rules={[
               { required: true, message: "Vui lòng xác nhận mật khẩu mới!" },
             ]}
           >
             <Input.Password
-              prefix={<LockOutlined />}
+              prefix={<LockOutlined style={{ color: "#888" }} />}
               placeholder="Xác nhận mật khẩu mới"
-              style={{
-                background: "#ffffff",
-                border: "1px solid #333",
-                color: "#fff",
-              }}
             />
           </Form.Item>
 

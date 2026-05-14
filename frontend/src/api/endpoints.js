@@ -7,6 +7,7 @@ export const API_ENDPOINTS = {
 		forgotPassword: '/v1/auth/forgot-password',
 		verifyOtp: '/v1/auth/verify-otp',
 		resetPassword: '/v1/auth/reset-password',
+		changePassword: '/v1/auth/change-password',
 	},
 	admin: {
 		users: '/v1/admin/users',
@@ -23,6 +24,7 @@ export const API_ENDPOINTS = {
 	guard: {
 		activeLanes: '/v1/guard/active-lanes/',
 		parkingSession: {
+			history: '/v1/guard/parking-session/parked',
 			base: '/v1/guard/parking-session',
 			byPlate: (plate) => `/v1/guard/parking-session/${plate}`,
 			checkIn: '/v1/guard/parking-session/check-in',
@@ -31,6 +33,12 @@ export const API_ENDPOINTS = {
 			confirmCheckOut: '/v1/guard/parking-session/confirm-check-out',
 			reportLostCard: '/v1/guard/parking-session/report-incident/lost-card',
 		},
+		subscriptions: {
+			base: '/v1/guard/subscriptions/',
+			byId: (id) => `/v1/guard/subscriptions/${id}`,
+			byVehicleId: (vehicleId) => `/v1/guard/subscriptions/vehicle/${vehicleId}`,
+			byLicensePlate: (licensePlate) => `/v1/guard/subscriptions/license-plate/${licensePlate}`,
+		}
 	},
 	type: {
 		laneStatuses: '/v1/type/lane-statuses',

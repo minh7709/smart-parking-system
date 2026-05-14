@@ -35,7 +35,7 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [phoneError, setPhoneError] = useState("");
   const [otpError, setOtpError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
+  const [passwordError, setPasswordError] = useState(""); 
 
   const showError = (message, field = "general") => {
     if (field === "general") setError(message);

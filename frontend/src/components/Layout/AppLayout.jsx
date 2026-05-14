@@ -26,18 +26,18 @@ import { useNotification } from "../../hooks/useNotification";
 const { Header, Sider, Content } = Layout;
 
 const styles = {
-  sider: { background: "#070707", borderRight: "1px solid #1a1a1a" },
-  logo: { color: "#fff", padding: 20, fontSize: 18, fontWeight: 600 },
+  sider: { background: "#ffffff", borderRight: "1px solid #f0f0f0" },
+  logo: { color: "#141414", padding: 20, fontSize: 18, fontWeight: 600 },
   header: {
-    background: "rgba(20,20,20,0.7)",
+    background: "rgba(255,255,255,0.7)",
     backdropFilter: "blur(10px)",
-    borderBottom: "1px solid #1f1f1f",
+    borderBottom: "1px solid #f0f0f0",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
     padding: "0 24px",
   },
-  search: { width: 250, background: "#1a1a1a", border: "none", color: "#fff" },
+  search: { width: 250, background: "#ffffff", border: "1px solid #d9d9d9", color: "#141414" },
   userInfo: {
     display: "flex",
     alignItems: "center",
@@ -45,7 +45,7 @@ const styles = {
     cursor: "pointer",
   },
   userName: {
-    color: "#fff",
+    color: "#141414",
     fontSize: 14,
     maxWidth: 120,
     overflow: "hidden",
@@ -130,29 +130,29 @@ export const AppLayout = () => {
     <ConfigProvider
       theme={{
         token: {
-          colorPrimary: "#404241",
-          colorBgBase: "#0b0b0b",
-          colorTextBase: "#ffffff",
+          colorPrimary: "#1677ff",
+          colorBgBase: "#ffffff",
+          colorTextBase: "#141414",
           borderRadius: 14,
         },
         components: {
           Dropdown: {
-            colorBgElevated: "#1a1a1a",
-            controlItemBgHover: "#2a2a2a",
+            colorBgElevated: "#ffffff",
+            controlItemBgHover: "#f5f5f5",
           },
         },
       }}
     >
-      <Layout style={{ minHeight: "100vh", background: "#0b0b0b" }}>
+      <Layout style={{ minHeight: "100vh", background: "#f5f5f5" }}>
         {/* SIDEBAR */}
         <Sider width={230} style={styles.sider}>
           <div style={styles.logo}>Smart Parking</div>
           <Menu
-            theme="dark"
+            theme="light"
             mode="inline"
             selectedKeys={[selectedKey]}
             onClick={handleMenuClick}
-            style={{ background: "transparent" }}
+            style={{ background: "transparent", borderRight: 0 }}
             items={[
               { key: "1", icon: <StarOutlined />, label: "Register" },
               { key: "2", icon: <VideoCameraOutlined />, label: "Camera" },
@@ -164,10 +164,10 @@ export const AppLayout = () => {
         <Layout style={{ background: "transparent" }}>
           {/* TOPBAR */}
           <Header style={styles.header}>
-            <h2 style={{ color: "#fff", margin: 0 }}>Camera</h2>
+            <h2 style={{ color: "#141414", margin: 0 }}>Camera</h2>
             <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
               <Badge dot>
-                <BellOutlined style={{ fontSize: 18, color: "#aaa" }} />
+                <BellOutlined style={{ fontSize: 18, color: "#555" }} />
               </Badge>
 
               {/* Dropdown Avatar với thông tin user */}

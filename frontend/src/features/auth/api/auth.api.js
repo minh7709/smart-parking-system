@@ -22,3 +22,6 @@ export const verifyOtpApi = (payload) => axiosClient.post(API_ENDPOINTS.auth.ver
 
 export const resetPasswordApi = (payload) =>
   axiosClient.post(API_ENDPOINTS.auth.resetPassword, payload);
+
+export const changePasswordApi = (payload) =>
+  axiosClient.patch(API_ENDPOINTS.auth.changePassword, payload);
