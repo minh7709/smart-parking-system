@@ -14,6 +14,7 @@ import {
   clearActiveParkingSessionId,
 } from "../../../utils/storage";
 import { useNotification } from "../../../hooks/useNotification";
+import ConfirmModal from "./ConfirmModal";
 
 const CameraCard = ({
   title,
@@ -30,6 +31,8 @@ const CameraCard = ({
   const [imgError, setImgError] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [localVehicleType, setLocalVehicleType] = useState(vehicleType || "MOTOR");
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [modalData, setModalData] = useState(null);
   const themeColor = "#141414";
   const normalizeUuid = (value) => {
     if (!value) {
@@ -144,21 +147,25 @@ const CameraCard = ({
           response?.data?.plateOutOcr ||
           "Da nhan dien";
 
-        if (type === "IN" && response?.data?.id) {
-          saveActiveParkingSessionId(response.data.id);
-        }
-
-        if (type === "OUT") {
-          clearActiveParkingSessionId();
-        }
-
         setDetectedPlate(plate);
-        notify.success(
-          `Biển số xe: ${plate}`,
-          `${type === "IN" ? "Check-in" : "Check-out"} Thành Công`
-        );
-        if (onSuccess) {
-          onSuccess(response.data);
+
+        // For check-in, show confirmation modal; for check-out, process directly
+        if (type === "IN") {
+          setModalData({
+            ...response.data,
+            imageUrl: videoSrc,
+            entryLaneId: normalizeUuid(laneId),
+          });
+          setShowConfirmModal(true);
+        } else {
+          clearActiveParkingSessionId();
+          notify.success(
+            `Biển số xe: ${plate}`,
+            `${type === "IN" ? "Check-in" : "Check-out"} Thành Công`
+          );
+          if (onSuccess) {
+            onSuccess(response.data);
+          }
         }
       } else {
         notify.error(response?.message || "Lỗi từ server");
@@ -171,8 +178,38 @@ const CameraCard = ({
     }
   };
 
+  const handleModalConfirmed = (confirmedData) => {
+    if (confirmedData?.id) {
+      saveActiveParkingSessionId(confirmedData.id);
+    }
+
+    const plate = confirmedData?.finalPlate || confirmedData?.plateNumber || "Da nhan dien";
+    notify.success(
+      `Biển số xe: ${plate}`,
+      "Check-in Thành Công"
+    );
+    setShowConfirmModal(false);
+    setModalData(null);
+
+    if (onSuccess) {
+      onSuccess(confirmedData);
+    }
+  };
+
+  const handleModalCancel = () => {
+    setShowConfirmModal(false);
+    setModalData(null);
+  };
+
   return (
-    <Card
+    <>
+      <ConfirmModal
+        visible={showConfirmModal}
+        initialData={modalData}
+        onCancel={handleModalCancel}
+        onConfirmed={handleModalConfirmed}
+      />
+      <Card
       title={
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span
@@ -357,6 +394,7 @@ const CameraCard = ({
         )}
       </div>
     </Card>
+    </>
   );
 };
 
