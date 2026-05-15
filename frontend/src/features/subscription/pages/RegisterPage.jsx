@@ -47,6 +47,7 @@ const RegisterPage = () => {
   const [subTypes, setSubTypes] = useState([]);
   const [subStatuses, setSubStatuses] = useState([]);
   const [paymentMethods, setPaymentMethods] = useState([]);
+ 
   
   // Filters
   const [searchPlate, setSearchPlate] = useState("");
@@ -106,14 +107,16 @@ const RegisterPage = () => {
   useEffect(() => {
     const fetchAppTypes = async () => {
       try {
-        const [types, statuses, payments] = await Promise.all([
+        const [types, statuses, payments, vehicles] = await Promise.all([
           axiosClient.get(API_ENDPOINTS.type.subscriptionTypes),
           axiosClient.get(API_ENDPOINTS.type.subscriptionStatuses),
           axiosClient.get(API_ENDPOINTS.type.paymentMethods),
+          axiosClient.get(API_ENDPOINTS.type.vehicleTypes),
         ]);
         setSubTypes(types.data || types || []);
         setSubStatuses(statuses.data || statuses || []);
         setPaymentMethods(payments.data || payments || []);
+        setVehicleTypes(vehicles.data || vehicles || []);
       } catch(e) {
         console.error("Lỗi khi load tham số Type", e);
       }
@@ -144,6 +147,7 @@ const RegisterPage = () => {
     setEditingId(record.id);
     form.setFieldsValue({
       licensePlate: record.licensePlate,
+      vehicleType: record.vehicleType,
       subType: record.subType,
       price: record.price,
       startDate: record.startDate ? dayjs(record.startDate) : null,
@@ -167,9 +171,15 @@ const RegisterPage = () => {
   const handleModalOk = () => {
     form.validateFields().then(async (values) => {
       try {
+        // Lấy tất cả giá trị form hiện tại (bao gồm các trường bị disabled)
+        const allValues = form.getFieldsValue();
+        
+        // Gọi API với đúng 5 trường chuẩn của Backend, không gửi thêm các trường thừa
         const payload = {
-          ...values,
-          startDate: values.startDate ? values.startDate.format("YYYY-MM-DDTHH:mm:ss") : null
+          licensePlate: allValues.licensePlate,
+          subType: allValues.subType,
+          startDate: allValues.startDate ? allValues.startDate.format("YYYY-MM-DDTHH:mm:ss") : null,
+          paymentMethod: allValues.paymentMethod || "CASH" // Bắt buộc phải có vì Backend đặt @NotNull
         };
 
         if (editingId) {
@@ -183,7 +193,18 @@ const RegisterPage = () => {
         fetchSubscriptions(currentPage, pageSize);
       } catch (err) {
         console.error(err);
-        notification.error({ message: "Lỗi", description: "Có lỗi xảy ra, vui lòng thử lại!" });
+        const errorData = err.payload?.message;
+        let errorMsg = "Có lỗi xảy ra, vui lòng thử lại!";
+        
+        if (errorData) {
+          if (errorData.fieldErrors && errorData.fieldErrors.length > 0) {
+            errorMsg = errorData.fieldErrors.map(f => f.message).join(", ");
+          } else if (errorData) {
+            errorMsg = errorData;
+          }
+        }
+        
+        notification.error({ message: err.payload?.errorCode || "Lỗi", description: errorMsg });
       }
     });
   };
@@ -194,6 +215,19 @@ const RegisterPage = () => {
       dataIndex: "licensePlate",
       key: "licensePlate",
       fontWeight: "bold",
+    },
+    {
+      title: "Loại xe",
+      dataIndex: "vehicleType",
+      key: "vehicleType",
+      render: (type) => {
+        const labels = {
+          MOTORBIKE: "Xe máy",
+          CAR: "Ô tô",
+          BICYCLE: "Xe đạp"
+        };
+        return <Tag color="blue">{type ? (labels[type] || type) : "N/A"}</Tag>;
+      },
     },
     {
       title: "Loại gói",
@@ -372,7 +406,7 @@ const RegisterPage = () => {
       >
         <Form form={form} layout="vertical" style={{ marginTop: 20 }}>
           <Row gutter={16}>
-            <Col span={12}>
+            <Col span={editingId ? 12 : 24}>
               <Form.Item
                 label="Biển số xe"
                 name="licensePlate"
@@ -382,6 +416,26 @@ const RegisterPage = () => {
               </Form.Item>
             </Col>
 
+            {editingId && (
+              <Col span={12}>
+                <Form.Item
+                  label="Loại xe"
+                  name="vehicleType"
+                  rules={[{ required: true, message: "Vui lòng chọn loại xe!" }]}
+                >
+                  <Select placeholder="Chọn loại xe" disabled={!!editingId}>
+                    {vehicleTypes.map((type) => (
+                      <Option key={type} value={type}>
+                        {type === 'MOTORBIKE' ? 'Xe máy' : type === 'CAR' ? 'Ô tô' : type === 'BICYCLE' ? 'Xe đạp' : type}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
+            )}
+          </Row>
+
+          <Row gutter={16}>
             <Col span={12}>
               <Form.Item
                 label="Loại gói"
@@ -397,9 +451,7 @@ const RegisterPage = () => {
                 </Select>
               </Form.Item>
             </Col>
-          </Row>
 
-          <Row gutter={16}>
             <Col span={12}>
               <Form.Item
                 label="Ngày bắt đầu"
@@ -409,7 +461,9 @@ const RegisterPage = () => {
                 <DatePicker style={{ width: "100%" }} format="YYYY-MM-DD HH:mm:ss" showTime />
               </Form.Item>
             </Col>
+          </Row>
 
+          <Row gutter={16}>
             {/* Khi tạo mới: hiển thị chọn phương thức thanh toán */}
             {!editingId && (
               <Col span={12}>
