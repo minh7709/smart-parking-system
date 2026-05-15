@@ -40,6 +40,13 @@ public class InvoiceService {
         return invoiceRepository.save(invoice);
     }
 
+    public Invoice updateInvoiceAmount(Invoice invoice, BigInteger parkingAmount, BigInteger penaltyAmount) {
+        invoice.setParkingAmount(parkingAmount);
+        invoice.setPenaltyAmount(penaltyAmount);
+        invoice.setTotalAmount(parkingAmount.add(penaltyAmount));
+        return invoiceRepository.save(invoice);
+    }
+
     public Invoice createInvoiceForPenalty(ParkingSession session, BigInteger penaltyAmount, BigInteger parkingAmount, User user) {
         Invoice invoice = new Invoice();
         invoice.setParkingSession(session);

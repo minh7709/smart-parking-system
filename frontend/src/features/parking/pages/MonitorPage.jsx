@@ -4,7 +4,6 @@ import { Row, Col, Alert } from "antd";
 import { AppLayout } from "../../../components/Layout/AppLayout";
 import CameraCard from "../components/CameraCard";
 import HistoryTable from "../components/HistoryTable";
-import Stats from "../components/Stats";
 import ConfirmModal from "../components/ConfirmModal";
 import { getLaneSelection } from "../../../utils/storage";
 
@@ -24,7 +23,7 @@ const MonitorPage = () => {
   //   : null;
 
   // Cách 2: dùng IP cứng để test (chú ý: IP này phải đúng và reachable)
-  const cameraInUrl = "http://192.168.1.38:4747/video";
+  const cameraInUrl = "http://192.168.10.139:4747/video";
   const cameraOutUrl = "http://192.168.1.10:4747/video";
 
  
@@ -46,7 +45,7 @@ const MonitorPage = () => {
   }
 
   return (
-    <>
+    <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', padding: '24px' }}>
       {cameraStatus === "error" && (
         <Alert
           message="Không kết nối được camera"
@@ -84,7 +83,6 @@ const MonitorPage = () => {
       <div style={{ marginTop: 20 }}>
         <HistoryTable ref={historyTableRef} />
       </div>
-      <Stats />
 
       <ConfirmModal
         visible={!!pendingConfirm}
@@ -97,7 +95,7 @@ const MonitorPage = () => {
           historyTableRef.current?.refresh();
         }}
       />
-    </>
+    </div>
   );
 };
 

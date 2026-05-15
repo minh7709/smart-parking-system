@@ -15,6 +15,9 @@ public class SubscriptionPricingMapper {
 
         return SubscriptionPricingResponse.builder()
                 .id(entity.getId())
+                .pricingName(entity.getPricingName())
+                .vehicleType(entity.getVehicleType())
+                .description(entity.getDescription())
                 .durationType(entity.getDurationType())
                 .price(entity.getPrice())
                 .active(entity.getActive())
@@ -28,6 +31,7 @@ public class SubscriptionPricingMapper {
         }
 
         return SubscriptionPricing.builder()
+                .pricingName(request.getPricingName())
                 .vehicleType(request.getVehicleType())
                 .creator(user)
                 .description(request.getDescription())

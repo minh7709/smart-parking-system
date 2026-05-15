@@ -5,6 +5,7 @@ import smartparkingsystem.backend.dto.request.SubscriptionRequest;
 import smartparkingsystem.backend.dto.response.SubscriptionResponse;
 import smartparkingsystem.backend.entity.Subscription;
 import smartparkingsystem.backend.entity.SubscriptionPricing;
+import smartparkingsystem.backend.entity.Vehicle;
 import smartparkingsystem.backend.entity.type.SubStatus;
 
 import java.math.BigInteger;
@@ -30,12 +31,13 @@ public class SubscriptionMapper {
                 .updatedAt(entity.getUpdatedAt())
                 .build();
     }
-    public Subscription toEntity(SubscriptionRequest request, SubscriptionPricing subscriptionPricing, LocalDateTime endDate) {
+    public Subscription toEntity(SubscriptionRequest request, SubscriptionPricing subscriptionPricing, Vehicle vehicle, LocalDateTime endDate) {
         if (request == null) {
             return null;
         }
 
         return Subscription.builder()
+                .vehicle(vehicle)
                 .price(subscriptionPricing.getPrice())
                 .subscriptionPricing(subscriptionPricing)
                 .status(SubStatus.PENDING)

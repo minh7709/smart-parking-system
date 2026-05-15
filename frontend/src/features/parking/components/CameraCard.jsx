@@ -30,7 +30,7 @@ const CameraCard = ({
   const [imgError, setImgError] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [localVehicleType, setLocalVehicleType] = useState(vehicleType || "MOTOR");
-  const themeColor = "#ffffff";
+  const themeColor = "#141414";
   const normalizeUuid = (value) => {
     if (!value) {
       return "";
@@ -184,7 +184,7 @@ const CameraCard = ({
               boxShadow: `0 0 8px ${themeColor}`,
             }}
           />
-          <span style={{ color: "#fff", fontWeight: 600, letterSpacing: 1 }}>{title}</span>
+          <span style={{ color: "#141414", fontWeight: 600, letterSpacing: 1 }}>{title}</span>
         </div>
       }
       extra={
@@ -201,49 +201,49 @@ const CameraCard = ({
               style={{ width: 100 }}
             />
           )}
-          <Tooltip title="Chup va gui">
+          <Tooltip title="Chụp và gửi" color="#141414" overlayStyle={{ color: "#fff" }}>
             <Button
               type="primary"
               shape="circle"
               icon={<CameraOutlined />}
               onClick={handleCaptureAndSend}
               loading={loading}
-              style={{ backgroundColor: "#00b96b" }}
+              style={{ backgroundColor: "#0eb1a3" }}
             />
           </Tooltip>
-          <Tooltip title="Phóng to">
+          <Tooltip title="Phóng to" color="#141414" overlayStyle={{ color: "#fff" }}>  
             <Button
               type="text"
               shape="circle"
-              icon={<ZoomInOutlined style={{ color: "#fff" }} />}
+              icon={<ZoomInOutlined style={{ color: "#141414" }} />}
               onClick={handleZoom}
             />
           </Tooltip>
-          <Tooltip title="Cai dat luong">
+          <Tooltip title="Cài đặt" color="#141414" overlayStyle={{ color: "#fff" }}>
             <Button
               type="text"
               shape="circle"
-              icon={<SettingOutlined style={{ color: "#fff" }} />}
+              icon={<SettingOutlined style={{ color: "#141414" }} />}
             />
           </Tooltip>
-          <Tooltip title="Mo toan man hinh">
+          <Tooltip title="Toàn màn hình" color="#141414" overlayStyle={{ color: "#fff" }}>
             <Button
               type="text"
               shape="circle"
-              icon={<ExpandOutlined style={{ color: "#fff" }} />}
+              icon={<ExpandOutlined style={{ color: "#141414" }} />}
             />
           </Tooltip>
         </Space>
       }
       variant="borderless"
       style={{
-        background: "#141414",
-        border: "1px solid #1f1f1f",
+        background: "#ffffff",
+        border: "1px solid #d9d9d9",
         borderRadius: 16,
         overflow: "hidden",
       }}
       styles={{
-        header: { borderBottom: "1px solid #1f1f1f", padding: "12px 16px" },
+        header: { borderBottom: "1px solid #d9d9d9", padding: "12px 16px" },
         body: { padding: 12 },
       }}
     >
@@ -253,7 +253,7 @@ const CameraCard = ({
           borderRadius: 8,
           overflow: "hidden",
           position: "relative",
-          background: "#000",
+          background: "#f5f5f5",
         }}
       >
         {imgError ? (
@@ -264,7 +264,7 @@ const CameraCard = ({
               justifyContent: "center",
               height: "100%",
               color: "#ff4d4f",
-              background: "#1a1a1a",
+              background: "#ffffff",
               textAlign: "center",
               padding: 20,
             }}
@@ -299,7 +299,7 @@ const CameraCard = ({
           style={{
             position: "absolute",
             inset: 0,
-            background: "linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 40%)",
+            background: "linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 40%)",
             pointerEvents: "none",
           }}
         />
@@ -308,7 +308,7 @@ const CameraCard = ({
             position: "absolute",
             top: 12,
             left: 12,
-            background: "rgba(0,0,0,0.6)",
+            background: "rgba(20,20,20,0.7)",
             backdropFilter: "blur(4px)",
             padding: "4px 10px",
             borderRadius: 4,
@@ -323,7 +323,7 @@ const CameraCard = ({
               bottom: 5,
               left: "50%",
               transform: "translateX(-50%)",
-              background: "rgba(0,0,0,0.7)",
+              background: "rgba(20,20,20,0.8)",
               backdropFilter: "blur(8px)",
               padding: "6px 32px",
               borderRadius: 8,

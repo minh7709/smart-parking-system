@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 import smartparkingsystem.backend.entity.type.SubType;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
@@ -14,14 +13,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "subscription_pricing",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_subscription_pricing_vehicle_duration",
-                        columnNames = {"vehicle_type", "duration_type"}
-                )
-        }
-)
+@Table(name = "subscription_pricing")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -48,7 +40,7 @@ public class SubscriptionPricing {
     @Column(name = "price", nullable = false)
     private BigInteger price;
 
-    @Column(name = "description", length = 255)
+    @Column(name = "description", length = 500)
     private String description;
 
     @Column(name = "is_active", nullable = false)
@@ -59,6 +51,6 @@ public class SubscriptionPricing {
     private LocalDateTime createdAt;
 
     @ManyToOne
-    @JoinColumn(name = "created_by", nullable = false)
+    @JoinColumn(name = "created_by")
     private User creator;
 }

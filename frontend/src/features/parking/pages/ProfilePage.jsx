@@ -37,25 +37,26 @@ const ProfilePage = () => {
       style={{
         maxWidth: 800,
         margin: "0 auto",
-        background: "#141414",
-        border: "1px solid #1f1f1f",
+        background: "#ffffff",
+        border: "1px solid #f0f0f0",
         borderRadius: 16,
+        boxShadow: "0 8px 24px rgba(0, 0, 0, 0.04)",
       }}
-      headStyle={{ borderBottom: "1px solid #1f1f1f", color: "#fff" }}
+      headStyle={{ borderBottom: "1px solid #f0f0f0", color: "#141414" }}
     >
       <div style={{ textAlign: "center", marginBottom: 24 }}>
         <Avatar
           size={80}
           icon={<UserOutlined />}
-          style={{ backgroundColor: "#1890ff" }}
+          style={{ backgroundColor: "#1677ff" }}
         />
       </div>
 
       <Descriptions
         bordered
         column={1}
-        labelStyle={{ color: "#aaa", background: "#1a1a1a" }}
-        contentStyle={{ color: "#fff", background: "#141414" }}
+        labelStyle={{ color: "#555", background: "#fafafa" }}
+        contentStyle={{ color: "#141414", background: "#ffffff" }}
       >
         <Descriptions.Item
           label={

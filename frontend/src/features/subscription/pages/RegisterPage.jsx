@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   Form,
@@ -8,263 +8,471 @@ import {
   Row,
   Col,
   DatePicker,
-  message,
+  notification,
+  Table,
+  Space,
+  Tag,
+  Modal,
+  Popconfirm,
+  Tooltip
 } from "antd";
-import { SaveOutlined, CarOutlined, UserOutlined } from "@ant-design/icons";
-import { AppLayout } from "../../../components/Layout/AppLayout";
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  SearchOutlined,
+  SyncOutlined,
+} from "@ant-design/icons";
+import dayjs from "dayjs";
+import {
+  getSubscriptionsApi,
+  createSubscriptionApi,
+  updateSubscriptionApi,
+  deleteSubscriptionApi,
+  getSubscriptionByLicensePlateApi,
+} from "../api/subscriptionApi";
+import axiosClient from "../../../api/axiosClient";
+import API_ENDPOINTS from "../../../api/endpoints";
 
 const { Option } = Select;
 
 const RegisterPage = () => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  // States lưu cấu hình Enum từ Backend
+  const [subTypes, setSubTypes] = useState([]);
+  const [subStatuses, setSubStatuses] = useState([]);
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  
+  // Filters
+  const [searchPlate, setSearchPlate] = useState("");
+  const [filterType, setFilterType] = useState(null);
+  const [filterStatus, setFilterStatus] = useState(null);
+
+  // Modal states
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [form] = Form.useForm();
 
-  const onFinish = (values) => {
-    console.log("Dữ liệu gửi đi:", values);
-    // Chỗ này sau này sẽ gọi API lưu vào Database
-    message.success({
-      content: "Đăng ký vé tháng thành công!",
-      style: { marginTop: "10vh" },
-    });
-    form.resetFields();
+  const fetchSubscriptions = async (page = 1, size = 10, plate = searchPlate) => {
+    setLoading(true);
+    try {
+      if (plate) {
+        // Search by License plate exactly
+        const res = await getSubscriptionByLicensePlateApi(plate);
+        const item = res.data || res;
+        if (item && item.id) {
+          setData([item]);
+          setTotal(1);
+        } else {
+          setData([]);
+          setTotal(0);
+        }
+      } else {
+        // Fetch list
+        const params = {
+          page: page - 1,
+          size: size,
+        };
+        if (filterStatus) params.subStatus = filterStatus;
+        if (filterType) params.subType = filterType;
+
+        const res = await getSubscriptionsApi(params);
+        if (res.data && res.data.content) {
+          setData(res.data.content);
+          setTotal(res.data.totalElements);
+        } else {
+            // fallback structure if no wrapper format
+            setData(res?.content || []);
+            setTotal(res?.totalElements || 0);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      notification.error({ message: "Lỗi", description: "Lỗi khi tải danh sách vé tháng (hoặc không tìm thấy biển số)" });
+    } finally {
+      setLoading(false);
+    }
   };
 
+  useEffect(() => {
+    fetchSubscriptions(currentPage, pageSize);
+  }, [currentPage, pageSize, filterType, filterStatus]);
+
+  useEffect(() => {
+    const fetchAppTypes = async () => {
+      try {
+        const [types, statuses, payments] = await Promise.all([
+          axiosClient.get(API_ENDPOINTS.type.subscriptionTypes),
+          axiosClient.get(API_ENDPOINTS.type.subscriptionStatuses),
+          axiosClient.get(API_ENDPOINTS.type.paymentMethods),
+        ]);
+        setSubTypes(types.data || types || []);
+        setSubStatuses(statuses.data || statuses || []);
+        setPaymentMethods(payments.data || payments || []);
+      } catch(e) {
+        console.error("Lỗi khi load tham số Type", e);
+      }
+    };
+    fetchAppTypes();
+  }, []);
+
+  const handleSearch = () => {
+    setCurrentPage(1);
+    fetchSubscriptions(1, pageSize, searchPlate);
+  };
+
+  const handleResetFilters = () => {
+    setSearchPlate("");
+    setFilterType(null);
+    setFilterStatus(null);
+    setCurrentPage(1);
+    fetchSubscriptions(1, pageSize, "");
+  };
+
+  const openCreateModal = () => {
+    setEditingId(null);
+    form.resetFields();
+    setIsModalVisible(true);
+  };
+
+  const openEditModal = (record) => {
+    setEditingId(record.id);
+    form.setFieldsValue({
+      licensePlate: record.licensePlate,
+      subType: record.subType,
+      price: record.price,
+      startDate: record.startDate ? dayjs(record.startDate) : null,
+      endDate: record.endDate ? dayjs(record.endDate) : null,
+      subStatus: record.subStatus,
+    });
+    setIsModalVisible(true);
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteSubscriptionApi(id);
+      notification.success({ message: "Thành công", description: "Xóa vé tháng thành công!" });
+      fetchSubscriptions(currentPage, pageSize);
+    } catch (error) {
+      console.error(error);
+      notification.error({ message: "Lỗi", description: "Lỗi khi xóa vé tháng" });
+    }
+  };
+
+  const handleModalOk = () => {
+    form.validateFields().then(async (values) => {
+      try {
+        const payload = {
+          ...values,
+          startDate: values.startDate ? values.startDate.format("YYYY-MM-DDTHH:mm:ss") : null
+        };
+
+        if (editingId) {
+          await updateSubscriptionApi(editingId, payload);
+          notification.success({ message: "Thành công", description: "Cập nhật vé tháng thành công!" });
+        } else {
+          await createSubscriptionApi(payload);
+          notification.success({ message: "Thành công", description: "Đăng ký vé tháng thành công!" });
+        }
+        setIsModalVisible(false);
+        fetchSubscriptions(currentPage, pageSize);
+      } catch (err) {
+        console.error(err);
+        notification.error({ message: "Lỗi", description: "Có lỗi xảy ra, vui lòng thử lại!" });
+      }
+    });
+  };
+
+  const columns = [
+    {
+      title: "Biển số xe",
+      dataIndex: "licensePlate",
+      key: "licensePlate",
+      fontWeight: "bold",
+    },
+    {
+      title: "Loại gói",
+      dataIndex: "subType",
+      key: "subType",
+      render: (type) => {
+        const colors = {
+          MONTHLY_1: "blue",
+          MONTHLY_3: "cyan",
+          YEARLY: "gold",
+        };
+        const labels = {
+          MONTHLY_1: "1 Tháng",
+          MONTHLY_3: "3 Tháng",
+          YEARLY: "1 Năm",
+        };
+        return <Tag color={colors[type] || "default"}>{labels[type] || type}</Tag>;
+      },
+    },
+    {
+      title: "Giá tiền",
+      dataIndex: "price",
+      key: "price",
+      render: (price) => `${price?.toLocaleString("vi-VN")} đ`,
+    },
+    {
+      title: "Ngày bắt đầu",
+      dataIndex: "startDate",
+      key: "startDate",
+      render: (date) => (date ? dayjs(date).format("DD/MM/YYYY") : ""),
+    },
+    {
+      title: "Ngày kết thúc",
+      dataIndex: "endDate",
+      key: "endDate",
+      render: (date) => (date ? dayjs(date).format("DD/MM/YYYY") : ""),
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: "subStatus",
+      key: "subStatus",
+      render: (status) => {
+        const colors = {
+          ACTIVE: "green",
+          EXPIRED: "red",
+          PENDING: "orange",
+        };
+        return <Tag color={colors[status] || "default"}>{status}</Tag>;
+      },
+    },
+    {
+      title: "Hành động",
+      key: "actions",
+      render: (_, record) => (
+        <Space size="middle">
+          <Tooltip title="Chỉnh sửa">
+            <Button
+              type="text"
+              icon={<EditOutlined style={{ color: "#1677ff" }} />}
+              onClick={() => openEditModal(record)}
+            />
+          </Tooltip>
+          <Tooltip title="Xóa">
+            <Popconfirm
+              title="Bạn có chắc chắn muốn xóa vé tháng này?"
+              onConfirm={() => handleDelete(record.id)}
+              okText="Có"
+              cancelText="Không"
+            >
+              <Button type="text" danger icon={<DeleteOutlined />} />
+            </Popconfirm>
+          </Tooltip>
+        </Space>
+      ),
+    },
+  ];
+
   return (
-    <>
-      <div style={{ maxWidth: 900, margin: "0 auto", paddingBottom: 40 }}>
-        <h2
-          style={{
-            color: "#fff",
-            fontSize: 24,
-            marginBottom: 24,
-            textAlign: "center",
+    <div style={{ padding: "0 24px", maxWidth: 1200, margin: "0 auto" }}>
+      <h2 style={{ color: "#141414", marginBottom: 24, fontSize: 24 }}>
+        Quản Lý Vé Tháng
+      </h2>
+
+      {/* FILTER SECTION */}
+      <Card bordered={false} style={{ marginBottom: 24, borderRadius: 12 }}>
+        <Row gutter={16} align="middle">
+          <Col span={8}>
+            <Input.Search
+              placeholder="Nhập biển số xe cần tìm..."
+              value={searchPlate}
+              onChange={(e) => setSearchPlate(e.target.value)}
+              onSearch={handleSearch}
+              enterButton="Tìm kiếm"
+              allowClear
+            />
+          </Col>
+          <Col span={5}>
+            <Select
+              placeholder="Loại gói"
+              style={{ width: "100%" }}
+              value={filterType}
+              onChange={(val) => setFilterType(val)}
+              allowClear
+            >
+              {subTypes.map((type) => (
+                <Option key={type} value={type}>
+                  {type}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+          <Col span={5}>
+            <Select
+              placeholder="Trạng thái"
+              style={{ width: "100%" }}
+              value={filterStatus}
+              onChange={(val) => setFilterStatus(val)}
+              allowClear
+            >
+              {subStatuses.map((status) => (
+                <Option key={status} value={status}>
+                  {status}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+          <Col span={6} style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
+            <Button 
+              onClick={handleResetFilters} 
+              icon={<SyncOutlined />}
+              style={{ borderRadius: 6 }}
+            >
+              Làm mới
+            </Button>
+            <Button 
+              type="primary" 
+              icon={<PlusOutlined />} 
+              onClick={openCreateModal}
+              style={{ background: "#1677ff", borderColor: "#1677ff", borderRadius: 6, fontWeight: 500 }}
+            >
+              Tạo mới
+            </Button>
+          </Col>
+        </Row>
+      </Card>
+
+      {/* TABLE SECTION */}
+      <Card bordered={false} style={{ borderRadius: 12 }}>
+        <Table
+          columns={columns}
+          dataSource={data}
+          rowKey="id"
+          loading={loading}
+          pagination={{
+            current: currentPage,
+            pageSize: pageSize,
+            total: total,
+            showSizeChanger: true,
+            onChange: (page, size) => {
+              setCurrentPage(page);
+              setPageSize(size);
+            },
           }}
-        >
-          Đăng Ký Vé Tháng
-        </h2>
+        />
+      </Card>
 
-        <Form form={form} layout="vertical" onFinish={onFinish} size="large">
-          <Row gutter={24}>
-            {/* CỘT 1: THÔNG TIN PHƯƠNG TIỆN & KHÁCH HÀNG */}
+      {/* CREATE/EDIT MODAL */}
+      <Modal
+        title={editingId ? "Cập Nhật Vé Tháng" : "Đăng Ký Vé Tháng Mới"}
+        open={isModalVisible}
+        onOk={handleModalOk}
+        onCancel={() => setIsModalVisible(false)}
+        okText="Lưu lại"
+        cancelText="Hủy"
+        width={600}
+      >
+        <Form form={form} layout="vertical" style={{ marginTop: 20 }}>
+          <Row gutter={16}>
             <Col span={12}>
-              <Card
-                title={
-                  <span style={{ color: "#00b96b" }}>
-                    <CarOutlined /> Thông tin phương tiện
-                  </span>
-                }
-                bordered={false}
-                style={{
-                  background: "#141414",
-                  border: "1px solid #1f1f1f",
-                  borderRadius: 16,
-                  height: "100%",
-                }}
-                styles={{ header: { borderBottom: "1px solid #1f1f1f" } }}
+              <Form.Item
+                label="Biển số xe"
+                name="licensePlate"
+                rules={[{ required: true, message: "Vui lòng nhập biển số!" }]}
               >
-                <Form.Item
-                  label={<span style={{ color: "#aaa" }}>Biển số xe</span>}
-                  name="licensePlate"
-                  rules={[
-                    { required: true, message: "Vui lòng nhập biển số!" },
-                  ]}
-                >
-                  <Input
-                    placeholder="VD: 51H-12345"
-                    style={{
-                      background: "#1a1a1a",
-                      border: "1px solid #333",
-                      color: "#fff",
-                    }}
-                  />
-                </Form.Item>
-
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item
-                      label={<span style={{ color: "#aaa" }}>Loại xe</span>}
-                      name="vehicleType"
-                      rules={[{ required: true }]}
-                    >
-                      <Select
-                        placeholder="Chọn loại xe"
-                        dropdownStyle={{ background: "#1f1f1f", color: "#fff" }}
-                      >
-                        <Option value="CAR">Ô tô</Option>
-                        <Option value="MOTORBIKE">Xe máy</Option>
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      label={
-                        <span style={{ color: "#aaa" }}>Hiệu xe (Brand)</span>
-                      }
-                      name="brand"
-                    >
-                      <Input
-                        placeholder="VD: Honda, Toyota..."
-                        style={{
-                          background: "#1a1a1a",
-                          border: "1px solid #333",
-                          color: "#fff",
-                        }}
-                      />
-                    </Form.Item>
-                  </Col>
-                </Row>
-
-                <Form.Item
-                  label={<span style={{ color: "#aaa" }}>Tên chủ xe</span>}
-                  name="customerName"
-                  rules={[{ required: true }]}
-                >
-                  <Input
-                    prefix={<UserOutlined style={{ color: "#555" }} />}
-                    placeholder="Nhập họ và tên"
-                    style={{
-                      background: "#1a1a1a",
-                      border: "1px solid #333",
-                      color: "#fff",
-                    }}
-                  />
-                </Form.Item>
-
-                <Form.Item
-                  label={<span style={{ color: "#aaa" }}>Số điện thoại</span>}
-                  name="customerPhone"
-                  rules={[{ required: true }]}
-                >
-                  <Input
-                    placeholder="Nhập SĐT liên hệ"
-                    style={{
-                      background: "#1a1a1a",
-                      border: "1px solid #333",
-                      color: "#fff",
-                    }}
-                  />
-                </Form.Item>
-              </Card>
+                <Input placeholder="VD: 51H-12345" disabled={!!editingId} />
+              </Form.Item>
             </Col>
 
-            {/* CỘT 2: THÔNG TIN GÓI CƯỚC */}
             <Col span={12}>
-              <Card
-                title={
-                  <span style={{ color: "#1677ff" }}>
-                    Thông tin gói vé tháng
-                  </span>
-                }
-                bordered={false}
-                style={{
-                  background: "#141414",
-                  border: "1px solid #1f1f1f",
-                  borderRadius: 16,
-                  height: "100%",
-                }}
-                styles={{ header: { borderBottom: "1px solid #1f1f1f" } }}
+              <Form.Item
+                label="Loại gói"
+                name="subType"
+                rules={[{ required: true, message: "Vui lòng chọn gói!" }]}
               >
-                <Form.Item
-                  label={
-                    <span style={{ color: "#aaa" }}>Loại gói (Sub Type)</span>
-                  }
-                  name="subType"
-                  rules={[{ required: true }]}
-                >
-                  <Select
-                    placeholder="Chọn gói cước"
-                    dropdownStyle={{ background: "#1f1f1f", color: "#fff" }}
-                  >
-                    <Option value="MONTHLY_1">Gói 1 Tháng</Option>
-                    <Option value="MONTHLY_3">Gói 3 Tháng</Option>
-                    <Option value="YEARLY">Gói 1 Năm</Option>
-                  </Select>
-                </Form.Item>
-
-                <Form.Item
-                  label={<span style={{ color: "#aaa" }}>Giá tiền (VNĐ)</span>}
-                  name="price"
-                  rules={[{ required: true }]}
-                >
-                  <Input
-                    type="number"
-                    placeholder="VD: 150000"
-                    style={{
-                      background: "#1a1a1a",
-                      border: "1px solid #333",
-                      color: "#fff",
-                    }}
-                  />
-                </Form.Item>
-
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item
-                      label={
-                        <span style={{ color: "#aaa" }}>Ngày bắt đầu</span>
-                      }
-                      name="startDate"
-                      rules={[{ required: true }]}
-                    >
-                      <DatePicker
-                        style={{
-                          width: "100%",
-                          background: "#1a1a1a",
-                          border: "1px solid #333",
-                        }}
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      label={
-                        <span style={{ color: "#aaa" }}>Ngày kết thúc</span>
-                      }
-                      name="endDate"
-                      rules={[{ required: true }]}
-                    >
-                      <DatePicker
-                        style={{
-                          width: "100%",
-                          background: "#1a1a1a",
-                          border: "1px solid #333",
-                        }}
-                      />
-                    </Form.Item>
-                  </Col>
-                </Row>
-
-                <div style={{ marginTop: 32, textAlign: "right" }}>
-                  <Button
-                    type="default"
-                    style={{
-                      marginRight: 12,
-                      background: "transparent",
-                      color: "#aaa",
-                      border: "1px solid #333",
-                    }}
-                    onClick={() => form.resetFields()}
-                  >
-                    Nhập lại
-                  </Button>
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    icon={<SaveOutlined />}
-                    style={{
-                      background: "#00b96b",
-                      borderColor: "#00b96b",
-                      fontWeight: 600,
-                    }}
-                  >
-                    Lưu & Đăng ký
-                  </Button>
-                </div>
-              </Card>
+                <Select placeholder="Chọn gói cước">
+                  {subTypes.map((type) => (
+                    <Option key={type} value={type}>
+                      {type}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
             </Col>
           </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Ngày bắt đầu"
+                name="startDate"
+                rules={[{ required: true, message: "Vui lòng chọn ngày bắt đầu!" }]}
+              >
+                <DatePicker style={{ width: "100%" }} format="YYYY-MM-DD HH:mm:ss" showTime />
+              </Form.Item>
+            </Col>
+
+            {/* Khi tạo mới: hiển thị chọn phương thức thanh toán */}
+            {!editingId && (
+              <Col span={12}>
+                <Form.Item
+                  label="Phương thức thanh toán"
+                  name="paymentMethod"
+                  rules={[{ required: true, message: "Vui lòng chọn thanh toán!" }]}
+                  initialValue={paymentMethods[0] || "CASH"}
+                >
+                  <Select placeholder="Chọn PTTT">
+                    {paymentMethods.map((method) => (
+                      <Option key={method} value={method}>
+                        {method}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
+            )}
+
+            {/* Khi cập nhật: hiển thị trạng thái và ngày kết thúc thay vì PTTT */}
+            {editingId && (
+              <>
+                <Col span={12}>
+                  <Form.Item
+                    label="Trạng thái"
+                    name="subStatus"
+                    rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
+                  >
+                    <Select placeholder="Chọn trạng thái">
+                      {subStatuses.map((status) => (
+                        <Option key={status} value={status}>
+                          {status}
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
+
+                <Col span={12}>
+                  <Form.Item
+                    label="Ngày kết thúc"
+                    name="endDate"
+                    rules={[{ required: true, message: "Vui lòng chọn ngày kết thúc!" }]}
+                  >
+                    <DatePicker style={{ width: "100%" }} format="YYYY-MM-DD HH:mm:ss" showTime />
+                  </Form.Item>
+                </Col>
+
+                <Col span={12}>
+                  <Form.Item
+                    label="Giá tiền (VNĐ)"
+                    name="price"
+                  >
+                    <Input type="number" placeholder="VD: 150000" disabled />
+                  </Form.Item>
+                </Col>
+              </>
+            )}
+          </Row>
         </Form>
-      </div>
-    </>
+      </Modal>
+    </div>
   );
 };
 

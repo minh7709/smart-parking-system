@@ -8,13 +8,12 @@ import smartparkingsystem.backend.entity.SubscriptionPricing;
 import smartparkingsystem.backend.entity.type.SubType;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface SubscriptionPricingRepository extends JpaRepository<SubscriptionPricing, UUID> {
     Page<SubscriptionPricing> findByVehicleType(VehicleTypeEnum vehicleType, Pageable pageable);
-    Boolean existsByPricingName(String pricingName);
+    boolean existsByPricingName(String pricingName);
     Optional<SubscriptionPricing> findByVehicleTypeAndDurationTypeAndActiveTrue(VehicleTypeEnum vehicleType, SubType durationType);
 }

@@ -10,7 +10,6 @@ import smartparkingsystem.backend.dto.request.VehicleRequest;
 import smartparkingsystem.backend.dto.response.ApiResponse;
 import smartparkingsystem.backend.dto.response.VehicleReponse;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
-import smartparkingsystem.backend.service.auth.UserService;
 import smartparkingsystem.backend.service.guard.VehicleService;
 import jakarta.validation.Valid;
 
@@ -23,7 +22,6 @@ import java.util.UUID;
 @PreAuthorize("hasAnyRole('GUARD', 'ADMIN')")
 public class VehicleController {
     private final VehicleService vehicleService;
-    private final UserService userService;
 
     @GetMapping("/")
     public ResponseEntity<ApiResponse<Page<VehicleReponse>>> getVehicles(

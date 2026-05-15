@@ -18,7 +18,7 @@ CREATE TYPE vehicle_type_enum AS ENUM ('CAR', 'MOTOR', 'BICYCLE');
 CREATE TYPE sub_type AS ENUM ('MONTHLY', 'QUARTERLY', 'YEARLY');
 CREATE TYPE sub_status AS ENUM ('PENDING', 'ACTIVE', 'EXPIRED', 'CANCELLED');
 CREATE TYPE lane_type_enum AS ENUM ('IN', 'OUT');
-CREATE TYPE lane_status AS ENUM ('ACTIVE', 'MAINTENANCE', 'DELETED');
+CREATE TYPE lane_status AS ENUM ('ACTIVE', 'INACTIVE');
 CREATE TYPE session_status AS ENUM ('PARKED', 'COMPLETED', 'CANCELLED');
 CREATE TYPE payment_status AS ENUM ('PENDING', 'SUCCESS', 'FAILED');
 CREATE TYPE payment_method AS ENUM ('CASH', 'ONLINE_PAYMENT');
@@ -76,8 +76,7 @@ CREATE TABLE subscription_pricing (
     description TEXT,                        
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by UUID REFERENCES users(id),
-    UNIQUE(vehicle_type, duration_type) 
+    created_by UUID REFERENCES users(id)
 );
 
 -- 3. Bảng subscription (Vé tháng)
