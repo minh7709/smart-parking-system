@@ -34,7 +34,7 @@ import {
 import axiosClient from "../../../api/axiosClient";
 import API_ENDPOINTS from "../../../api/endpoints";
 
-const { Option } = Select;
+const { Option } = Select;  
 
 const RegisterPage = () => {
   const [data, setData] = useState([]);
@@ -47,6 +47,7 @@ const RegisterPage = () => {
   const [subTypes, setSubTypes] = useState([]);
   const [subStatuses, setSubStatuses] = useState([]);
   const [paymentMethods, setPaymentMethods] = useState([]);
+ 
   
   // Filters
   const [searchPlate, setSearchPlate] = useState("");
@@ -58,42 +59,21 @@ const RegisterPage = () => {
   const [editingId, setEditingId] = useState(null);
   const [form] = Form.useForm();
 
-  const fetchSubscriptions = async (page = 1, size = 10, plate = searchPlate) => {
+  const fetchSubscriptions = async (page = 1, size = 50) => {
     setLoading(true);
     try {
-      if (plate) {
-        // Search by License plate exactly
-        const res = await getSubscriptionByLicensePlateApi(plate);
-        const item = res.data || res;
-        if (item && item.id) {
-          setData([item]);
-          setTotal(1);
-        } else {
-          setData([]);
-          setTotal(0);
-        }
+      const params = { page: page - 1, size: size };
+      const res = await getSubscriptionsApi(params);
+      if (res.data && res.data.content) {
+        setData(res.data.content);
+        setTotal(res.data.totalElements);
       } else {
-        // Fetch list
-        const params = {
-          page: page - 1,
-          size: size,
-        };
-        if (filterStatus) params.subStatus = filterStatus;
-        if (filterType) params.subType = filterType;
-
-        const res = await getSubscriptionsApi(params);
-        if (res.data && res.data.content) {
-          setData(res.data.content);
-          setTotal(res.data.totalElements);
-        } else {
-            // fallback structure if no wrapper format
-            setData(res?.content || []);
-            setTotal(res?.totalElements || 0);
-        }
+        setData(res?.content || []);
+        setTotal(res?.totalElements || 0);
       }
     } catch (err) {
       console.error(err);
-      notification.error({ message: "Lỗi", description: "Lỗi khi tải danh sách vé tháng (hoặc không tìm thấy biển số)" });
+      notification.error({ message: "Lỗi", description: "Lỗi khi tải danh sách vé tháng!" });
     } finally {
       setLoading(false);
     }
@@ -101,19 +81,21 @@ const RegisterPage = () => {
 
   useEffect(() => {
     fetchSubscriptions(currentPage, pageSize);
-  }, [currentPage, pageSize, filterType, filterStatus]);
+  }, [currentPage, pageSize]);
 
   useEffect(() => {
     const fetchAppTypes = async () => {
       try {
-        const [types, statuses, payments] = await Promise.all([
+        const [types, statuses, payments, vehicles] = await Promise.all([
           axiosClient.get(API_ENDPOINTS.type.subscriptionTypes),
           axiosClient.get(API_ENDPOINTS.type.subscriptionStatuses),
           axiosClient.get(API_ENDPOINTS.type.paymentMethods),
+          axiosClient.get(API_ENDPOINTS.type.vehicleTypes),
         ]);
         setSubTypes(types.data || types || []);
         setSubStatuses(statuses.data || statuses || []);
         setPaymentMethods(payments.data || payments || []);
+        setVehicleTypes(vehicles.data || vehicles || []);
       } catch(e) {
         console.error("Lỗi khi load tham số Type", e);
       }
@@ -121,9 +103,8 @@ const RegisterPage = () => {
     fetchAppTypes();
   }, []);
 
-  const handleSearch = () => {
-    setCurrentPage(1);
-    fetchSubscriptions(1, pageSize, searchPlate);
+  const handleSearch = (value) => {
+    setSearchPlate(value);
   };
 
   const handleResetFilters = () => {
@@ -131,8 +112,15 @@ const RegisterPage = () => {
     setFilterType(null);
     setFilterStatus(null);
     setCurrentPage(1);
-    fetchSubscriptions(1, pageSize, "");
+    fetchSubscriptions(1, pageSize);
   };
+
+  const filteredData = data.filter((record) => {
+    const matchPlate = (record.licensePlate || "").toLowerCase().includes(searchPlate.toLowerCase());
+    const matchType = !filterType || record.subType === filterType;
+    const matchStatus = !filterStatus || record.subStatus === filterStatus;
+    return matchPlate && matchType && matchStatus;
+  });
 
   const openCreateModal = () => {
     setEditingId(null);
@@ -144,6 +132,7 @@ const RegisterPage = () => {
     setEditingId(record.id);
     form.setFieldsValue({
       licensePlate: record.licensePlate,
+      vehicleType: record.vehicleType,
       subType: record.subType,
       price: record.price,
       startDate: record.startDate ? dayjs(record.startDate) : null,
@@ -167,9 +156,15 @@ const RegisterPage = () => {
   const handleModalOk = () => {
     form.validateFields().then(async (values) => {
       try {
+        // Lấy tất cả giá trị form hiện tại (bao gồm các trường bị disabled)
+        const allValues = form.getFieldsValue();
+        
+        // Gọi API với đúng 5 trường chuẩn của Backend, không gửi thêm các trường thừa
         const payload = {
-          ...values,
-          startDate: values.startDate ? values.startDate.format("YYYY-MM-DDTHH:mm:ss") : null
+          licensePlate: allValues.licensePlate,
+          subType: allValues.subType,
+          startDate: allValues.startDate ? allValues.startDate.format("YYYY-MM-DDTHH:mm:ss") : null,
+          paymentMethod: allValues.paymentMethod || "CASH" // Bắt buộc phải có vì Backend đặt @NotNull
         };
 
         if (editingId) {
@@ -183,7 +178,18 @@ const RegisterPage = () => {
         fetchSubscriptions(currentPage, pageSize);
       } catch (err) {
         console.error(err);
-        notification.error({ message: "Lỗi", description: "Có lỗi xảy ra, vui lòng thử lại!" });
+        const errorData = err.payload?.message;
+        let errorMsg = "Có lỗi xảy ra, vui lòng thử lại!";
+        
+        if (errorData) {
+          if (errorData.fieldErrors && errorData.fieldErrors.length > 0) {
+            errorMsg = errorData.fieldErrors.map(f => f.message).join(", ");
+          } else if (errorData) {
+            errorMsg = errorData;
+          }
+        }
+        
+        notification.error({ message: err.payload?.errorCode || "Lỗi", description: errorMsg });
       }
     });
   };
@@ -194,6 +200,19 @@ const RegisterPage = () => {
       dataIndex: "licensePlate",
       key: "licensePlate",
       fontWeight: "bold",
+    },
+    {
+      title: "Loại xe",
+      dataIndex: "vehicleType",
+      key: "vehicleType",
+      render: (type) => {
+        const labels = {
+          MOTORBIKE: "Xe máy",
+          CAR: "Ô tô",
+          BICYCLE: "Xe đạp"
+        };
+        return <Tag color="blue">{type ? (labels[type] || type) : "N/A"}</Tag>;
+      },
     },
     {
       title: "Loại gói",
@@ -284,9 +303,7 @@ const RegisterPage = () => {
             <Input.Search
               placeholder="Nhập biển số xe cần tìm..."
               value={searchPlate}
-              onChange={(e) => setSearchPlate(e.target.value)}
-              onSearch={handleSearch}
-              enterButton="Tìm kiếm"
+              onChange={(e) => handleSearch(e.target.value)}
               allowClear
             />
           </Col>
@@ -344,7 +361,7 @@ const RegisterPage = () => {
       <Card bordered={false} style={{ borderRadius: 12 }}>
         <Table
           columns={columns}
-          dataSource={data}
+          dataSource={filteredData}
           rowKey="id"
           loading={loading}
           pagination={{
@@ -372,7 +389,7 @@ const RegisterPage = () => {
       >
         <Form form={form} layout="vertical" style={{ marginTop: 20 }}>
           <Row gutter={16}>
-            <Col span={12}>
+            <Col span={editingId ? 12 : 24}>
               <Form.Item
                 label="Biển số xe"
                 name="licensePlate"
@@ -382,6 +399,26 @@ const RegisterPage = () => {
               </Form.Item>
             </Col>
 
+            {editingId && (
+              <Col span={12}>
+                <Form.Item
+                  label="Loại xe"
+                  name="vehicleType"
+                  rules={[{ required: true, message: "Vui lòng chọn loại xe!" }]}
+                >
+                  <Select placeholder="Chọn loại xe" disabled={!!editingId}>
+                    {vehicleTypes.map((type) => (
+                      <Option key={type} value={type}>
+                        {type === 'MOTORBIKE' ? 'Xe máy' : type === 'CAR' ? 'Ô tô' : type === 'BICYCLE' ? 'Xe đạp' : type}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
+            )}
+          </Row>
+
+          <Row gutter={16}>
             <Col span={12}>
               <Form.Item
                 label="Loại gói"
@@ -397,9 +434,7 @@ const RegisterPage = () => {
                 </Select>
               </Form.Item>
             </Col>
-          </Row>
 
-          <Row gutter={16}>
             <Col span={12}>
               <Form.Item
                 label="Ngày bắt đầu"
@@ -409,7 +444,9 @@ const RegisterPage = () => {
                 <DatePicker style={{ width: "100%" }} format="YYYY-MM-DD HH:mm:ss" showTime />
               </Form.Item>
             </Col>
+          </Row>
 
+          <Row gutter={16}>
             {/* Khi tạo mới: hiển thị chọn phương thức thanh toán */}
             {!editingId && (
               <Col span={12}>
@@ -477,3 +514,6 @@ const RegisterPage = () => {
 };
 
 export default RegisterPage;
+
+
+
