@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -12,6 +13,8 @@ public class TokenRedisService {
 
     private static final String REFRESH_TOKEN_PREFIX = "RT:";
     private static final String ACCESS_TOKEN_BLACKLIST_PREFIX = "BLACKLIST:";
+    private static final String DELETED_USERS_PREFIX = "DELETED_USERS:";
+    private static final long DELETED_USER_TTL_DAYS = 30; // Keep deleted user ID for 30 days
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -50,12 +53,48 @@ public class TokenRedisService {
         return Boolean.TRUE.equals(redisTemplate.hasKey(buildAccessBlacklistKey(accessToken)));
     }
 
+    /**
+     * Mark a user as deleted (invalidate all future token attempts)
+     * This is used when a user is deleted to prevent them from using old tokens
+     */
+    public void markUserAsDeleted(UUID userId) {
+        if (userId == null) {
+            return;
+        }
+        long ttlMillis = TimeUnit.DAYS.toMillis(DELETED_USER_TTL_DAYS);
+        redisTemplate.opsForValue().set(buildDeletedUserKey(userId), "1", ttlMillis, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Check if a user has been marked as deleted
+     */
+    public boolean isUserDeleted(UUID userId) {
+        if (userId == null) {
+            return false;
+        }
+        return Boolean.TRUE.equals(redisTemplate.hasKey(buildDeletedUserKey(userId)));
+    }
+
+    /**
+     * Remove a user from deleted list (for restore functionality)
+     */
+    public void removeDeletedUser(UUID userId) {
+        if (userId == null) {
+            return;
+        }
+        redisTemplate.delete(buildDeletedUserKey(userId));
+    }
+
     private String buildRefreshTokenKey(String refreshToken) {
         return REFRESH_TOKEN_PREFIX + refreshToken;
     }
 
     private String buildAccessBlacklistKey(String accessToken) {
         return ACCESS_TOKEN_BLACKLIST_PREFIX + accessToken;
+    }
+
+    private String buildDeletedUserKey(UUID userId) {
+        return DELETED_USERS_PREFIX + userId.toString();
     }
 }
 

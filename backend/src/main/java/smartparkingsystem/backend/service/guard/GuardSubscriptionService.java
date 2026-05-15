@@ -53,7 +53,7 @@ public class GuardSubscriptionService {
         Vehicle vehicle = vehicleRepository.findByLicensePlateAndDeletedFalse(request.getLicensePlate())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phương tiện với biển số xe: " + request.getLicensePlate()));
         Subscription subscription = subscriptionRepository
-                .findByVehicleIdAndStatus(vehicle.getId(), SubStatus.ACTIVE)
+                .findFirstByVehicleIdAndStatusIn(vehicle.getId(), List.of(SubStatus.ACTIVE, SubStatus.PENDING))
                 .orElse(null);
 
         if(subscription != null && subscription.getEndDate().isAfter(request.getStartDate())){

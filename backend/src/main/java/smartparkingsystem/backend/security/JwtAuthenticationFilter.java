@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -46,13 +47,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
 
                 String userId = tokenProvider.getUserIdFromToken(jwt);
-                UserDetails userDetails = userDetailsService.loadUserById(UUID.fromString(userId));
+                UUID userIdUUID = UUID.fromString(userId);
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                // Check if user has been deleted
+                if (tokenRedisService.isUserDeleted(userIdUUID)) {
+                    log.warn("Token used for deleted user. UserId: {}", userId);
+                    filterChain.doFilter(request, response);
+                    return;
+                }
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                try {
+                    UserDetails userDetails = userDetailsService.loadUserById(userIdUUID);
+
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } catch (UsernameNotFoundException ex) {
+                    log.warn("User not found or has been deleted. UserId: {}, Exception: {}", userId, ex.getMessage());
+                    // User has been deleted or doesn't exist - don't set authentication
+                    // This will cause a 401/403 response for protected endpoints
+                }
             }
         } catch (Exception ex) {
             log.error("Could not set user authentication in security context", ex);

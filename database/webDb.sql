@@ -23,6 +23,7 @@ CREATE TYPE session_status AS ENUM ('PARKED', 'COMPLETED', 'CANCELLED');
 CREATE TYPE payment_status AS ENUM ('PENDING', 'SUCCESS', 'FAILED');
 CREATE TYPE payment_method AS ENUM ('CASH', 'ONLINE_PAYMENT');
 CREATE TYPE incident_type_enum AS ENUM ('LOST_CARD', 'DAMAGE', 'SYSTEM_ERROR','WRONG_PLATE', 'OTHER');
+CREATE TYPE invoice_type_enum AS ENUM ('PARKING_FEE', 'SUBSCRIPTION_FEE');
 
 CREATE TYPE pricing_strategy_enum AS ENUM (
     'FLAT_RATE', 'TIME_WINDOW', 'ROLLING_BLOCK', 'PROGRESSIVE', 'DAILY_CAPPED'
@@ -45,7 +46,7 @@ CREATE TABLE users (
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL, -- Sẽ lưu mã băm BCrypt
     full_name VARCHAR(100) NOT NULL,
-    phone VARCHAR(20),
+    phone VARCHAR(20) NOT NULL UNIQUE,
     role user_role NOT NULL,
     status user_status DEFAULT 'ACTIVE',
     is_deleted BOOLEAN DEFAULT FALSE,
@@ -59,8 +60,8 @@ CREATE TABLE vehicle (
     vehicle_type vehicle_type_enum NOT NULL,
     brand VARCHAR(50),
     -- Lưu trực tiếp thông tin khách hàng tại đây
-    customer_name VARCHAR(100),     
-    customer_phone VARCHAR(20),     
+    customer_name VARCHAR(100) NOT NULL,     
+    customer_phone VARCHAR(20) NOT NULL,     
     is_deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -106,7 +107,7 @@ CREATE TABLE lane (
 -- 5. Bảng pricing_rule (Động cơ tính giá)
 CREATE TABLE pricing_rule (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    rule_name VARCHAR(100) NOT NULL,              
+    rule_name VARCHAR(100) NOT NULL UNIQUE,              
     vehicle_type vehicle_type_enum NOT NULL,      
     strategy pricing_strategy_enum NOT NULL,      
     base_price BIGINT NOT NULL,                                          
@@ -128,7 +129,7 @@ CREATE TABLE parking_session (
     exit_lane_id UUID REFERENCES lane(id),
     time_in TIMESTAMP NOT NULL,
     time_out TIMESTAMP,
-    plate_in_ocr VARCHAR(20),
+    plate_in_ocr VARCHAR(20) NOT NULL,
     plate_out_ocr VARCHAR(20),
     final_plate VARCHAR(20),
     vehicle_type vehicle_type_enum NOT NULL,
@@ -143,16 +144,21 @@ CREATE TABLE parking_session (
 -- 7. Bảng invoice (Hóa đơn / Thanh toán)
 CREATE TABLE invoice (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    invoice_type invoice_type_enum NOT NULL,
     session_id UUID REFERENCES parking_session(id), 
     sub_id UUID REFERENCES subscription(id),             
     cashier_id UUID REFERENCES users(id),               
-    parking_amount BIGINT NOT NULL,                                 
-    penalty_amount BIGINT DEFAULT 0,   
+    parking_amount BIGINT DEFAULT 0,                                 
+    penalty_amount BIGINT DEFAULT 0,  
+    subscription_amount BIGINT DEFAULT 0, 
     total_amount BIGINT NOT NULL,                     
     payment_time TIMESTAMP,
     payment_method VARCHAR(20),
-    transaction_ref VARCHAR(50),
-    status payment_status DEFAULT 'PENDING'
+    status payment_status DEFAULT 'PENDING',
+    CONSTRAINT chk_exclusive_arc CHECK (
+        (invoice_type = 'PARKING_FEE' AND session_id IS NOT NULL AND sub_id IS NULL AND subscription_amount = 0) OR
+        (invoice_type = 'SUBSCRIPTION_FEE' AND sub_id IS NOT NULL AND session_id IS NULL AND parking_amount = 0 AND penalty_amount = 0)
+    )
 );
 
 -- 8. Bảng incident (Sự cố: Mất thẻ, hư barie...)

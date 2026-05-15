@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
+import smartparkingsystem.backend.entity.type.InvoiceTypeEnum;
 import smartparkingsystem.backend.entity.type.PaymentMethod;
 import smartparkingsystem.backend.entity.type.PaymentStatus;
 
@@ -26,6 +27,11 @@ public class Invoice {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "invoice_type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    private InvoiceTypeEnum invoiceType;
+
     @OneToOne
     @JoinColumn(name = "session_id")
     private ParkingSession parkingSession;
@@ -39,6 +45,9 @@ public class Invoice {
 
     @Column(name = "penalty_amount")
     private BigInteger penaltyAmount;
+
+    @Column(name = "subscription_amount")
+    private BigInteger subscriptionAmount;
 
     @Column(name = "total_amount", nullable = false)
     private BigInteger totalAmount;
@@ -55,9 +64,6 @@ public class Invoice {
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private PaymentMethod paymentMethod;
-
-    @Column(name = "transaction_ref", length = 50)
-    private String transactionRef;
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)

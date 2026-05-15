@@ -65,7 +65,7 @@ public class ParkingSession {
     @Column(name = "confidence_out")
     private Float confidenceOut;
 
-    @Column(name = "is_month")
+    @Column(name = "is_month", nullable = false)
     private boolean month;
 
     @Column(name = "status", nullable = false, columnDefinition = "session_status")

@@ -36,7 +36,7 @@ public class Vehicle {
     @Column(name = "customer_name", length = 100)
     private String customerName;
 
-    @Column(name = "customer_phone", length = 11)
+    @Column(name = "customer_phone", nullable = false, length = 11)
     private String customerPhone;
 
     @Column(name = "is_deleted", nullable = false)

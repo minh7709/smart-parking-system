@@ -38,6 +38,6 @@ public class Lane {
     @Builder.Default
     private Boolean deleted = false;
 
-    @Column(name = "ip_camera", nullable = false,  unique = true, length = 100)
+    @Column(name = "ip_camera", nullable = false, length = 100)
     private String ipCamera;
 }

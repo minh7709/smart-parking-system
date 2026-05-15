@@ -9,6 +9,7 @@ import smartparkingsystem.backend.entity.type.SubStatus;
 import smartparkingsystem.backend.entity.type.SubType;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -16,7 +17,7 @@ import java.util.UUID;
 @Repository
 public interface SubscriptionRepository extends JpaRepository<Subscription, UUID> {
     Optional<Subscription> findByVehicleIdAndStatus(UUID vehicleId, SubStatus status);
-
+    Optional<Subscription> findFirstByVehicleIdAndStatusIn(UUID vehicleId, Collection<SubStatus> statuses);
     Optional<Subscription> findByVehicle_LicensePlateIgnoreCaseAndStatus(String licensePlate, SubStatus status);
 
     List<Subscription> findAllByStatusAndEndDateBefore(SubStatus status, LocalDateTime endDate);
