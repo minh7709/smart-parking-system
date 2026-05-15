@@ -19,7 +19,6 @@ import smartparkingsystem.backend.dto.response.parkingSession.ParkingSessionResp
 import smartparkingsystem.backend.entity.type.SessionStatus;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 import smartparkingsystem.backend.service.guard.ParkingSessionService;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/guard/parking-session")

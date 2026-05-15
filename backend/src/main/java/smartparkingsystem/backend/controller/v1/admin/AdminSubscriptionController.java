@@ -2,15 +2,12 @@ package smartparkingsystem.backend.controller.v1.admin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import smartparkingsystem.backend.dto.response.ApiResponse;
 import smartparkingsystem.backend.dto.response.SubscriptionResponse;
 import smartparkingsystem.backend.entity.type.SubStatus;
-import smartparkingsystem.backend.entity.type.SubType;
 import smartparkingsystem.backend.service.admin.AdminSubscriptionService;
 import smartparkingsystem.backend.service.guard.GuardSubscriptionService;
 

@@ -21,7 +21,7 @@ import java.util.UUID;
 @RequestMapping("/api/v1/guard/subscriptions")
 @RequiredArgsConstructor
 @Slf4j
-@PreAuthorize("hasRole('GUARD')")
+@PreAuthorize("hasAnyRole('GUARD', 'ADMIN')")
 public class GuardSubscriptionController {
     private final GuardSubscriptionService subscriptionService;
     @GetMapping("/")
