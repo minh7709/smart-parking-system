@@ -9,6 +9,7 @@ import smartparkingsystem.backend.dto.request.user.UserCreateRequest;
 import smartparkingsystem.backend.dto.request.user.UserUpdateRequest;
 import smartparkingsystem.backend.dto.response.UserResponse;
 import smartparkingsystem.backend.entity.User;
+import smartparkingsystem.backend.entity.type.UserStatus;
 import smartparkingsystem.backend.exception.DuplicateResourceException;
 import smartparkingsystem.backend.exception.ResourceNotFoundException;
 import smartparkingsystem.backend.repository.UserRepository;
@@ -55,6 +56,35 @@ public class AdminUserService {
         User user = userRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
         return toResponse(user);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserResponse> getAllUsers(UserStatus status, String phone) {
+        String trimmedPhone = phone != null ? phone.trim() : null;
+
+        // Xác định repository method dựa trên filter
+        boolean hasPhone = trimmedPhone != null && !trimmedPhone.isBlank();
+        boolean hasStatus = status != null;
+
+        List<User> users;
+
+        if (hasPhone && hasStatus) {
+            // Tất cả 2 filter: phone + status
+            users = userRepository.findByPhoneContainingAndStatusAndDeletedFalse(trimmedPhone, status);
+        } else if (hasPhone) {
+            // Chỉ có phone - sử dụng LIKE
+            users = userRepository.findByPhoneContainingAndDeletedFalse(trimmedPhone);
+        } else if (hasStatus) {
+            // Chỉ có status
+            users = userRepository.findByStatusAndDeletedFalse(status);
+        } else {
+            // Không có filter nào, lấy tất cả
+            users = userRepository.findAllByDeletedFalse();
+        }
+
+        return users.stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     public UserResponse updateUser(UUID id, UserUpdateRequest request) {

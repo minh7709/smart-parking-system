@@ -11,6 +11,7 @@ import smartparkingsystem.backend.dto.request.user.UserCreateRequest;
 import smartparkingsystem.backend.dto.request.user.UserUpdateRequest;
 import smartparkingsystem.backend.dto.response.ApiResponse;
 import smartparkingsystem.backend.dto.response.UserResponse;
+import smartparkingsystem.backend.entity.type.UserStatus;
 import smartparkingsystem.backend.service.admin.AdminUserService;
 
 import java.util.List;
@@ -36,8 +37,11 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers() {
-        List<UserResponse> response = adminUserService.getAllUsers();
+    public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers(
+            @RequestParam(required = false) String phone,
+            @RequestParam(required = false) UserStatus status
+    ) {
+        List<UserResponse> response = adminUserService.getAllUsers(status, phone);
         return ResponseEntity.ok(ApiResponse.success(response, "Users fetched successfully"));
     }
 

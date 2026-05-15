@@ -158,18 +158,47 @@ public class GuardSubscriptionService {
         return subscriptionMapper.toResponse(subscription);
     }
 
-    public Page<SubscriptionResponse> getSubscriptions(Pageable pageable, SubStatus subStatus, SubType subType) {
+    public Page<SubscriptionResponse> getSubscriptions(Pageable pageable, SubStatus subStatus, SubType subType, String licensePlate) {
+        String trimmedLicensePlate = licensePlate != null ? licensePlate.trim() : null;
+
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
         Page<Subscription> page;
 
-        if (subStatus != null && subType != null) {
-            page = subscriptionRepository.findAllByStatusAndSubscriptionPricing_DurationType(subStatus, subType, sortedPageable);
-        } else if (subStatus != null) {
+        // Xác định repository method dựa trên sự kết hợp của các filter
+        boolean hasLicensePlate = trimmedLicensePlate != null && !trimmedLicensePlate.isBlank();
+        boolean hasStatus = subStatus != null;
+        boolean hasSubType = subType != null;
+
+        // Sử dụng partial search (LIKE) cho licensePlate
+        if (hasLicensePlate && hasStatus && hasSubType) {
+            // Tất cả 3 filter
+            page = subscriptionRepository.findByVehicleLicensePlateContainingIgnoreCaseAndStatusAndDurationType(
+                    trimmedLicensePlate, subStatus, subType, sortedPageable);
+        } else if (hasLicensePlate && hasStatus) {
+            // Có licensePlate và status
+            page = subscriptionRepository.findByVehicleLicensePlateContainingIgnoreCaseAndStatus(
+                    trimmedLicensePlate, subStatus, sortedPageable);
+        } else if (hasLicensePlate && hasSubType) {
+            // Có licensePlate và subType
+            page = subscriptionRepository.findByVehicleLicensePlateContainingIgnoreCaseAndDurationType(
+                    trimmedLicensePlate, subType, sortedPageable);
+        } else if (hasStatus && hasSubType) {
+            // Có status và subType
+            page = subscriptionRepository.findAllByStatusAndSubscriptionPricing_DurationType(
+                    subStatus, subType, sortedPageable);
+        } else if (hasLicensePlate) {
+            // Chỉ có licensePlate - sử dụng LIKE
+            page = subscriptionRepository.findByVehicleLicensePlateContainingIgnoreCase(
+                    trimmedLicensePlate, sortedPageable);
+        } else if (hasStatus) {
+            // Chỉ có status
             page = subscriptionRepository.findAllByStatus(subStatus, sortedPageable);
-        } else if (subType != null) {
+        } else if (hasSubType) {
+            // Chỉ có subType
             page = subscriptionRepository.findAllBySubscriptionPricing_DurationType(subType, sortedPageable);
         } else {
+            // Không có filter nào, lấy tất cả
             page = subscriptionRepository.findAll(sortedPageable);
         }
 

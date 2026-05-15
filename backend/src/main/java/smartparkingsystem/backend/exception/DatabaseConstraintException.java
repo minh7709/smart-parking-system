@@ -25,11 +25,12 @@ public class DatabaseConstraintException extends BaseException {
         );
     }
 
-    public DatabaseConstraintException(String fieldName, String constraintType) {
+    public  DatabaseConstraintException(String resourceName, String fieldName, Object fieldValue, String path){
         super(
                 "DATABASE_CONSTRAINT_VIOLATION",
-                String.format("Field '%s' violated %s constraint", fieldName, constraintType),
-                HttpStatus.BAD_REQUEST.value()
+                String.format("%s with %s '%s' already exists.", resourceName, fieldName, fieldValue),
+                HttpStatus.BAD_REQUEST.value(),
+                path
         );
     }
 

@@ -21,16 +21,17 @@ import java.util.UUID;
 @RequestMapping("/api/v1/guard/subscriptions")
 @RequiredArgsConstructor
 @Slf4j
-@PreAuthorize("hasRole('GUARD')")
+@PreAuthorize("hasAnyRole('GUARD', 'ADMIN')")
 public class GuardSubscriptionController {
     private final GuardSubscriptionService subscriptionService;
     @GetMapping("/")
     public ResponseEntity<ApiResponse<Page<SubscriptionResponse>>> getSubscriptions(
             @RequestParam (required = false) SubStatus subStatus,
             @RequestParam (required = false) SubType subType,
+            @RequestParam (required = false) String licensePlate,
             Pageable pageable
             ) {
-        Page<SubscriptionResponse> subscriptions = subscriptionService.getSubscriptions(pageable, subStatus, subType);
+        Page<SubscriptionResponse> subscriptions = subscriptionService.getSubscriptions(pageable, subStatus, subType, licensePlate);
         return ResponseEntity.ok(ApiResponse.success(subscriptions, "Subscriptions retrieved successfully"));
     }
 

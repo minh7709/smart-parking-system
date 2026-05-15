@@ -17,8 +17,8 @@ import smartparkingsystem.backend.dto.response.parkingSession.CheckInResponse;
 import smartparkingsystem.backend.dto.response.parkingSession.CheckOutResponse;
 import smartparkingsystem.backend.dto.response.parkingSession.ParkingSessionResponse;
 import smartparkingsystem.backend.entity.type.SessionStatus;
+import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 import smartparkingsystem.backend.service.guard.ParkingSessionService;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/guard/parking-session")
@@ -76,17 +76,22 @@ public class ParkingSessionController {
         return ResponseEntity.ok(ApiResponse.success(null, "Incident reported successfully"));
     }
 
-    @GetMapping("/{plate}")
-    public ResponseEntity<ApiResponse<List<ParkingSessionResponse>>> getParkingSessionsByPlate(
-            @PathVariable @Valid String plate,
-            @RequestParam(required = false) SessionStatus sessionStatus) {
-        List<ParkingSessionResponse> response = parkingSessionService.getParkingSessionsByPlate(plate, sessionStatus);
-        return ResponseEntity.ok(ApiResponse.success(response, "Parking sessions retrieved successfully"));
-    }
     @GetMapping("/parked")
     public ResponseEntity<ApiResponse<Page<ParkingSessionResponse>>> getAllParkingSessions(
+            @RequestParam (required = false) String licensePlate,
+            @RequestParam (required = false) VehicleTypeEnum vehicleType,
             Pageable pageable) {
-        Page<ParkingSessionResponse> page = parkingSessionService.getAllParkingSessions(pageable, SessionStatus.PARKED);
+        Page<ParkingSessionResponse> page = parkingSessionService.getAllParkingSessions(pageable, SessionStatus.PARKED, licensePlate, vehicleType);
+        return ResponseEntity.ok(ApiResponse.success(page, "Parking sessions retrieved successfully"));
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<Page<ParkingSessionResponse>>> getParkingSessionsWithFilters(
+            @RequestParam (required = false) String licensePlate,
+            @RequestParam (required = false) VehicleTypeEnum vehicleType,
+            @RequestParam (required = false) SessionStatus status,
+            Pageable pageable) {
+        Page<ParkingSessionResponse> page = parkingSessionService.getAllParkingSessions(pageable, status, licensePlate, vehicleType);
         return ResponseEntity.ok(ApiResponse.success(page, "Parking sessions retrieved successfully"));
     }
 }

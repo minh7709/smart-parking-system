@@ -241,15 +241,50 @@ public class ParkingSessionService {
         }
     }
 
-    public Page<ParkingSessionResponse> getAllParkingSessions(Pageable pageable, SessionStatus status) {
+    public Page<ParkingSessionResponse> getAllParkingSessions(Pageable pageable, SessionStatus status, String licensePlate, VehicleTypeEnum vehicleType) {
         Sort sort = Sort.by("timeIn").descending();
         Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
         Page<ParkingSession> page;
-        if(status == null){
-            page = parkingSessionRepository.findAll(sortedPageable);
-        } else {
+
+        // Xác định repository method dựa trên sự kết hợp của các filter
+        boolean hasStatus = status != null;
+        boolean hasLicensePlate = licensePlate != null && !licensePlate.isBlank();
+        boolean hasVehicleType = vehicleType != null;
+
+        // Sử dụng partial search (LIKE) cho licensePlate
+        if (hasLicensePlate && hasVehicleType && hasStatus) {
+            // Tất cả 3 filter - sử dụng LIKE cho licensePlate
+            page = parkingSessionRepository.findByFinalPlateContainingIgnoreCaseAndVehicleTypeAndStatus(
+                    licensePlate, vehicleType.name(), status, sortedPageable);
+        } else if (hasLicensePlate && hasVehicleType) {
+            // Có licensePlate và vehicleType - sử dụng LIKE cho licensePlate
+            page = parkingSessionRepository.findByFinalPlateContainingIgnoreCaseAndVehicleType(
+                    licensePlate, vehicleType.name(), sortedPageable);
+        } else if (hasLicensePlate && hasStatus) {
+            // Có licensePlate và status - sử dụng LIKE cho licensePlate
+            page = parkingSessionRepository.findByFinalPlateContainingIgnoreCaseAndStatus(
+                    licensePlate, status, sortedPageable);
+        } else if (hasVehicleType && hasStatus) {
+            // Có vehicleType và status
+            page = parkingSessionRepository.findByVehicleTypeAndStatus(
+                    vehicleType.name(), status, sortedPageable);
+        } else if (hasLicensePlate) {
+            // Chỉ có licensePlate - sử dụng LIKE
+            page = parkingSessionRepository.findByFinalPlateContainingIgnoreCase(
+                    licensePlate, sortedPageable);
+        } else if (hasVehicleType) {
+            // Chỉ có vehicleType
+            page = parkingSessionRepository.findByVehicleType(
+                    vehicleType.name(), sortedPageable);
+        } else if (hasStatus) {
+            // Chỉ có status
             page = parkingSessionRepository.findByStatus(status, sortedPageable);
+        } else {
+            // Không có filter nào, lấy tất cả
+            page = parkingSessionRepository.findAll(sortedPageable);
         }
+
         return page.map(parkingSessionMapper::toParkingSessionResponse);
     }
 
