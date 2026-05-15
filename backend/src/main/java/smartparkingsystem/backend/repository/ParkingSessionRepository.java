@@ -30,6 +30,31 @@ public interface ParkingSessionRepository extends JpaRepository<ParkingSession, 
 
     List<ParkingSession> findAllByFinalPlateIgnoreCaseAndStatus(String finalPlate, SessionStatus status);
 
+    Page<ParkingSession> findByFinalPlateIgnoreCase(String finalPlate, Pageable pageable);
+
+    Page<ParkingSession> findByFinalPlateIgnoreCaseAndStatus(String finalPlate, SessionStatus status, Pageable pageable);
+
+    Page<ParkingSession> findByVehicleType(String vehicleType, Pageable pageable);
+
+    Page<ParkingSession> findByVehicleTypeAndStatus(String vehicleType, SessionStatus status, Pageable pageable);
+
+    Page<ParkingSession> findByFinalPlateIgnoreCaseAndVehicleType(String finalPlate, String vehicleType, Pageable pageable);
+
+    Page<ParkingSession> findByFinalPlateIgnoreCaseAndVehicleTypeAndStatus(String finalPlate, String vehicleType, SessionStatus status, Pageable pageable);
+
+    // Partial/LIKE search methods
+    @Query("SELECT p FROM ParkingSession p WHERE UPPER(p.finalPlate) LIKE UPPER(CONCAT('%', :licensePlate, '%'))")
+    Page<ParkingSession> findByFinalPlateContainingIgnoreCase(@Param("licensePlate") String licensePlate, Pageable pageable);
+
+    @Query("SELECT p FROM ParkingSession p WHERE UPPER(p.finalPlate) LIKE UPPER(CONCAT('%', :licensePlate, '%')) AND p.status = :status")
+    Page<ParkingSession> findByFinalPlateContainingIgnoreCaseAndStatus(@Param("licensePlate") String licensePlate, @Param("status") SessionStatus status, Pageable pageable);
+
+    @Query("SELECT p FROM ParkingSession p WHERE UPPER(p.finalPlate) LIKE UPPER(CONCAT('%', :licensePlate, '%')) AND p.vehicleType = :vehicleType")
+    Page<ParkingSession> findByFinalPlateContainingIgnoreCaseAndVehicleType(@Param("licensePlate") String licensePlate, @Param("vehicleType") String vehicleType, Pageable pageable);
+
+    @Query("SELECT p FROM ParkingSession p WHERE UPPER(p.finalPlate) LIKE UPPER(CONCAT('%', :licensePlate, '%')) AND p.vehicleType = :vehicleType AND p.status = :status")
+    Page<ParkingSession> findByFinalPlateContainingIgnoreCaseAndVehicleTypeAndStatus(@Param("licensePlate") String licensePlate, @Param("vehicleType") String vehicleType, @Param("status") SessionStatus status, Pageable pageable);
+
     long countByTimeInBetween(LocalDateTime startDate, LocalDateTime endDate);
 
     long countByStatus(SessionStatus status);

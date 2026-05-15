@@ -33,16 +33,6 @@ public class AdminSubscriptionController {
         adminSubscriptionService.confirmSubscription(id, newStatus);
         return ResponseEntity.ok(ApiResponse.success(null, "Cập nhật trạng thái đăng ký thành công"));
     }
-
-    @GetMapping
-    public ResponseEntity<ApiResponse<Page<SubscriptionResponse>>> getSubscriptions(
-            Pageable pageable,
-            @RequestParam(required = false) SubStatus subStatus,
-            @RequestParam(required = false) SubType subType) {
-        Page<SubscriptionResponse> subscriptions = guardSubscriptionService.getSubscriptions(pageable, subStatus, subType);
-        return ResponseEntity.ok(ApiResponse.success(subscriptions, "Lấy danh sách đăng ký thành công"));
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<SubscriptionResponse>> getSubscriptionById(@PathVariable UUID id) {
         SubscriptionResponse response = guardSubscriptionService.getSubscriptionById(id);

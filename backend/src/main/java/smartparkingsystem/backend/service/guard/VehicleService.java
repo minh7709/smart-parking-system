@@ -65,15 +65,11 @@ public class VehicleService {
     }
      */
     @Transactional(readOnly = true)
-    public Page<VehicleReponse> getVehicles(Pageable pageable, VehicleTypeEnum vehicleType){
+    public Page<VehicleReponse> getVehicles(Pageable pageable){
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
         Page<Vehicle> page;
-        if(vehicleType != null){
-            page = vehicleRepository.findByVehicleTypeAndDeletedFalse(vehicleType, sortedPageable);
-        } else {
-            page = vehicleRepository.findAllByDeletedFalse(sortedPageable);
-        }
+        page = vehicleRepository.findAllByDeletedFalse(sortedPageable);
         return page.map(vehicleMapper::toResponse);
     }
 

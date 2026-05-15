@@ -28,9 +28,10 @@ public class GuardSubscriptionController {
     public ResponseEntity<ApiResponse<Page<SubscriptionResponse>>> getSubscriptions(
             @RequestParam (required = false) SubStatus subStatus,
             @RequestParam (required = false) SubType subType,
+            @RequestParam (required = false) String licensePlate,
             Pageable pageable
             ) {
-        Page<SubscriptionResponse> subscriptions = subscriptionService.getSubscriptions(pageable, subStatus, subType);
+        Page<SubscriptionResponse> subscriptions = subscriptionService.getSubscriptions(pageable, subStatus, subType, licensePlate);
         return ResponseEntity.ok(ApiResponse.success(subscriptions, "Subscriptions retrieved successfully"));
     }
 
