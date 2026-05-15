@@ -1,9 +1,9 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-// Import các Layout
+﻿import { Routes, Route, Navigate } from "react-router-dom";
+// Import cÃ¡c Layout
 import { AppLayout } from "../components/Layout/AppLayout";
 import { AdminLayout } from "../components/Layout/AdminLayout";
 
-// Import các trang
+// Import cÃ¡c trang
 import LoginPage from "../features/auth/pages/LoginPage";
 import Dashboard from "../features/parking/pages/Dashboard";
 import MonitorPage from "../features/parking/pages/MonitorPage";
@@ -14,6 +14,7 @@ import ProfilePage from "../features/parking/pages/ProfilePage";
 import ChangePasswordPage from "../features/parking/pages/ChangePasswordPage";
 import AdminDashboard from "../features/admin/pages/AdminDashboard";
 import TurnTicketConfig from "../features/admin/pages/TurnTicketConfig";
+import UserManagementPage from "../features/admin/pages/UserManagementPage";
 
 const AppRoutes = () => {
   return (
@@ -21,7 +22,7 @@ const AppRoutes = () => {
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<LoginPage />} />
 
-      {/* NHÓM ROUTE CHO BẢO VỆ */}
+      {/* NHÃ“M ROUTE CHO Báº¢O Vá»† */}
       <Route path="/lane" element={<LanePage />} />
       
       <Route element={<AppLayout />}>
@@ -33,7 +34,7 @@ const AppRoutes = () => {
         <Route path="/change-password" element={<ChangePasswordPage />} />
       </Route>
 
-      {/* NHÓM ROUTE CHO ADMIN */}
+      {/* NHÃ“M ROUTE CHO ADMIN */}
       <Route element={<AdminLayout />}>
         <Route
           path="/admin"
@@ -43,6 +44,7 @@ const AppRoutes = () => {
         <Route path="/admin/profile" element={<ProfilePage />} />
         <Route path="/admin/change-password" element={<ChangePasswordPage />} />
         <Route path="/admin/turn-tickets" element={<TurnTicketConfig />} />
+        <Route path="/admin/users" element={<UserManagementPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />
@@ -51,3 +53,4 @@ const AppRoutes = () => {
 };
 
 export default AppRoutes;
+

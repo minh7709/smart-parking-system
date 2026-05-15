@@ -93,6 +93,7 @@ export const AdminLayout = () => {
           onClick={(e) => {
             if (e.key === "1") navigate("/admin/dashboard");
             if (e.key === "2") navigate("/admin/turn-tickets");
+            if (e.key === "4") navigate("/admin/users");
           }}
           items={[
             {
@@ -165,3 +166,4 @@ export const AdminLayout = () => {
     </Layout>
   );
 };
+

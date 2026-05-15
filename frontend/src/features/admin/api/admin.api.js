@@ -1,23 +1,13 @@
-import axiosClient from "../../../api/axiosClient";
+﻿import axiosClient from "../../../api/axiosClient";
 
 export const adminApi = {
-  // Lấy danh sách cấu hình giá
-  getPricingRules: () => {
-    return axiosClient.get("/v1/admin/pricing-rules");
-  },
-
-  // Tạo cấu hình giá mới (Vé tháng - FLAT_RATE)
-  createPricingRule: (data) => {
-    return axiosClient.post("/v1/admin/pricing-rules", data);
-  },
-
-  // Cập nhật cấu hình
-  updatePricingRule: (id, data) => {
-    return axiosClient.put(`/v1/admin/pricing-rules/${id}`, data);
-  },
-
-  // Xóa cấu hình
-  deletePricingRule: (id) => {
-    return axiosClient.delete(`/v1/admin/pricing-rules/${id}`);
-  },
+  getPricingRules: () => axiosClient.get("/v1/admin/pricing-rules"),
+  createPricingRule: (data) => axiosClient.post("/v1/admin/pricing-rules", data),
+  updatePricingRule: (id, data) => axiosClient.put(`/v1/admin/pricing-rules/${id}`, data),
+  deletePricingRule: (id) => axiosClient.delete(`/v1/admin/pricing-rules/${id}`),
+  
+  getUsers: (params) => axiosClient.get("/v1/admin/users", { params }),
+  createUser: (data) => axiosClient.post("/v1/admin/users", data),
+  updateUser: (id, data) => axiosClient.put(`/v1/admin/users/${id}`, data),
+  deleteUser: (id) => axiosClient.delete(`/v1/admin/users/${id}`),
 };
