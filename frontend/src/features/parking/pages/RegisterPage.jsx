@@ -34,7 +34,7 @@ import {
 import axiosClient from "../../../api/axiosClient";
 import API_ENDPOINTS from "../../../api/endpoints";
 
-const { Option } = Select;
+const { Option } = Select;  
 
 const RegisterPage = () => {
   const [data, setData] = useState([]);
@@ -59,42 +59,21 @@ const RegisterPage = () => {
   const [editingId, setEditingId] = useState(null);
   const [form] = Form.useForm();
 
-  const fetchSubscriptions = async (page = 1, size = 10, plate = searchPlate) => {
+  const fetchSubscriptions = async (page = 1, size = 50) => {
     setLoading(true);
     try {
-      if (plate) {
-        // Search by License plate exactly
-        const res = await getSubscriptionByLicensePlateApi(plate);
-        const item = res.data || res;
-        if (item && item.id) {
-          setData([item]);
-          setTotal(1);
-        } else {
-          setData([]);
-          setTotal(0);
-        }
+      const params = { page: page - 1, size: size };
+      const res = await getSubscriptionsApi(params);
+      if (res.data && res.data.content) {
+        setData(res.data.content);
+        setTotal(res.data.totalElements);
       } else {
-        // Fetch list
-        const params = {
-          page: page - 1,
-          size: size,
-        };
-        if (filterStatus) params.subStatus = filterStatus;
-        if (filterType) params.subType = filterType;
-
-        const res = await getSubscriptionsApi(params);
-        if (res.data && res.data.content) {
-          setData(res.data.content);
-          setTotal(res.data.totalElements);
-        } else {
-            // fallback structure if no wrapper format
-            setData(res?.content || []);
-            setTotal(res?.totalElements || 0);
-        }
+        setData(res?.content || []);
+        setTotal(res?.totalElements || 0);
       }
     } catch (err) {
       console.error(err);
-      notification.error({ message: "Lỗi", description: "Lỗi khi tải danh sách vé tháng (hoặc không tìm thấy biển số)" });
+      notification.error({ message: "Lỗi", description: "Lỗi khi tải danh sách vé tháng!" });
     } finally {
       setLoading(false);
     }
@@ -102,7 +81,7 @@ const RegisterPage = () => {
 
   useEffect(() => {
     fetchSubscriptions(currentPage, pageSize);
-  }, [currentPage, pageSize, filterType, filterStatus]);
+  }, [currentPage, pageSize]);
 
   useEffect(() => {
     const fetchAppTypes = async () => {
@@ -124,9 +103,8 @@ const RegisterPage = () => {
     fetchAppTypes();
   }, []);
 
-  const handleSearch = () => {
-    setCurrentPage(1);
-    fetchSubscriptions(1, pageSize, searchPlate);
+  const handleSearch = (value) => {
+    setSearchPlate(value);
   };
 
   const handleResetFilters = () => {
@@ -134,8 +112,15 @@ const RegisterPage = () => {
     setFilterType(null);
     setFilterStatus(null);
     setCurrentPage(1);
-    fetchSubscriptions(1, pageSize, "");
+    fetchSubscriptions(1, pageSize);
   };
+
+  const filteredData = data.filter((record) => {
+    const matchPlate = (record.licensePlate || "").toLowerCase().includes(searchPlate.toLowerCase());
+    const matchType = !filterType || record.subType === filterType;
+    const matchStatus = !filterStatus || record.subStatus === filterStatus;
+    return matchPlate && matchType && matchStatus;
+  });
 
   const openCreateModal = () => {
     setEditingId(null);
@@ -318,9 +303,7 @@ const RegisterPage = () => {
             <Input.Search
               placeholder="Nhập biển số xe cần tìm..."
               value={searchPlate}
-              onChange={(e) => setSearchPlate(e.target.value)}
-              onSearch={handleSearch}
-              enterButton="Tìm kiếm"
+              onChange={(e) => handleSearch(e.target.value)}
               allowClear
             />
           </Col>
@@ -378,7 +361,7 @@ const RegisterPage = () => {
       <Card bordered={false} style={{ borderRadius: 12 }}>
         <Table
           columns={columns}
-          dataSource={data}
+          dataSource={filteredData}
           rowKey="id"
           loading={loading}
           pagination={{
@@ -531,3 +514,6 @@ const RegisterPage = () => {
 };
 
 export default RegisterPage;
+
+
+

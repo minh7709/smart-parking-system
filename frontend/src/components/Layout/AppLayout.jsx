@@ -19,6 +19,7 @@ import {
   InfoCircleOutlined,
   LockOutlined,
   LogoutOutlined,
+  CarOutlined,
 } from "@ant-design/icons";
 import { Outlet } from "react-router-dom";
 import { useNotification } from "../../hooks/useNotification";
@@ -76,11 +77,12 @@ export const AppLayout = () => {
   }, []);
 
   // Xác định menu nào đang được chọn dựa trên URL hiện tại
-  const selectedKey = location.pathname.includes("/register") ? "1" : "2";
+  const selectedKey = location.pathname.includes("/register") ? "1" : location.pathname.includes("/vehicles") ? "3" : "2";
 
   // Hàm xử lý khi click vào Menu
   const handleMenuClick = (e) => {
     if (e.key === "1") navigate("/register");
+    if (e.key === "3") navigate("/vehicles");
     if (e.key === "2") navigate("/monitor");
   };
 
@@ -154,7 +156,8 @@ export const AppLayout = () => {
             onClick={handleMenuClick}
             style={{ background: "transparent", borderRight: 0 }}
             items={[
-              { key: "1", icon: <StarOutlined />, label: "Register" },
+              { key: "1", icon: <StarOutlined />, label: "Vé tháng" },
+              { key: "3", icon: <CarOutlined />, label: "Phương tiện" },
               { key: "2", icon: <VideoCameraOutlined />, label: "Camera" },
             ]}
           />
@@ -164,7 +167,7 @@ export const AppLayout = () => {
         <Layout style={{ background: "transparent" }}>
           {/* TOPBAR */}
           <Header style={styles.header}>
-            <h2 style={{ color: "#141414", margin: 0 }}>Camera</h2>
+            <h2 style={{ color: "#141414", margin: 0 }}>{selectedKey === "1" ? "Vé tháng" : selectedKey === "3" ? "Phương tiện" : "Camera"}</h2>
             <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
               <Badge dot>
                 <BellOutlined style={{ fontSize: 18, color: "#555" }} />
@@ -187,3 +190,4 @@ export const AppLayout = () => {
     </ConfigProvider>
   );
 };
+

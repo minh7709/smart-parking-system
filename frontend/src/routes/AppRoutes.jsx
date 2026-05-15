@@ -7,7 +7,8 @@ import { AdminLayout } from "../components/Layout/AdminLayout";
 import LoginPage from "../features/auth/pages/LoginPage";
 import Dashboard from "../features/parking/pages/Dashboard";
 import MonitorPage from "../features/parking/pages/MonitorPage";
-import RegisterPage from "../features/subscription/pages/RegisterPage";
+import RegisterPage from "../features/parking/pages/RegisterPage";
+import VehiclePage from "../features/parking/pages/VehiclePage";
 import LanePage from "../features/parking/pages/LanePage";
 import ProfilePage from "../features/parking/pages/ProfilePage";
 import ChangePasswordPage from "../features/parking/pages/ChangePasswordPage";
@@ -27,6 +28,7 @@ const AppRoutes = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/monitor" element={<MonitorPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/vehicles" element={<VehiclePage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/change-password" element={<ChangePasswordPage />} />
       </Route>

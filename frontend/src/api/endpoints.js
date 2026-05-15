@@ -38,9 +38,14 @@ export const API_ENDPOINTS = {
 			byId: (id) => `/v1/guard/subscriptions/${id}`,
 			byVehicleId: (vehicleId) => `/v1/guard/subscriptions/vehicle/${vehicleId}`,
 			byLicensePlate: (licensePlate) => `/v1/guard/subscriptions/license-plate/${licensePlate}`,
-		}
-	},
-	type: {
+		} 
+        }, 
+        vehicles: { 
+                base: '/v1/vehicles/', 
+                byId: (id) => `/v1/vehicles/${id}`, 
+                byLicensePlate: (plate) => `/v1/vehicles/license-plate/${plate}`, 
+        }, 
+        type: {
 		laneStatuses: '/v1/type/lane-statuses',
 		laneTypes: '/v1/type/lane-types',
 		vehicleTypes: '/v1/type/vehicle-types',
@@ -57,3 +62,4 @@ export const API_ENDPOINTS = {
 };
 
 export default API_ENDPOINTS;
+
