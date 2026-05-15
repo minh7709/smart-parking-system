@@ -57,4 +57,4 @@ springdoc:
     persistAuthorization: true
 
 file:
-    upload-dir: ${UPLOAD_DIR:../uploads}
+    upload-dir: ${FILE_UPLOAD_DIR:../uploads}
