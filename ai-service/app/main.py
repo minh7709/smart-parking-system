@@ -18,16 +18,16 @@ except Exception as e:
 
 
 class DetectPlateRequest(BaseModel):
-    imagePath: str | None = None
     imageUrl: str | None = None
 
 
 def load_image_from_path(request: DetectPlateRequest):
-    image_path = request.imagePath or request.imageUrl
+    image_path = request.imageUrl
     if image_path is None or not image_path.strip():
-        raise HTTPException(status_code=400, detail="Thiếu imagePath hoặc imageUrl")
+        raise HTTPException(status_code=400, detail="Thiếu imageUrl")
 
     normalized_path = os.path.abspath(image_path.strip())
+    print(f"Đang xử lý ảnh từ đường dẫn: {normalized_path}")
     if not os.path.exists(normalized_path):
         raise HTTPException(status_code=404, detail=f"Không tìm thấy ảnh tại đường dẫn: {normalized_path}")
     if not os.path.isfile(normalized_path):

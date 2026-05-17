@@ -23,8 +23,8 @@ const MonitorPage = () => {
   //   : null;
 
   // Cách 2: dùng IP cứng để test (chú ý: IP này phải đúng và reachable)
-  const cameraInUrl = "http://192.168.1.230:4747/video";
-  const cameraOutUrl = "http://192.168.1.10:4747/video";
+const cameraInUrl = "/camera-in-stream";
+const cameraOutUrl = "/camera-out-stream";
 
  
 

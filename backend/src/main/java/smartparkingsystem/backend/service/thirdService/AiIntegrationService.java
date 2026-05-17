@@ -45,7 +45,6 @@ public class AiIntegrationService {
             // Send path in JSON so AI service can read image from absolute path.
             Map<String, String> body = new HashMap<>();
             body.put("imageUrl", imageUrl);
-            body.put("imagePath", imageUrl);
 
             HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(body, headers);
             ResponseEntity<String> response = restTemplate.postForEntity(aiServiceUrl, requestEntity, String.class);
@@ -62,11 +61,6 @@ public class AiIntegrationService {
             String errorMessage = "Lỗi khi xử lý hình ảnh: " + e.getMessage();
             throw new AiServiceException(errorMessage, e);
         }
-    }
-
-    // Backward-compatible helper for old callers.
-    public String getLicensePlateFromAi(String imageUrl) {
-        return getDetectionResultFromAi(imageUrl).getPlateNumber();
     }
 
     private AiDetectionResult parseAiResponse(String responseBody) {

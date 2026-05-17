@@ -20,7 +20,9 @@ import smartparkingsystem.backend.entity.ParkingSession;
 import smartparkingsystem.backend.entity.PricingRule;
 import smartparkingsystem.backend.entity.type.*;
 import smartparkingsystem.backend.exception.DuplicateResourceException;
+import smartparkingsystem.backend.exception.InvalidStateException;
 import smartparkingsystem.backend.exception.ResourceNotFoundException;
+import smartparkingsystem.backend.exception.ValidationException;
 import smartparkingsystem.backend.mapper.ParkingSessionMapper;
 import smartparkingsystem.backend.repository.*;
 import smartparkingsystem.backend.service.auth.UserService;
@@ -71,6 +73,19 @@ public class ParkingSessionService {
         AiDetectionResult aiResult = aiIntegrationService.getDetectionResultFromAi(buildAbsoluteImagePath(imageUrl));
         String licensePlate = aiResult.getPlateNumber();
         return parkingSessionMapper.toCheckInResponse(licensePlate, imageUrl, confidenceOrRandom(aiResult.getConfidence()), request.getVehicleType());
+    }
+
+    public void cancelCheckIn(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) {
+            throw new ValidationException("URL ảnh không được để trống");
+        }
+        String relativeImagePath = imageUrl.replace("\\", "/");
+        Path imagePath = Path.of(uploadRootPath, "images", relativeImagePath);
+        try {
+            Files.deleteIfExists(imagePath);
+        } catch (IOException e) {
+            return;
+        }
     }
 
     public ParkingSessionResponse processConfirmCheckIn(ConfirmCheckInRequest request) {
@@ -233,9 +248,9 @@ public class ParkingSessionService {
             // Lưu file
             Files.copy(image.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 
-            // Trả về URL để Frontend hiển thị (hoặc lưu vào DB)
-            // cấu hình Resource Handler trong Spring để map URL này với thư mục vật lý
-            return folder + "/" + fileName;
+            String relativePath = folder + "/" + fileName;
+            return relativePath.replace("\\", "/");
+
         } catch (IOException ex) {
             throw new IllegalStateException(failureMessage, ex);
         }
@@ -316,6 +331,6 @@ public class ParkingSessionService {
         if (relativeImageUrl == null || relativeImageUrl.isBlank()) {
             return null;
         }
-        return Path.of(uploadRootPath, "images", relativeImageUrl).toString();
+        return Path.of(uploadRootPath, "images", relativeImageUrl).toString().replace("\\", "/");
     }
 }

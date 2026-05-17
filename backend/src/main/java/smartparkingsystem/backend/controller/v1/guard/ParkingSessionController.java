@@ -36,6 +36,12 @@ public class ParkingSessionController {
         return ResponseEntity.ok(ApiResponse.success(response, "Check-in successful"));
     }
 
+    @DeleteMapping("/cancel-check-in")
+    public ResponseEntity<ApiResponse<Void>> cancelCheckIn(@Valid @RequestBody String imageUrl) {
+        parkingSessionService.cancelCheckIn(imageUrl);
+        return ResponseEntity.ok(ApiResponse.success(null, "Check-in cancelled successfully"));
+    }
+
     @PostMapping(value = "/check-out", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<CheckOutResponse>> checkOut(
             @Valid @RequestPart("request") CheckOutRequest request,
