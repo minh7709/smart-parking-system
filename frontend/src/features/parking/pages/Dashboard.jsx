@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import "./Dashboard.css";
+import styles from "./Dashboard.module.css";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -20,20 +20,20 @@ const Dashboard = () => {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   return (
-    <div className="dashboard-container">
-      <nav className="navbar">
-        <div className="navbar-brand">Smart Parking System</div>
-        <div className="navbar-user">
+    <div className={styles['dashboard-container']}>
+      <nav className={styles.navbar}>
+        <div className={styles['navbar-brand']}>Smart Parking System</div>
+        <div className={styles['navbar-user']}>
           <span>Welcome, {user.fullName || "User"}</span>
-          <button onClick={handleLogout} className="logout-btn">
+          <button onClick={handleLogout} className={styles['logout-btn']}>
             Logout
           </button>
         </div>
       </nav>
 
-      <div className="dashboard-content">
+      <div className={styles['dashboard-content']}>
         <h1>Dashboard</h1>
-        <div className="user-info">
+        <div className={styles['user-info']}>
           <h2>Your Information</h2>
           <p>
             <strong>Username:</strong> {user.username}

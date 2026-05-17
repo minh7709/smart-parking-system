@@ -1,12 +1,14 @@
+import styles from '../pages/LoginPage.module.css';
+
 const VerifyOtpForm = ({ otp, loading, error, otpError, onOtpChange, onSubmit, onBack }) => {
   return (
     <form onSubmit={onSubmit}>
       <h1>Verify OTP</h1>
 
-      {error && <div className="error-message">{error}</div>}
-      {otpError && <div className="error-message">{otpError}</div>}
+      {error && <div className={styles['error-message']}>{error}</div>}
+      {otpError && <div className={styles['error-message']}>{otpError}</div>}
 
-      <div className="input-box">
+      <div className={styles['input-box']}>
         <input
           type="text"
           placeholder="Enter 6-digit OTP"
@@ -25,10 +27,10 @@ const VerifyOtpForm = ({ otp, loading, error, otpError, onOtpChange, onSubmit, o
         <i className="bx bx-shield"></i>
       </div>
 
-      <button type="submit" className="btn" disabled={loading}>
+      <button type="submit" className={styles.btn} disabled={loading}>
         {loading ? 'Verifying...' : 'Verify OTP'}
       </button>
-      <button type="button" className="btn btn-secondary" onClick={onBack} disabled={loading}>
+      <button type="button" className={`${styles.btn} ${styles['btn-secondary']}`} onClick={onBack} disabled={loading}>
         Back
       </button>
     </form>

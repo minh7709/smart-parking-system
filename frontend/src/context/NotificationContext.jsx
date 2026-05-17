@@ -7,6 +7,11 @@ export const NotificationContext = createContext(null);
 export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
 
+  // Hàm để đóng một thông báo cụ thể
+  const closeNotification = useCallback((id) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  }, []);
+
   // Hàm để hiển thị thông báo
   const showNotification = useCallback((config) => {
     const id = Date.now() + Math.random(); // Tạo ID độc nhất
@@ -29,12 +34,8 @@ export const NotificationProvider = ({ children }) => {
     }
     
     return id;
-  }, []);
+  }, [closeNotification]);
 
-  // Hàm để đóng một thông báo cụ thể
-  const closeNotification = useCallback((id) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
-  }, []);
 
   // 3. "Giá trị" mà Provider cung cấp cho các component con
   const value = { 
@@ -51,6 +52,7 @@ export const NotificationProvider = ({ children }) => {
 };
 
 // 4. Tạo một "lối tắt" (Custom Hook) để dễ dàng sử dụng
+// eslint-disable-next-line react-refresh/only-export-components
 export const useNotificationContext = () => {
   const context = useContext(NotificationContext);
   if (!context) {

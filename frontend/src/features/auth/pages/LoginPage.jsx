@@ -16,7 +16,7 @@ import {
   validatePassword,
   validatePhone,
 } from "../../../utils/validators";
-import "./LoginPage.css";
+import styles from "./LoginPage.module.css";
 import { useNotification } from "../../../hooks/useNotification";
 
 const LoginPage = () => {
@@ -278,8 +278,8 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="login-page">
-      <div className="wrapper">
+    <div className={styles.loginPage}>
+      <div className={styles.wrapper}>
         {renderStep()}
       </div>
     </div>

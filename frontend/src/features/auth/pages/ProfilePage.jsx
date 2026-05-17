@@ -11,17 +11,17 @@ import { useNavigate } from "react-router-dom";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const [user] = useState(() => {
+    const userData = localStorage.getItem("user");
+    return userData ? JSON.parse(userData) : null;
+  });
 
   useEffect(() => {
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      setUser(JSON.parse(userData));
-    } else {
+    if (!user) {
       message.error("Không tìm thấy thông tin người dùng!");
       navigate("/login");
     }
-  }, [navigate]);
+  }, [user, navigate]);
 
   if (!user) {
     return (

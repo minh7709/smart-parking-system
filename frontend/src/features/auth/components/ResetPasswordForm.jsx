@@ -1,3 +1,5 @@
+import styles from '../pages/LoginPage.module.css';
+
 const ResetPasswordForm = ({
   newPassword,
   loading,
@@ -11,10 +13,10 @@ const ResetPasswordForm = ({
     <form onSubmit={onSubmit}>
       <h1>Reset Password</h1>
 
-      {error && <div className="error-message">{error}</div>}
-      {passwordError && <div className="error-message">{passwordError}</div>}
+      {error && <div className={styles['error-message']}>{error}</div>}
+      {passwordError && <div className={styles['error-message']}>{passwordError}</div>}
 
-      <div className="input-box">
+      <div className={styles['input-box']}>
         <input
           type="password"
           placeholder="New password (8+ chars, uppercase, lowercase, number)"
@@ -26,10 +28,10 @@ const ResetPasswordForm = ({
         <i className="bx bx-lock-alt"></i>
       </div>
 
-      <button type="submit" className="btn" disabled={loading}>
+      <button type="submit" className={styles.btn} disabled={loading}>
         {loading ? 'Resetting...' : 'Confirm'}
       </button>
-      <button type="button" className="btn btn-secondary" onClick={onBack} disabled={loading}>
+      <button type="button" className={`${styles.btn} ${styles['btn-secondary']}`} onClick={onBack} disabled={loading}>
         Back
       </button>
     </form>

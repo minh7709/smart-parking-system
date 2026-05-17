@@ -4,7 +4,7 @@ import { Alert, Button, Card, Col, Row, Select, Space, Spin, Tag, Typography } f
 import { getActiveLanesApi } from '../api/lane.api';
 import { saveLaneSelection } from '../../../utils/storage';
 import useLogout from '../../../hooks/useLogout';
-import './LanePage.css';
+import styles from './Lanepage.module.css';
 
 const { Title, Text } = Typography;
 
@@ -76,13 +76,13 @@ const LanePage = () => {
 	};
 
 	return (
-		<div className="lane-page">
-			<div className="lane-page__glow lane-page__glow--left" />
-			<div className="lane-page__glow lane-page__glow--right" />
+		<div className={styles['lane-page']}>
+			<div className={`${styles['lane-page__glow']} ${styles['lane-page__glow--left']}`} />
+			<div className={`${styles['lane-page__glow']} ${styles['lane-page__glow--right']}`} />
 
-			<Card className="lane-page__card" variant="borderless">
+			<Card className={styles['lane-page__card']} variant="borderless">
 				<Space orientation="vertical" size={24} style={{ width: '100%' }}>
-					<div className="lane-page__header">
+					<div className={styles['lane-page__header']}>
 						<Tag color="gold" style={{ marginBottom: 12 }}>
 							GUARD CONSOLE
 						</Tag>
@@ -99,7 +99,7 @@ const LanePage = () => {
 					<Spin spinning={loading} description="Dang tai lane...">
 						<Row gutter={[16, 16]}>
 							<Col xs={24} md={12}>
-								<Card className="lane-page__selector lane-page__selector--in" variant="borderless">
+								<Card className={`${styles['lane-page__selector']} ${styles['lane-page__selector--in']}`} variant="borderless">
 									<Text strong style={{ color: '#efe8d9' }}>
 										Lane Check-In
 									</Text>
@@ -107,8 +107,8 @@ const LanePage = () => {
                                         style={{ fontSize: '20px' }}
 										value={checkInLaneId}
 										onChange={setCheckInLaneId}
-										className="lane-page__select"
-										popupClassName="lane-page__dropdown"
+										className={styles['lane-page__select']}
+										popupClassName={styles['lane-page__dropdown']}
 										placeholder="Chọn lane check-in"
 										options={inLanes.map((lane) => ({
 											value: lane.id,
@@ -119,7 +119,7 @@ const LanePage = () => {
 							</Col>
 
 							<Col xs={24} md={12}>
-								<Card className="lane-page__selector lane-page__selector--out" variant="borderless">
+								<Card className={`${styles['lane-page__selector']} ${styles['lane-page__selector--out']}`} variant="borderless">
 									<Text strong style={{ color: '#efe8d9' }}>
 										Lane Check-Out 
 									</Text>
@@ -127,8 +127,8 @@ const LanePage = () => {
                                         style={{fontSize: '20px'}}
 										value={checkOutLaneId}
 										onChange={setCheckOutLaneId}
-										className="lane-page__select"
-										popupClassName="lane-page__dropdown"
+										className={styles['lane-page__select']}
+										popupClassName={styles['lane-page__dropdown']}
 										placeholder="Chọn lane check-out"
 										options={outLanes.map((lane) => ({
 											value: lane.id,
@@ -140,7 +140,7 @@ const LanePage = () => {
 						</Row>
 					</Spin>
 
-					<div className="lane-page__summary">
+					<div className={styles['lane-page__summary']}>
 						<Text style={{ color: '#efe8d9' }}>
 							Lane vào: <strong>{selectedCheckInLane?.laneName || 'Chưa chọn'}</strong>
 						</Text>
@@ -149,12 +149,12 @@ const LanePage = () => {
 						</Text>
 					</div>
 
-					<Space className="lane-page__actions">
+					<Space className={styles['lane-page__actions']}>
 						<Button type="default" onClick={() => handleLogout()}>
 							Quay lại đăng nhập
 						</Button>
 						<Button
-							className="lane-page__monitor-btn"
+							className={styles['lane-page__monitor-btn']}
 							type="primary"
 							onClick={handleContinue}
 							disabled={loading || !selectedCheckInLane || !selectedCheckOutLane}

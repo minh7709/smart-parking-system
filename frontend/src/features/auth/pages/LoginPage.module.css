@@ -5,12 +5,12 @@
   font-family: "Poppins", sans-serif;
 }
 
-.login-page {
+.loginPage {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: #1e2a38 url("bg1.jpg") no-repeat;
+  background: #1e2a38 url("../../../assets/images/bg1.jpg") no-repeat;
   background-size: cover;
   background-position: center;
 }

@@ -1,4 +1,4 @@
-﻿import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 // Import cÃ¡c Layout
 import { AppLayout } from "../components/Layout/AppLayout";
 import { AdminLayout } from "../components/Layout/AdminLayout";
@@ -10,8 +10,8 @@ import MonitorPage from "../features/parking/pages/MonitorPage";
 import RegisterPage from "../features/parking/pages/RegisterPage";
 import VehiclePage from "../features/parking/pages/VehiclePage";
 import LanePage from "../features/parking/pages/LanePage";
-import ProfilePage from "../features/parking/pages/ProfilePage";
-import ChangePasswordPage from "../features/parking/pages/ChangePasswordPage";
+import ProfilePage from "../features/auth/pages/ProfilePage";
+import ChangePasswordPage from "../features/auth/pages/ChangePasswordPage";
 import AdminDashboard from "../features/admin/pages/AdminDashboard";
 import TurnTicketConfig from "../features/admin/pages/TurnTicketConfig";
 import UserManagementPage from "../features/admin/pages/UserManagementPage";

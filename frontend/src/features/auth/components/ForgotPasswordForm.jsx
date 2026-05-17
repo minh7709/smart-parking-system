@@ -1,3 +1,5 @@
+import styles from '../pages/LoginPage.module.css';
+
 const ForgotPasswordForm = ({
   phone,
   loading,
@@ -11,10 +13,10 @@ const ForgotPasswordForm = ({
     <form onSubmit={onSubmit}>
       <h1>Forgot Password</h1>
 
-      {error && <div className="error-message">{error}</div>}
-      {phoneError && <div className="error-message">{phoneError}</div>}
+      {error && <div className={styles['error-message']}>{error}</div>}
+      {phoneError && <div className={styles['error-message']}>{phoneError}</div>}
 
-      <div className="input-box">
+      <div className={styles['input-box']}>
         <input
           type="text"
           placeholder="Nhap so dien thoai"
@@ -26,10 +28,10 @@ const ForgotPasswordForm = ({
         <i className="bx bx-phone"></i>
       </div>
 
-      <button type="submit" className="btn" disabled={loading}>
+      <button type="submit" className={styles.btn} disabled={loading}>
         {loading ? 'Sending...' : 'Send OTP'}
       </button>
-      <button type="button" className="btn btn-secondary" onClick={onBack} disabled={loading}>
+      <button type="button" className={`${styles.btn} ${styles['btn-secondary']}`} onClick={onBack} disabled={loading}>
         Back to Login
       </button>
     </form>

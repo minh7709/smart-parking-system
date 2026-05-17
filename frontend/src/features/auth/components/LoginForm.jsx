@@ -1,3 +1,5 @@
+import styles from '../pages/LoginPage.module.css';
+
 const LoginForm = ({
   username,
   password,
@@ -14,9 +16,9 @@ const LoginForm = ({
     <form onSubmit={onSubmit}>
       <h1>Login</h1>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && <div className={styles['error-message']}>{error}</div>}
 
-      <div className="input-box">
+      <div className={styles['input-box']}>
         <input
           type="text"
           placeholder="Username"
@@ -28,7 +30,7 @@ const LoginForm = ({
         <i className="bx bx-user"></i>
       </div>
 
-      <div className="input-box">
+      <div className={styles['input-box']}>
         <input
           type="password"
           placeholder="Password"
@@ -40,7 +42,7 @@ const LoginForm = ({
         <i className="bx bx-lock"></i>
       </div>
 
-      <div className="remember-forgot">
+      <div className={styles['remember-forgot']}>
         <label>
           <input
             type="checkbox"
@@ -52,7 +54,7 @@ const LoginForm = ({
         </label>
         <button
           type="button"
-          className="text-link"
+          className={styles['text-link']}
           onClick={onForgotPassword}
           disabled={loading}
         >
@@ -60,7 +62,7 @@ const LoginForm = ({
         </button>
       </div>
 
-      <button type="submit" className="btn" disabled={loading}>
+      <button type="submit" className={styles.btn} disabled={loading}>
         {loading ? 'Logging in...' : 'Login'}
       </button>
     </form>
