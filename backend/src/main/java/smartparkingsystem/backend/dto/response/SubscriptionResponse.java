@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import smartparkingsystem.backend.entity.type.SubStatus;
 import smartparkingsystem.backend.entity.type.SubType;
+import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
@@ -26,5 +27,5 @@ public class SubscriptionResponse {
     private SubStatus subStatus;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
+    private VehicleTypeEnum vehicleType;
 }

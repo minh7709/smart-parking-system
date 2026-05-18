@@ -36,7 +36,7 @@ const ConfirmModal = ({ visible, initialData, onCancel, onConfirmed }) => {
         imageInUrl: initialData.imageInUrl,
         timeIn: initialData.timeIn,
         confidenceIn: initialData.confidenceIn,
-        vehicleType: initialData.vehicleType,
+        vehicleType: initialData.vehicleType.value,
         entryLaneId: initialData.entryLaneId,
       };
 

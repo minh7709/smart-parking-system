@@ -16,6 +16,7 @@ public class VehicleMapper {
                 .vehicleType(request.getVehicleType())
                 .brand(request.getBrand())
                 .customerName(request.getCustomerName())
+                .customerPhone(request.getCustomerPhone())
                 .deleted(false)
                 .build();
     }

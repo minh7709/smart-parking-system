@@ -226,6 +226,10 @@ public class GlobalExceptionHandler {
                 // Extract constraint name from error message
                 if (causeMessage.contains("NOT NULL")) {
                     message = "One or more required fields are missing or null";
+                } else if (causeMessage.contains("value too long")
+                        || causeMessage.contains("Data too long")
+                        || causeMessage.contains("too long for column")) {
+                    message = "One or more fields exceed the maximum allowed length";
                 } else if (causeMessage.contains("UNIQUE") || causeMessage.contains("unique")) {
                     message = "This value already exists and must be unique";
                 } else if (causeMessage.contains("FOREIGN KEY") || causeMessage.contains("foreign key")) {

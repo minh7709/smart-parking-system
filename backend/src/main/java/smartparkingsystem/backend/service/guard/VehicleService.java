@@ -50,38 +50,37 @@ public class VehicleService {
         vehicleRepository.save(vehicle);
         return vehicleMapper.toResponse(vehicle);
     }
-    /*
-        @Transactional(readOnly = true)
-    public Page<SubscriptionPricingResponse> getSubscriptionPricings(Pageable pageable, VehicleTypeEnum vehicleType) {
-        Sort sort = Sort.by(Sort.Direction.DESC, "active");
-        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
-        Page<SubscriptionPricing> page;
-        if(vehicleType != null){
-            page = subscriptionPricingRepository.findByVehicleType(vehicleType, sortedPageable);
-        } else {
-            page = subscriptionPricingRepository.findAll(sortedPageable);
-        }
-        return page.map(subscriptionPricingMapper::toResponse);
-    }
-     */
     @Transactional(readOnly = true)
-    public Page<VehicleReponse> getVehicles(Pageable pageable){
+    public Page<VehicleReponse> getVehicles(Pageable pageable, String licensePlate, VehicleTypeEnum vehicleType) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
         Page<Vehicle> page;
-        page = vehicleRepository.findAllByDeletedFalse(sortedPageable);
+
+        boolean hasLicensePlate = licensePlate != null && !licensePlate.isBlank();
+        boolean hasVehicleType = vehicleType != null;
+
+        if (hasLicensePlate && hasVehicleType) {
+            page = vehicleRepository.findByLicensePlateContainingIgnoreCaseAndVehicleTypeAndDeletedFalse(
+                    licensePlate,
+                    vehicleType,
+                    sortedPageable
+            );
+        } else if (hasLicensePlate) {
+            page = vehicleRepository.findByLicensePlateContainingIgnoreCaseAndDeletedFalse(
+                    licensePlate,
+                    sortedPageable
+            );
+        } else if (hasVehicleType) {
+            page = vehicleRepository.findByVehicleTypeAndDeletedFalse(vehicleType, sortedPageable);
+        } else {
+            page = vehicleRepository.findAllByDeletedFalse(sortedPageable);
+        }
         return page.map(vehicleMapper::toResponse);
     }
 
     @Transactional(readOnly = true)
     public VehicleReponse getVehicleById(UUID id){
         Vehicle vehicle = vehicleRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phương tiện"));
-        return vehicleMapper.toResponse(vehicle);
-    }
-
-    public VehicleReponse getVehicleByLicensePlate(String licensePlate){
-        Vehicle vehicle = vehicleRepository.findByLicensePlateAndDeletedFalse(licensePlate)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phương tiện"));
         return vehicleMapper.toResponse(vehicle);
     }

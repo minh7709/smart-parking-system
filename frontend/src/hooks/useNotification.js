@@ -32,8 +32,8 @@ export const useNotification = () => {
     /** Hiển thị lỗi từ backend (axiosClient reject).
      *  Tự động lấy err.payload.message và err.payload.errorCode */
     apiError: (err, fallbackMessage = 'Đã có lỗi xảy ra') => {
-      const message = err?.payload?.message || err?.message || fallbackMessage;
-      const title   = err?.payload?.errorCode || 'Đã có lỗi xảy ra';
+      const message = err?.payload?.fieldErrors?.[0]?.message || err?.payload?.message || err?.message || fallbackMessage;
+      const title = err?.payload?.errorCode || 'Đã có lỗi xảy ra';
       showNotification({ type: 'error', title, message });
     },
   };

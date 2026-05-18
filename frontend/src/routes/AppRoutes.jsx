@@ -5,7 +5,6 @@ import { AdminLayout } from "../components/Layout/AdminLayout";
 
 // Import cÃ¡c trang
 import LoginPage from "../features/auth/pages/LoginPage";
-import Dashboard from "../features/parking/pages/Dashboard";
 import MonitorPage from "../features/parking/pages/MonitorPage";
 import RegisterPage from "../features/parking/pages/RegisterPage";
 import VehiclePage from "../features/parking/pages/VehiclePage";
@@ -22,11 +21,9 @@ const AppRoutes = () => {
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<LoginPage />} />
 
-      {/* NHÃ“M ROUTE CHO Báº¢O Vá»† */}
       <Route path="/lane" element={<LanePage />} />
-      
+
       <Route element={<AppLayout />}>
-        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/monitor" element={<MonitorPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/vehicles" element={<VehiclePage />} />

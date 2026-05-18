@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import smartparkingsystem.backend.dto.request.VehicleRequest;
 import smartparkingsystem.backend.dto.response.ApiResponse;
 import smartparkingsystem.backend.dto.response.VehicleReponse;
+import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 import smartparkingsystem.backend.service.guard.VehicleService;
 import jakarta.validation.Valid;
 
@@ -24,8 +25,10 @@ public class VehicleController {
 
     @GetMapping("/")
     public ResponseEntity<ApiResponse<Page<VehicleReponse>>> getVehicles(
+            @RequestParam(required = false) String licensePlate,
+            @RequestParam(required = false)VehicleTypeEnum vehicleType,
             Pageable pageable) {
-        Page<VehicleReponse> response = vehicleService.getVehicles(pageable);
+        Page<VehicleReponse> response = vehicleService.getVehicles(pageable, licensePlate, vehicleType);
         return ResponseEntity.ok(ApiResponse.success(response, "Vehicles fetched successfully"));
 
     }
@@ -53,12 +56,6 @@ public class VehicleController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<VehicleReponse>> getVehicleById(@PathVariable UUID id) {
         VehicleReponse response = vehicleService.getVehicleById(id);
-        return ResponseEntity.ok(ApiResponse.success(response, "Vehicle retrieved successfully"));
-    }
-
-    @GetMapping("/license-plate/{licensePlate}")
-    public ResponseEntity<ApiResponse<VehicleReponse>> getVehicleByLicensePlate(@PathVariable String licensePlate) {
-        VehicleReponse response = vehicleService.getVehicleByLicensePlate(licensePlate);
         return ResponseEntity.ok(ApiResponse.success(response, "Vehicle retrieved successfully"));
     }
 }

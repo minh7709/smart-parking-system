@@ -23,6 +23,7 @@ public class SubscriptionMapper {
                 .vehicleId(entity.getVehicle() != null ? entity.getVehicle().getId() : null)
                 .subType(entity.getSubscriptionPricing().getDurationType())
                 .licensePlate(entity.getVehicle().getLicensePlate())
+                .vehicleType(entity.getVehicle().getVehicleType())
                 .price(entity.getPrice())
                 .startDate(entity.getStartDate())
                 .endDate(entity.getEndDate())

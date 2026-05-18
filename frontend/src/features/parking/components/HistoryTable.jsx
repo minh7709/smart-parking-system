@@ -10,10 +10,11 @@ const styles = {
   card: {
     background: "#ffffff",
     backdropFilter: "blur(12px)",
-    border: "1px solid #d9d9d9",
+    border: "1px solid #e5e7eb",
     borderRadius: 16,
+    boxShadow: "0 14px 30px rgba(15, 23, 42, 0.12)",
   },
-  cardHead: { borderBottom: "1px solid #d9d9d9", color: "#141414" },
+  cardHead: { borderBottom: "1px solid #e5e7eb", color: "#141414" },
   searchInCard: {
     width: "100%",
     background: "#ffffff",
@@ -47,7 +48,7 @@ const HistoryTable = React.forwardRef(({ refreshTrigger }, ref) => {
           setVehicleOptions(response.data);
         }
       } catch (error) {
-        console.error("Không thể tải danh sách loại xe từ Backend:", error);
+        notify.apiError(error, "Lỗi tải loại xe");
       }
     };
     fetchVehicleTypes();
@@ -186,8 +187,8 @@ const HistoryTable = React.forwardRef(({ refreshTrigger }, ref) => {
         .history-table-search input::placeholder, .history-table-search .ant-select-selection-placeholder { color: #808080 !important; opacity: 1 !important; display: block !important; }
         .history-table-search .ant-select-selector { background: #fff !important; border-color: #d9d9d9 !important; }
         .history-table-search .ant-select-selection-item, .history-table-search .ant-select-arrow { color: #141414 !important; }
-        .history-table-wrapper :where(.ant-table, .ant-table-container, th, td) { background: #fff !important; color: #141414 !important; border-bottom: 1px solid #f0f0f0 !important; }
-        .history-table-wrapper th { font-weight: bold; background: #fafafa !important; color: #1677ff !important; }
+        .history-table-wrapper :where(.ant-table, .ant-table-container, th, td) { background: #fff !important; color: #141414 !important; border-bottom: 2px solid #d1d5db !important; }
+        .history-table-wrapper th { font-weight: bold; background: #f9fafb !important; color: #1d4ed8 !important; }
         .history-table-wrapper tr:hover>td { background: #f5f5f5 !important; }
         .history-table-wrapper .ant-empty-description { color: #141414 !important; }
       `}</style>

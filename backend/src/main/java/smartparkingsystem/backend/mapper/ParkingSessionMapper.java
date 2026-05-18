@@ -11,6 +11,7 @@ import smartparkingsystem.backend.entity.type.SessionStatus;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 
 import java.math.BigInteger;
+import java.time.LocalDateTime;
 
 @Component
 public class ParkingSessionMapper {
@@ -21,6 +22,7 @@ public class ParkingSessionMapper {
         return ParkingSession.builder()
                 .entryLane(entryLane)
                 .vehicleType(request.getVehicleType())
+                .finalPlate(request.getFinalPlate())
                 .plateInOcr(request.getPlateInOcr())
                 .status(SessionStatus.PARKED)
                 .confidenceIn(request.getConfidenceIn())
@@ -40,6 +42,7 @@ public class ParkingSessionMapper {
                 .imageInUrl(imageUrl)
                 .confidenceIn(confidenceIn)
                 .vehicleType(vehicleType)
+                .timeIn(LocalDateTime.now())
                 .build();
 
     }

@@ -16,6 +16,12 @@ public interface VehicleRepository extends JpaRepository<Vehicle, UUID> {
     Optional<Vehicle> findByIdAndDeletedFalse(UUID id);
     Optional<Vehicle> findByLicensePlate(String licensePlate);
     Optional<Vehicle> findByLicensePlateAndDeletedFalse(String licensePlate);
+    Page<Vehicle> findByLicensePlateContainingIgnoreCaseAndDeletedFalse(String licensePlate, Pageable pageable);
+    Page<Vehicle> findByLicensePlateContainingIgnoreCaseAndVehicleTypeAndDeletedFalse(
+            String licensePlate,
+            VehicleTypeEnum vehicleType,
+            Pageable pageable
+    );
     Page<Vehicle> findByVehicleTypeAndDeletedFalse(VehicleTypeEnum vehicleType, Pageable pageable);
     Page<Vehicle> findAllByDeletedFalse(Pageable pageable);
 }

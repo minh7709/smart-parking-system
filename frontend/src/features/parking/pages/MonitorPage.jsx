@@ -45,7 +45,7 @@ const MonitorPage = () => {
   }
 
   return (
-    <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', padding: '24px' }}>
+    <div style={{ backgroundColor: '#f3f4f6', minHeight: '100vh', padding: '24px' }}>
       {cameraStatus === "error" && (
         <Alert
           message="Không kết nối được camera"

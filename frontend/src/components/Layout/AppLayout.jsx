@@ -29,12 +29,12 @@ import { useNotification } from "../../hooks/useNotification";
 const { Header, Sider, Content } = Layout;
 
 const styles = {
-  sider: { background: "#ffffff", borderRight: "1px solid #f0f0f0" },
-  logo: { color: "#141414", padding: 20, fontSize: 18, fontWeight: 600 },
+  sider: { background: "rgb(20, 66, 130)", borderRight: "1px solid #111827" },
+  logo: { color: "#ffffff", padding: 20, fontSize: 18, fontWeight: 600, letterSpacing: 0.5 },
   header: {
-    background: "rgba(255,255,255,0.7)",
-    backdropFilter: "blur(10px)",
-    borderBottom: "1px solid #f0f0f0",
+    background: "#ffffff",
+    borderBottom: "1px solid #e5e7eb",
+    boxShadow: "0 6px 20px rgba(15, 23, 42, 0.08)",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
@@ -48,7 +48,7 @@ const styles = {
     cursor: "pointer",
   },
   userName: {
-    color: "#141414",
+    color: "#111827",
     fontSize: 14,
     maxWidth: 120,
     overflow: "hidden",
@@ -144,21 +144,29 @@ export const AppLayout = () => {
             colorBgElevated: "#ffffff",
             controlItemBgHover: "#f5f5f5",
           },
+          Menu: {
+            darkItemBg: "#0b0b0b",
+            darkItemSelectedBg: "#111827",
+            darkItemHoverBg: "#111827",
+            darkItemColor: "#e5e7eb",
+            darkItemSelectedColor: "#ffffff",
+            darkItemHoverColor: "#ffffff",
+          },
         },
       }}
     >
-      <Layout style={{ minHeight: "100vh", background: "#f5f5f5" }}>
+      <Layout style={{ minHeight: "100vh", background: "#f3f4f6" }}>
         {/* SIDEBAR */}
         <Sider width={230} style={{ ...styles.sider, overflow: 'auto', height: '100vh', position: 'fixed', left: 0, top: 0, bottom: 0 }}>
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <div>
               <div style={styles.logo}>Smart Parking</div>
               <Menu
-                theme="light"
+                theme="dark"
                 mode="inline"
                 selectedKeys={[selectedKey]}
                 onClick={handleMenuClick}
-                style={{ background: "transparent", borderRight: 0 }}
+                style={{ background: "transparent", borderRight: 0, color: "#ffffff" }}
                 items={[
                   { key: "1", icon: <StarOutlined />, label: "Vé tháng" },
                   { key: "3", icon: <CarOutlined />, label: "Phương tiện" },
@@ -168,9 +176,10 @@ export const AppLayout = () => {
             </div>
             <div style={{ marginTop: 'auto', padding: '16px' }}>
               <Button
-                type="dashed"
+                type="default"
                 block
                 icon={<ArrowLeftOutlined />}
+                style={{ background: "#111827", borderColor: "#1f2937", color: "#ffffff" }}
                 onClick={() => navigate('/lane')}
               >
                 Quay lại
@@ -183,7 +192,7 @@ export const AppLayout = () => {
         <Layout style={{ marginLeft: 230, background: "transparent", minHeight: "100vh" }}>
           {/* TOPBAR */}
           <Header style={styles.header}>
-            <h2 style={{ color: "#141414", margin: 0 }}>{selectedKey === "1" ? "Vé tháng" : selectedKey === "3" ? "Phương tiện" : "Camera"}</h2>
+            <h2 style={{ color: "#1d4ed8", margin: 0 }}>{selectedKey === "1" ? "Vé tháng" : selectedKey === "3" ? "Phương tiện" : "Camera"}</h2>
             <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
               <Dropdown menu={{ items: menuItems }} trigger={["click"]}>
                 <div style={styles.userInfo}>
@@ -193,7 +202,7 @@ export const AppLayout = () => {
               </Dropdown>
             </div>
           </Header>
-          <Content style={{ margin: 20 }}>
+          <Content style={{ margin: 24 }}>
             <Outlet />
           </Content>
         </Layout>

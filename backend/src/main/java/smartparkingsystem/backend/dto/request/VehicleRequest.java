@@ -21,7 +21,8 @@ public class VehicleRequest {
     @NotBlank(message = "Tên chủ xe không được để trống")
     private String customerName;
 
-    @NotBlank
-    @Pattern(regexp = "\\+?[0-9]{10,11}", message = "Số điện thoại không hợp lệ")
+    @NotBlank(message = "Số điện thoại không được để trống")
+    @Size(min = 10, max = 11, message = "Số điện thoại phải có 10-11 chữ số")
+    @Pattern(regexp = "^[0-9]{10,11}$", message = "Số điện thoại chỉ được chứa chữ số")
     private String customerPhone;
 }

@@ -239,31 +239,18 @@ const CameraCard = ({
                 onClick={handleZoom}
               />
             </Tooltip>
-            <Tooltip title="Cài đặt" color="#141414" overlayStyle={{ color: "#fff" }}>
-              <Button
-                type="text"
-                shape="circle"
-                icon={<SettingOutlined style={{ color: "#141414" }} />}
-              />
-            </Tooltip>
-            <Tooltip title="Toàn màn hình" color="#141414" overlayStyle={{ color: "#fff" }}>
-              <Button
-                type="text"
-                shape="circle"
-                icon={<ExpandOutlined style={{ color: "#141414" }} />}
-              />
-            </Tooltip>
           </Space>
         }
         variant="borderless"
         style={{
           background: "#ffffff",
-          border: "1px solid #d9d9d9",
+          border: "1px solid #e5e7eb",
           borderRadius: 16,
+          boxShadow: "0 14px 30px rgba(15, 23, 42, 0.12)",
           overflow: "hidden",
         }}
         styles={{
-          header: { borderBottom: "1px solid #d9d9d9", padding: "12px 16px" },
+          header: { borderBottom: "1px solid #e5e7eb", padding: "12px 16px" },
           body: { padding: 12 },
         }}
       >
@@ -336,33 +323,6 @@ const CameraCard = ({
           >
             <span style={{ color: "#fff", fontSize: 10, fontWeight: 700 }}>LIVE</span>
           </div>
-          {detectedPlate && (
-            <div
-              style={{
-                position: "absolute",
-                bottom: 5,
-                left: "50%",
-                transform: "translateX(-50%)",
-                background: "rgba(20,20,20,0.8)",
-                backdropFilter: "blur(8px)",
-                padding: "6px 32px",
-                borderRadius: 8,
-                border: `1px solid ${themeColor}`,
-              }}
-            >
-              <span
-                style={{
-                  color: themeColor,
-                  fontSize: 15,
-                  fontWeight: 900,
-                  letterSpacing: 2,
-                  fontFamily: "monospace",
-                }}
-              >
-                {detectedPlate}
-              </span>
-            </div>
-          )}
           {loading && (
             <div
               style={{

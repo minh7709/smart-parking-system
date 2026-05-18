@@ -30,6 +30,6 @@ public class ConfirmCheckInRequest {
     @NotNull(message = "vehicle type is required")
     private VehicleTypeEnum vehicleType; //
 
-    @NotBlank(message = "entry lane id is required")
+    @NotNull(message = "entry lane id is required")
     private UUID entryLaneId;
 }
