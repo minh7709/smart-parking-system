@@ -5,6 +5,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,6 +22,11 @@ import smartparkingsystem.backend.dto.response.parkingSession.ParkingSessionResp
 import smartparkingsystem.backend.entity.type.SessionStatus;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 import smartparkingsystem.backend.service.guard.ParkingSessionService;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/guard/parking-session")
@@ -97,5 +105,26 @@ public class ParkingSessionController {
     ) {
         Long total = parkingSessionService.getTotalParkedVehicles(status);
         return ResponseEntity.ok(ApiResponse.success(total, "Total parked vehicles retrieved successfully"));
+    }
+
+    @GetMapping("/{parkingSessionId}/image")
+    public ResponseEntity<Resource> getParkingSessionImage(
+            @PathVariable UUID parkingSessionId,
+            @RequestParam String type) {
+        Path imagePath = parkingSessionService.getParkingSessionImagePath(parkingSessionId, type);
+        String contentType = "application/octet-stream";
+        try {
+            String detectedType = Files.probeContentType(imagePath);
+            if (detectedType != null && !detectedType.isBlank()) {
+                contentType = detectedType;
+            }
+        } catch (IOException ignored) {
+        }
+
+        FileSystemResource resource = new FileSystemResource(imagePath.toFile());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + imagePath.getFileName() + "\"")
+                .contentType(MediaType.parseMediaType(contentType))
+                .body(resource);
     }
 }

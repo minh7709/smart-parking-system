@@ -22,7 +22,8 @@ export const API_ENDPOINTS = {
 			confirmCheckOut: "/v1/guard/parking-session/confirm-check-out",
 			reportLostCard: "/v1/guard/parking-session/report-incident/lost-card",
 			reportIncident: "/v1/guard/parking-session/report-incident",
-			countParking: "/v1/guard/parking-session/count"
+			countParking: "/v1/guard/parking-session/count",
+			imageById: (id, type) => `/v1/guard/parking-session/${id}/image?type=${type}`
 		},
 
 		subscriptions: {

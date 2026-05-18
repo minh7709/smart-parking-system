@@ -18,3 +18,9 @@ export const getParkingSessionsApi = (params = {}) =>
 
 export const countParkingSessionsApi = (params = {}) =>
   axiosClient.get(API_ENDPOINTS.guard.parkingSession.countParking, { params });
+
+export const getParkingSessionImageApi = (parkingSessionId, type, options = {}) =>
+  axiosClient.get(API_ENDPOINTS.guard.parkingSession.imageById(parkingSessionId, type), {
+    responseType: 'blob',
+    ...options,
+  });

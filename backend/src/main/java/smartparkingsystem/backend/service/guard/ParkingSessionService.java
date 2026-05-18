@@ -307,6 +307,36 @@ public class ParkingSessionService {
         return parkingSessionRepository.countByStatus(status);
     }
 
+    public Path getParkingSessionImagePath(UUID parkingSessionId, String type) {
+        if (type == null || type.isBlank()) {
+            throw new ValidationException("Type ảnh không được để trống");
+        }
+
+        ParkingSession session = parkingSessionRepository.findById(parkingSessionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe với ID: " + parkingSessionId));
+
+        String imageUrl;
+        String normalizedType = type.trim().toLowerCase();
+        if ("in".equals(normalizedType)) {
+            imageUrl = session.getImageInUrl();
+        } else if ("out".equals(normalizedType)) {
+            imageUrl = session.getImageOutUrl();
+        } else {
+            throw new ValidationException("Type ảnh không hợp lệ, chỉ chấp nhận 'in' hoặc 'out'");
+        }
+
+        if (imageUrl == null || imageUrl.isBlank()) {
+            throw new ResourceNotFoundException("Không tìm thấy ảnh " + normalizedType + " cho phiên đỗ xe với ID: " + parkingSessionId);
+        }
+
+        Path imagePath = Path.of(uploadRootPath, "images", imageUrl.replace("\\", "/"));
+        if (!Files.exists(imagePath)) {
+            throw new ResourceNotFoundException("Không tìm thấy file ảnh: " + imageUrl);
+        }
+
+        return imagePath;
+    }
+
     private float confidenceOrRandom(Float confidenceFromAi) {
         if (confidenceFromAi != null) {
             return confidenceFromAi;
