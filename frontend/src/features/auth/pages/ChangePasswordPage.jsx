@@ -1,27 +1,29 @@
 import React, { useState } from "react";
-import { Card, Form, Input, Button, notification, Alert } from "antd";
+import { Card, Form, Input, Button, Alert } from "antd";
 import { LockOutlined, KeyOutlined } from "@ant-design/icons";
 import { AppLayout } from "../../../components/Layout/AppLayout";
 import { useNavigate } from "react-router-dom";
 import { validatePassword } from "../../../utils/validators";
 import { changePasswordApi } from "../../auth/api/auth.api";
+import { useNotification } from "../../../hooks/useNotification";
 
 const ChangePasswordPage = () => {
   const navigate = useNavigate();
+  const notify = useNotification();
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
   const onFinish = async (values) => {
     if (values.newPassword !== values.confirmPassword) {
-      notification.error({ message: "Lỗi", description: "Mật khẩu xác nhận không khớp!" });
+      notify.error("Mật khẩu xác nhận không khớp!");
       return;
     }
 
     if (!validatePassword(values.newPassword)) {
-      notification.error({
-        message: "Mật khẩu không hợp lệ",
-        description: "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số!",
-      });
+      notify.error(
+        "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số!",
+        "Mật khẩu không hợp lệ"
+      );
       return;
     }
 
@@ -33,22 +35,11 @@ const ChangePasswordPage = () => {
         newPassword: values.newPassword,
       });
 
-      notification.success({ 
-        message: "Thành công", 
-        description: "Đổi mật khẩu thành công!" 
-      });
+      notify.success("Đổi mật khẩu thành công!");
       form.resetFields();
       navigate("/profile");
     } catch (error) {
-      let errorMsg = "Đổi mật khẩu thất bại!";
-      // Lấy thông báo lỗi từ backend nếu có (thường là error.response.data.message)
-      if (error.response && error.response.data && error.response.data.message) {
-          errorMsg = error.response.data.message;
-      }
-      notification.error({ 
-        message: "Thất bại", 
-        description: errorMsg 
-      });
+      notify.apiError(error, "Đổi mật khẩu thất bại");
     } finally {
       setLoading(false);
     }

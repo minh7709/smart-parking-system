@@ -8,7 +8,6 @@ import {
   Row,
   Col,
   DatePicker,
-  notification,
   Table,
   Space,
   Tag,
@@ -16,6 +15,7 @@ import {
   Popconfirm,
   Tooltip
 } from "antd";
+import { useNotification } from "../../../hooks/useNotification";
 import {
   PlusOutlined,
   EditOutlined,
@@ -37,6 +37,7 @@ import API_ENDPOINTS from "../../../api/endpoints";
 const { Option } = Select;  
 
 const RegisterPage = () => {
+  const notify = useNotification();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
@@ -47,6 +48,7 @@ const RegisterPage = () => {
   const [subTypes, setSubTypes] = useState([]);
   const [subStatuses, setSubStatuses] = useState([]);
   const [paymentMethods, setPaymentMethods] = useState([]);
+  const [vehicleTypes, setVehicleTypes] = useState([]);
  
   
   // Filters
@@ -73,7 +75,7 @@ const RegisterPage = () => {
       }
     } catch (err) {
       console.error(err);
-      notification.error({ message: "Lỗi", description: "Lỗi khi tải danh sách vé tháng!" });
+      notify.apiError(err, "Lỗi khi tải danh sách vé tháng");
     } finally {
       setLoading(false);
     }
@@ -117,8 +119,10 @@ const RegisterPage = () => {
 
   const filteredData = data.filter((record) => {
     const matchPlate = (record.licensePlate || "").toLowerCase().includes(searchPlate.toLowerCase());
-    const matchType = !filterType || record.subType === filterType;
-    const matchStatus = !filterStatus || record.subStatus === filterStatus;
+    const recordSubType = typeof record.subType === 'object' ? record.subType?.value : record.subType;
+    const recordSubStatus = typeof record.subStatus === 'object' ? record.subStatus?.value : record.subStatus;
+    const matchType = !filterType || recordSubType === filterType;
+    const matchStatus = !filterStatus || recordSubStatus === filterStatus;
     return matchPlate && matchType && matchStatus;
   });
 
@@ -145,11 +149,11 @@ const RegisterPage = () => {
   const handleDelete = async (id) => {
     try {
       await deleteSubscriptionApi(id);
-      notification.success({ message: "Thành công", description: "Xóa vé tháng thành công!" });
+      notify.success("Xóa vé tháng thành công!");
       fetchSubscriptions(currentPage, pageSize);
     } catch (error) {
       console.error(error);
-      notification.error({ message: "Lỗi", description: "Lỗi khi xóa vé tháng" });
+      notify.apiError(error, "Lỗi khi xóa vé tháng");
     }
   };
 
@@ -169,27 +173,16 @@ const RegisterPage = () => {
 
         if (editingId) {
           await updateSubscriptionApi(editingId, payload);
-          notification.success({ message: "Thành công", description: "Cập nhật vé tháng thành công!" });
+          notify.success("Cập nhập vé tháng thành công!");
         } else {
           await createSubscriptionApi(payload);
-          notification.success({ message: "Thành công", description: "Đăng ký vé tháng thành công!" });
+          notify.success("Đăng ký vé tháng thành công!");
         }
         setIsModalVisible(false);
         fetchSubscriptions(currentPage, pageSize);
       } catch (err) {
         console.error(err);
-        const errorData = err.payload?.message;
-        let errorMsg = "Có lỗi xảy ra, vui lòng thử lại!";
-        
-        if (errorData) {
-          if (errorData.fieldErrors && errorData.fieldErrors.length > 0) {
-            errorMsg = errorData.fieldErrors.map(f => f.message).join(", ");
-          } else if (errorData) {
-            errorMsg = errorData;
-          }
-        }
-        
-        notification.error({ message: err.payload?.errorCode || "Lỗi", description: errorMsg });
+        notify.apiError(err, "Lỗi khi lưu vé tháng");
       }
     });
   };
@@ -206,12 +199,8 @@ const RegisterPage = () => {
       dataIndex: "vehicleType",
       key: "vehicleType",
       render: (type) => {
-        const labels = {
-          MOTORBIKE: "Xe máy",
-          CAR: "Ô tô",
-          BICYCLE: "Xe đạp"
-        };
-        return <Tag color="blue">{type ? (labels[type] || type) : "N/A"}</Tag>;
+        const typeLabel = typeof type === 'object' ? type?.label : type;
+        return <Tag color="blue">{typeLabel || "N/A"}</Tag>;
       },
     },
     {
@@ -229,7 +218,9 @@ const RegisterPage = () => {
           MONTHLY_3: "3 Tháng",
           YEARLY: "1 Năm",
         };
-        return <Tag color={colors[type] || "default"}>{labels[type] || type}</Tag>;
+        const typeValue = typeof type === 'object' ? type?.value : type;
+        const typeLabel = typeof type === 'object' ? type?.label : (labels[typeValue] || typeValue);
+        return <Tag color={colors[typeValue] || "default"}>{typeLabel || typeValue}</Tag>;
       },
     },
     {
@@ -260,7 +251,9 @@ const RegisterPage = () => {
           EXPIRED: "red",
           PENDING: "orange",
         };
-        return <Tag color={colors[status] || "default"}>{status}</Tag>;
+        const statusValue = typeof status === 'object' ? status?.value : status;
+        const statusLabel = typeof status === 'object' ? status?.label : status;
+        return <Tag color={colors[statusValue] || "default"}>{statusLabel}</Tag>;
       },
     },
     {
@@ -316,8 +309,8 @@ const RegisterPage = () => {
               allowClear
             >
               {subTypes.map((type) => (
-                <Option key={type} value={type}>
-                  {type}
+                <Option key={type.value || type} value={type.value || type}>
+                  {type.label || type}
                 </Option>
               ))}
             </Select>
@@ -331,8 +324,8 @@ const RegisterPage = () => {
               allowClear
             >
               {subStatuses.map((status) => (
-                <Option key={status} value={status}>
-                  {status}
+                <Option key={status.value || status} value={status.value || status}>
+                  {status.label || status}
                 </Option>
               ))}
             </Select>
@@ -408,8 +401,8 @@ const RegisterPage = () => {
                 >
                   <Select placeholder="Chọn loại xe" disabled={!!editingId}>
                     {vehicleTypes.map((type) => (
-                      <Option key={type} value={type}>
-                        {type === 'MOTORBIKE' ? 'Xe máy' : type === 'CAR' ? 'Ô tô' : type === 'BICYCLE' ? 'Xe đạp' : type}
+                      <Option key={type.value || type} value={type.value || type}>
+                        {type.label || type}
                       </Option>
                     ))}
                   </Select>
@@ -427,8 +420,8 @@ const RegisterPage = () => {
               >
                 <Select placeholder="Chọn gói cước">
                   {subTypes.map((type) => (
-                    <Option key={type} value={type}>
-                      {type}
+                    <Option key={type.value || type} value={type.value || type}>
+                      {type.label || type}
                     </Option>
                   ))}
                 </Select>
@@ -458,8 +451,8 @@ const RegisterPage = () => {
                 >
                   <Select placeholder="Chọn PTTT">
                     {paymentMethods.map((method) => (
-                      <Option key={method} value={method}>
-                        {method}
+                      <Option key={method.value || method} value={method.value || method}>
+                        {method.label || method}
                       </Option>
                     ))}
                   </Select>
@@ -478,8 +471,8 @@ const RegisterPage = () => {
                   >
                     <Select placeholder="Chọn trạng thái">
                       {subStatuses.map((status) => (
-                        <Option key={status} value={status}>
-                          {status}
+                        <Option key={status.value || status} value={status.value || status}>
+                          {status.label || status}
                         </Option>
                       ))}
                     </Select>

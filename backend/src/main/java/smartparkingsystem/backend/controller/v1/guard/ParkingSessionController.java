@@ -82,15 +82,6 @@ public class ParkingSessionController {
         return ResponseEntity.ok(ApiResponse.success(null, "Incident reported successfully"));
     }
 
-    @GetMapping("/parked")
-    public ResponseEntity<ApiResponse<Page<ParkingSessionResponse>>> getAllParkingSessions(
-            @RequestParam (required = false) String licensePlate,
-            @RequestParam (required = false) VehicleTypeEnum vehicleType,
-            Pageable pageable) {
-        Page<ParkingSessionResponse> page = parkingSessionService.getAllParkingSessions(pageable, SessionStatus.PARKED, licensePlate, vehicleType);
-        return ResponseEntity.ok(ApiResponse.success(page, "Parking sessions retrieved successfully"));
-    }
-
     @GetMapping
     public ResponseEntity<ApiResponse<Page<ParkingSessionResponse>>> getParkingSessionsWithFilters(
             @RequestParam (required = false) String licensePlate,
@@ -99,5 +90,12 @@ public class ParkingSessionController {
             Pageable pageable) {
         Page<ParkingSessionResponse> page = parkingSessionService.getAllParkingSessions(pageable, status, licensePlate, vehicleType);
         return ResponseEntity.ok(ApiResponse.success(page, "Parking sessions retrieved successfully"));
+    }
+    @GetMapping("/count")
+    public ResponseEntity<ApiResponse<Long>> getTotalParkedVehicles(
+            @RequestParam (required = false) SessionStatus status
+    ) {
+        Long total = parkingSessionService.getTotalParkedVehicles(status);
+        return ResponseEntity.ok(ApiResponse.success(total, "Total parked vehicles retrieved successfully"));
     }
 }

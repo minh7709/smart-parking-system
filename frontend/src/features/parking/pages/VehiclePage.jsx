@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Card, Form, Input, Select, Button, Row, Col, notification, Table, Space, Tag, Modal, Popconfirm, Tooltip } from "antd";
+import { Card, Form, Input, Select, Button, Row, Col, Table, Space, Tag, Modal, Popconfirm, Tooltip } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined, SyncOutlined } from "@ant-design/icons";
-import { getVehiclesApi, createVehicleApi, updateVehicleApi, deleteVehicleApi, getVehicleByLicensePlateApi } from "../api/vehicleApi";
+import { getVehiclesApi, createVehicleApi, updateVehicleApi, deleteVehicleApi } from "../api/vehicleApi";
 import axiosClient from "../../../api/axiosClient";
 import API_ENDPOINTS from "../../../api/endpoints";
+import { useNotification } from "../../../hooks/useNotification";
 
 const { Option } = Select;
 
 const VehiclePage = () => {
+  const notify = useNotification();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
@@ -97,11 +99,11 @@ const VehiclePage = () => {
   const handleDelete = async (id) => {
     try {
       await deleteVehicleApi(id);
-      notification.success({ message: "Thành công", description: "Xóa phương tiện thành công!" });
+      notify.success("Xóa phương tiện thành công!");
       fetchVehicles(currentPage, pageSize);
     } catch (error) {
       console.error(error);
-      notification.error({ message: "Lỗi", description: "Lỗi khi xóa phương tiện" });
+      notify.apiError(error, "Lỗi khi xóa phương tiện");
     }
   };
 
@@ -111,25 +113,16 @@ const VehiclePage = () => {
         const payload = { ...values };
         if (editingId) {
           await updateVehicleApi(editingId, payload);
-          notification.success({ message: "Thành công", description: "Cập nhật phương tiện thành công!" });
+          notify.success("Cập nhật phương tiện thành công!");
         } else {
           await createVehicleApi(payload);
-          notification.success({ message: "Thành công", description: "Thêm phương tiện mới thành công!" });
+          notify.success("Thêm phương tiện mới thành công!");
         }
         setIsModalVisible(false);
         fetchVehicles(currentPage, pageSize);
       } catch (err) {
         console.error(err);
-        const errorData = err.response?.data;
-        let errorMsg = "Có lỗi xảy ra, vui lòng thử lại!";
-        if (errorData) {
-          if (errorData.fieldErrors && errorData.fieldErrors.length > 0) {
-            errorMsg = errorData.fieldErrors.map((f) => f.message).join(", ");
-          } else if (errorData.message) {
-            errorMsg = errorData.message;
-          }
-        }
-        notification.error({ message: "Lỗi", description: errorMsg });
+        notify.apiError(err, "Lỗi khi lưu phương tiện");
       }
     });
   };
@@ -139,8 +132,8 @@ const VehiclePage = () => {
     {
       title: "Loại xe", dataIndex: "vehicleType", key: "vehicleType",
       render: (type) => {
-        const labels = { MOTORBIKE: "Xe máy", CAR: "Ô tô", BICYCLE: "Xe đạp" };
-        return <Tag color="blue">{type ? (labels[type] || type) : "N/A"}</Tag>;
+        const typeLabel = typeof type === 'object' ? type?.label : type;
+        return <Tag color="blue">{typeLabel || "N/A"}</Tag>;
       }
     },
     { title: "Hãng xe", dataIndex: "brand", key: "brand" },
@@ -167,7 +160,7 @@ const VehiclePage = () => {
           </Col>
           <Col span={6}>
             <Select placeholder="Loại xe" style={{ width: "100%" }} value={filterType} onChange={setFilterType} allowClear>
-              {vehicleTypes.map((t) => <Option key={t} value={t}>{t === 'MOTORBIKE' ? 'Xe máy' : t === 'CAR' ? 'Ô tô' : t === 'BICYCLE' ? 'Xe đạp' : t}</Option>)}
+              {vehicleTypes.map((t) => <Option key={t.value || t} value={t.value || t}>{t.label || t}</Option>)}
             </Select>
           </Col>
           <Col span={10} style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
@@ -188,7 +181,7 @@ const VehiclePage = () => {
             <Col span={12}>
               <Form.Item label="Loại xe" name="vehicleType" rules={[{ required: true, message: "Chọn loại xe!" }]}>
                 <Select>
-                  {vehicleTypes.map((t) => <Option key={t} value={t}>{t === 'MOTORBIKE' ? 'Xe máy' : t === 'CAR' ? 'Ô tô' : t === 'BICYCLE' ? 'Xe đạp' : t}</Option>)}
+                  {vehicleTypes.map((t) => <Option key={t.value || t} value={t.value || t}>{t.label || t}</Option>)}
                 </Select>
               </Form.Item>
             </Col>

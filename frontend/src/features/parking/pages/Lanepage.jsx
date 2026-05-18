@@ -5,29 +5,28 @@ import { getActiveLanesApi } from '../api/lane.api';
 import { saveLaneSelection } from '../../../utils/storage';
 import useLogout from '../../../hooks/useLogout';
 import styles from './Lanepage.module.css';
+import { useNotification } from '../../../hooks/useNotification';
 
 const { Title, Text } = Typography;
 
 const LanePage = () => {
+	const notify = useNotification();
 	const navigate = useNavigate();
 	const handleLogout = useLogout();
 	const [loading, setLoading] = useState(true);
 	const [lanes, setLanes] = useState([]);
-	const [error, setError] = useState('');
 	const [checkInLaneId, setCheckInLaneId] = useState(undefined);
 	const [checkOutLaneId, setCheckOutLaneId] = useState(undefined);
 
 	useEffect(() => {
 		const fetchLanes = async () => {
 			setLoading(true);
-			setError('');
 
 			try {
 				const response = await getActiveLanesApi();
 				setLanes(Array.isArray(response?.data) ? response.data : []);
 			} catch (err) {
-				console.error('Get active lanes error:', err);
-				setError(err.message || 'Khong tai duoc danh sach lane.');
+				notify.apiError(err, 'Lỗi khi tải danh sách lane');
 			} finally {
 				setLoading(false);
 			}
@@ -37,12 +36,12 @@ const LanePage = () => {
 	}, []);
 
 	const inLanes = useMemo(
-		() => lanes.filter((lane) => String(lane.laneType || '').toUpperCase() === 'IN'),
+		() => lanes.filter((lane) => String(lane.laneType?.value || '').toUpperCase() === 'IN'),
 		[lanes],
 	);
 
 	const outLanes = useMemo(
-		() => lanes.filter((lane) => String(lane.laneType || '').toUpperCase() === 'OUT'),
+		() => lanes.filter((lane) => String(lane.laneType?.value || '').toUpperCase() === 'OUT'),
 		[lanes],
 	);
 
@@ -58,7 +57,7 @@ const LanePage = () => {
 
 	const handleContinue = () => {
 		if (!selectedCheckInLane || !selectedCheckOutLane) {
-			setError('Vui long chon du lane check-in va lane check-out.');
+			notify.error("Vui lòng chọn lane check-in và lane check-out");
 			return;
 		}
 
@@ -94,8 +93,6 @@ const LanePage = () => {
 						</Text>
 					</div>
 
-					{error && <Alert type="error" message={error} showIcon />}
-
 					<Spin spinning={loading} description="Dang tai lane...">
 						<Row gutter={[16, 16]}>
 							<Col xs={24} md={12}>
@@ -104,7 +101,7 @@ const LanePage = () => {
 										Lane Check-In
 									</Text>
 									<Select
-                                        style={{ fontSize: '20px' }}
+										style={{ fontSize: '20px' }}
 										value={checkInLaneId}
 										onChange={setCheckInLaneId}
 										className={styles['lane-page__select']}
@@ -121,10 +118,10 @@ const LanePage = () => {
 							<Col xs={24} md={12}>
 								<Card className={`${styles['lane-page__selector']} ${styles['lane-page__selector--out']}`} variant="borderless">
 									<Text strong style={{ color: '#efe8d9' }}>
-										Lane Check-Out 
+										Lane Check-Out
 									</Text>
 									<Select
-                                        style={{fontSize: '20px'}}
+										style={{ fontSize: '20px' }}
 										value={checkOutLaneId}
 										onChange={setCheckOutLaneId}
 										className={styles['lane-page__select']}

@@ -271,11 +271,11 @@ public class ParkingSessionService {
         if (hasLicensePlate && hasVehicleType && hasStatus) {
             // Tất cả 3 filter - sử dụng LIKE cho licensePlate
             page = parkingSessionRepository.findByFinalPlateContainingIgnoreCaseAndVehicleTypeAndStatus(
-                    licensePlate, vehicleType.name(), status, sortedPageable);
+                    licensePlate, vehicleType, status, sortedPageable);
         } else if (hasLicensePlate && hasVehicleType) {
             // Có licensePlate và vehicleType - sử dụng LIKE cho licensePlate
             page = parkingSessionRepository.findByFinalPlateContainingIgnoreCaseAndVehicleType(
-                    licensePlate, vehicleType.name(), sortedPageable);
+                    licensePlate, vehicleType, sortedPageable);
         } else if (hasLicensePlate && hasStatus) {
             // Có licensePlate và status - sử dụng LIKE cho licensePlate
             page = parkingSessionRepository.findByFinalPlateContainingIgnoreCaseAndStatus(
@@ -283,7 +283,7 @@ public class ParkingSessionService {
         } else if (hasVehicleType && hasStatus) {
             // Có vehicleType và status
             page = parkingSessionRepository.findByVehicleTypeAndStatus(
-                    vehicleType.name(), status, sortedPageable);
+                    vehicleType, status, sortedPageable);
         } else if (hasLicensePlate) {
             // Chỉ có licensePlate - sử dụng LIKE
             page = parkingSessionRepository.findByFinalPlateContainingIgnoreCase(
@@ -291,7 +291,7 @@ public class ParkingSessionService {
         } else if (hasVehicleType) {
             // Chỉ có vehicleType
             page = parkingSessionRepository.findByVehicleType(
-                    vehicleType.name(), sortedPageable);
+                    vehicleType, sortedPageable);
         } else if (hasStatus) {
             // Chỉ có status
             page = parkingSessionRepository.findByStatus(status, sortedPageable);
@@ -301,6 +301,10 @@ public class ParkingSessionService {
         }
 
         return page.map(parkingSessionMapper::toParkingSessionResponse);
+    }
+
+    public Long getTotalParkedVehicles(SessionStatus status) {
+        return parkingSessionRepository.countByStatus(status);
     }
 
     private float confidenceOrRandom(Float confidenceFromAi) {

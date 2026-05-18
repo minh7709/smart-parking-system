@@ -109,13 +109,13 @@ const CameraCard = ({
       const requestPayload =
         type === "IN"
           ? {
-              entryLaneId: normalizedLaneId,
-              vehicleType: normalizedVehicleType,
-            }
+            entryLaneId: normalizedLaneId,
+            vehicleType: normalizedVehicleType,
+          }
           : {
-              exitLaneId: normalizedLaneId,
-              parkingSessionId: normalizeUuid(getActiveParkingSessionId()),
-            };
+            exitLaneId: normalizedLaneId,
+            parkingSessionId: normalizeUuid(getActiveParkingSessionId()),
+          };
 
       if (type === "OUT" && !requestPayload.parkingSessionId) {
         notify.error("Thiếu parkingSessionId. Hãy check-in thành công trước khi check-out.");
@@ -139,40 +139,23 @@ const CameraCard = ({
           ? await checkInApi(formData, requestOptions)
           : await checkOutApi(formData, requestOptions);
 
+      // Trong handleCaptureAndSend, sau response thành công
       if (response?.success) {
-        const plate =
-          response?.data?.plateNumber ||
-          response?.data?.finalPlate ||
-          response?.data?.plateInOcr ||
-          response?.data?.plateOutOcr ||
-          "Da nhan dien";
-
+        const plate = response?.data?.plateInOcr || "Đã nhận diện";
         setDetectedPlate(plate);
 
-        // For check-in, show confirmation modal; for check-out, process directly
-        if (type === "IN") {
-          setModalData({
-            ...response.data,
-            imageUrl: videoSrc,
-            entryLaneId: normalizeUuid(laneId),
-          });
-          setShowConfirmModal(true);
-        } else {
-          clearActiveParkingSessionId();
-          notify.success(
-            `Biển số xe: ${plate}`,
-            `${type === "IN" ? "Check-in" : "Check-out"} Thành Công`
-          );
-          if (onSuccess) {
-            onSuccess(response.data);
-          }
-        }
+        // Truyền toàn bộ data từ response + entryLaneId
+        setModalData({
+          ...response.data,   // plateInOcr, imageInUrl, timeIn, confidenceIn, vehicleType
+          entryLaneId: normalizedLaneId,
+        });
+        setShowConfirmModal(true);
       } else {
         notify.error(response?.message || "Lỗi từ server");
       }
     } catch (error) {
       console.error(error);
-      notify.error(error.message || "Gửi ảnh thất bại");
+      notify.apiError(error, "Gửi ảnh thất bại");
     } finally {
       setLoading(false);
     }
@@ -210,190 +193,190 @@ const CameraCard = ({
         onConfirmed={handleModalConfirmed}
       />
       <Card
-      title={
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              background: themeColor,
-              boxShadow: `0 0 8px ${themeColor}`,
-            }}
-          />
-          <span style={{ color: "#141414", fontWeight: 600, letterSpacing: 1 }}>{title}</span>
-        </div>
-      }
-      extra={
-        <Space size="small">
-          {type === "IN" && (
-            <Select
-              value={localVehicleType}
-              onChange={setLocalVehicleType}
-              options={[
-                { label: "MOTOR", value: "MOTOR" },
-                { label: "CAR", value: "CAR" },
-                { label: "BICYCLE", value: "BICYCLE" },
-              ]}
-              style={{ width: 100 }}
-            />
-          )}
-          <Tooltip title="Chụp và gửi" color="#141414" overlayStyle={{ color: "#fff" }}>
-            <Button
-              type="primary"
-              shape="circle"
-              icon={<CameraOutlined />}
-              onClick={handleCaptureAndSend}
-              loading={loading}
-              style={{ backgroundColor: "#0eb1a3" }}
-            />
-          </Tooltip>
-          <Tooltip title="Phóng to" color="#141414" overlayStyle={{ color: "#fff" }}>  
-            <Button
-              type="text"
-              shape="circle"
-              icon={<ZoomInOutlined style={{ color: "#141414" }} />}
-              onClick={handleZoom}
-            />
-          </Tooltip>
-          <Tooltip title="Cài đặt" color="#141414" overlayStyle={{ color: "#fff" }}>
-            <Button
-              type="text"
-              shape="circle"
-              icon={<SettingOutlined style={{ color: "#141414" }} />}
-            />
-          </Tooltip>
-          <Tooltip title="Toàn màn hình" color="#141414" overlayStyle={{ color: "#fff" }}>
-            <Button
-              type="text"
-              shape="circle"
-              icon={<ExpandOutlined style={{ color: "#141414" }} />}
-            />
-          </Tooltip>
-        </Space>
-      }
-      variant="borderless"
-      style={{
-        background: "#ffffff",
-        border: "1px solid #d9d9d9",
-        borderRadius: 16,
-        overflow: "hidden",
-      }}
-      styles={{
-        header: { borderBottom: "1px solid #d9d9d9", padding: "12px 16px" },
-        body: { padding: 12 },
-      }}
-    >
-      <div
-        style={{
-          height: 450,
-          borderRadius: 8,
-          overflow: "hidden",
-          position: "relative",
-          background: "#f5f5f5",
-        }}
-      >
-        {imgError ? (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              height: "100%",
-              color: "#ff4d4f",
-              background: "#ffffff",
-              textAlign: "center",
-              padding: 20,
-            }}
-          >
-            <span>
-              Khong the ket noi camera.
-              <br />
-              Kiem tra IP DroidCam
-            </span>
-          </div>
-        ) : (
-          <img
-            ref={imgRef}
-            src={videoSrc}
-            alt="camera-feed"
-            style={{ 
-              width: "100%", 
-              height: "100%", 
-              objectFit: "cover",
-              transform: `scale(${zoom})`,
-              transition: "transform 0.3s ease"
-            }}
-            onError={() => {
-              setImgError(true);
-              notify.error("Loi ket noi camera. Kiem tra IP DroidCam.");
-            }}
-            onLoad={() => setImgError(false)}
-            crossOrigin="anonymous"
-          />
-        )}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: "linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 40%)",
-            pointerEvents: "none",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            top: 12,
-            left: 12,
-            background: "rgba(20,20,20,0.7)",
-            backdropFilter: "blur(4px)",
-            padding: "4px 10px",
-            borderRadius: 4,
-          }}
-        >
-          <span style={{ color: "#fff", fontSize: 10, fontWeight: 700 }}>LIVE</span>
-        </div>
-        {detectedPlate && (
-          <div
-            style={{
-              position: "absolute",
-              bottom: 5,
-              left: "50%",
-              transform: "translateX(-50%)",
-              background: "rgba(20,20,20,0.8)",
-              backdropFilter: "blur(8px)",
-              padding: "6px 32px",
-              borderRadius: 8,
-              border: `1px solid ${themeColor}`,
-            }}
-          >
+        title={
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span
               style={{
-                color: themeColor,
-                fontSize: 15,
-                fontWeight: 900,
-                letterSpacing: 2,
-                fontFamily: "monospace",
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                background: themeColor,
+                boxShadow: `0 0 8px ${themeColor}`,
+              }}
+            />
+            <span style={{ color: "#141414", fontWeight: 600, letterSpacing: 1 }}>{title}</span>
+          </div>
+        }
+        extra={
+          <Space size="small">
+            {type === "IN" && (
+              <Select
+                value={localVehicleType}
+                onChange={setLocalVehicleType}
+                options={[
+                  { label: "Xe máy", value: "MOTOR" },
+                  { label: "Ô tô", value: "CAR" },
+                  { label: "Xe đạp", value: "BICYCLE" },
+                ]}
+                style={{ width: 100 }}
+              />
+            )}
+            <Tooltip title="Chụp và gửi" color="#141414" overlayStyle={{ color: "#fff" }}>
+              <Button
+                type="primary"
+                shape="circle"
+                icon={<CameraOutlined />}
+                onClick={handleCaptureAndSend}
+                loading={loading}
+                style={{ backgroundColor: "#0eb1a3" }}
+              />
+            </Tooltip>
+            <Tooltip title="Phóng to" color="#141414" overlayStyle={{ color: "#fff" }}>
+              <Button
+                type="text"
+                shape="circle"
+                icon={<ZoomInOutlined style={{ color: "#141414" }} />}
+                onClick={handleZoom}
+              />
+            </Tooltip>
+            <Tooltip title="Cài đặt" color="#141414" overlayStyle={{ color: "#fff" }}>
+              <Button
+                type="text"
+                shape="circle"
+                icon={<SettingOutlined style={{ color: "#141414" }} />}
+              />
+            </Tooltip>
+            <Tooltip title="Toàn màn hình" color="#141414" overlayStyle={{ color: "#fff" }}>
+              <Button
+                type="text"
+                shape="circle"
+                icon={<ExpandOutlined style={{ color: "#141414" }} />}
+              />
+            </Tooltip>
+          </Space>
+        }
+        variant="borderless"
+        style={{
+          background: "#ffffff",
+          border: "1px solid #d9d9d9",
+          borderRadius: 16,
+          overflow: "hidden",
+        }}
+        styles={{
+          header: { borderBottom: "1px solid #d9d9d9", padding: "12px 16px" },
+          body: { padding: 12 },
+        }}
+      >
+        <div
+          style={{
+            height: 450,
+            borderRadius: 8,
+            overflow: "hidden",
+            position: "relative",
+            background: "#f5f5f5",
+          }}
+        >
+          {imgError ? (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100%",
+                color: "#ff4d4f",
+                background: "#ffffff",
+                textAlign: "center",
+                padding: 20,
               }}
             >
-              {detectedPlate}
-            </span>
-          </div>
-        )}
-        {loading && (
+              <span>
+                Khong the ket noi camera.
+                <br />
+                Kiem tra IP DroidCam
+              </span>
+            </div>
+          ) : (
+            <img
+              ref={imgRef}
+              src={videoSrc}
+              alt="camera-feed"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                transform: `scale(${zoom})`,
+                transition: "transform 0.3s ease"
+              }}
+              onError={() => {
+                setImgError(true);
+                notify.error("Loi ket noi camera. Kiem tra IP DroidCam.");
+              }}
+              onLoad={() => setImgError(false)}
+              crossOrigin="anonymous"
+            />
+          )}
           <div
             style={{
               position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
+              inset: 0,
+              background: "linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 40%)",
+              pointerEvents: "none",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              top: 12,
+              left: 12,
+              background: "rgba(20,20,20,0.7)",
+              backdropFilter: "blur(4px)",
+              padding: "4px 10px",
+              borderRadius: 4,
             }}
           >
-            <Spin size="large" />
+            <span style={{ color: "#fff", fontSize: 10, fontWeight: 700 }}>LIVE</span>
           </div>
-        )}
-      </div>
-    </Card>
+          {detectedPlate && (
+            <div
+              style={{
+                position: "absolute",
+                bottom: 5,
+                left: "50%",
+                transform: "translateX(-50%)",
+                background: "rgba(20,20,20,0.8)",
+                backdropFilter: "blur(8px)",
+                padding: "6px 32px",
+                borderRadius: 8,
+                border: `1px solid ${themeColor}`,
+              }}
+            >
+              <span
+                style={{
+                  color: themeColor,
+                  fontSize: 15,
+                  fontWeight: 900,
+                  letterSpacing: 2,
+                  fontFamily: "monospace",
+                }}
+              >
+                {detectedPlate}
+              </span>
+            </div>
+          )}
+          {loading && (
+            <div
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+              }}
+            >
+              <Spin size="large" />
+            </div>
+          )}
+        </div>
+      </Card>
     </>
   );
 };

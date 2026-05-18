@@ -10,13 +10,13 @@ import {
   Select,
   DatePicker,
   Tag,
-  message,
   Space,
   Divider,
   Checkbox,
   Tooltip,
   Badge,
 } from "antd";
+import { useNotification } from "../../../hooks/useNotification";
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -30,6 +30,7 @@ const { Option } = Select;
 
 const PricingRuleConfig = () => {
   // Đổi tên component cho tổng quát hơn
+  const notify = useNotification();
   const [rules, setRules] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -47,7 +48,7 @@ const PricingRuleConfig = () => {
       setRules(dataArray);
     } catch (error) {
       console.error("Fetch rules error:", error);
-      message.error("Không thể tải danh sách cấu hình");
+      notify.apiError(error, "Không thể tải danh sách cấu hình");
     } finally {
       setLoading(false);
     }
@@ -85,7 +86,7 @@ const PricingRuleConfig = () => {
       if (values.pricingStrategy === "PROGRESSIVE") {
         const configArray = values.progressiveConfig || [];
         if (configArray.length === 0) {
-          message.error("Vui lòng thêm ít nhất 1 mốc giá cho Lũy tiến!");
+          notify.error("Vui lòng thêm ít nhất 1 mốc giá cho Lũy tiến!");
           return;
         }
         // Chuyển đổi sang { timeMilestone, price }
@@ -96,7 +97,7 @@ const PricingRuleConfig = () => {
       } else if (values.pricingStrategy === "TIME_WINDOW") {
         const configArray = values.progressiveConfig || [];
         if (configArray.length === 0 || configArray.length > 2) {
-          message.error("Cần 1 hoặc 2 mốc cho Khung giờ!");
+          notify.error("Cần 1 hoặc 2 mốc cho Khung giờ!");
           return;
         }
         payload.progressiveConfig = configArray.map((item) => ({
@@ -109,18 +110,16 @@ const PricingRuleConfig = () => {
       // Gọi API
 
       await adminApi.createPricingRule(payload);
-      message.success("Lưu cấu hình thành công!");
+      notify.success("Lưu cấu hình thành công!");
       setIsModalVisible(false);
       form.resetFields();
       fetchRules();
     } catch (error) {
       console.error("Lưu cấu hình thất bại:", error);
-      let errorMsg = error?.message || "Lỗi máy chủ!";
-      if (error?.payload?.message) errorMsg = error.payload.message;
       if (error?.status === 409) {
-        message.warning("Tên cấu hình đã tồn tại. Vui lòng đổi tên khác.");
+        notify.warning("Tên cấu hình đã tồn tại. Vui lòng đổi tên khác.");
       } else {
-        message.error("Lỗi: " + errorMsg);
+        notify.apiError(error, "Lưu cấu hình thất bại");
       }
     }
   };
@@ -132,7 +131,7 @@ const PricingRuleConfig = () => {
         ...record,
         isActive: !record.isActive,
       });
-      message.success(
+      notify.success(
         !record.isActive
           ? `Đã kích hoạt "${record.ruleName}"!`
           : `Đã vô hiệu hóa "${record.ruleName}"!`,
@@ -140,7 +139,7 @@ const PricingRuleConfig = () => {
       fetchRules();
     } catch (error) {
       console.error("Toggle active error:", error);
-      message.error("Không thể cập nhật trạng thái!");
+      notify.apiError(error, "Không thể cập nhật trạng thái");
     } finally {
       setActivatingId(null);
     }

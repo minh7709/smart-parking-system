@@ -1,3 +1,6 @@
+import axiosClient from "../api/axiosClient";
+import API_ENDPOINTS from "../api/endpoints";
+
 export const saveAuthToLocalStorage = (authData) => {
   const expiresAt = Date.now() + authData.expiresIn * 1000;
 
@@ -21,7 +24,7 @@ export const clearAuthFromLocalStorage = () => {
 };
 
 export const saveResetPasswordToken = (token) => {
-    localStorage.setItem('resetPasswordToken', token);
+  localStorage.setItem('resetPasswordToken', token);
 };
 
 export const saveLaneSelection = ({ checkInLane, checkOutLane }) => {
@@ -56,4 +59,56 @@ export const getActiveParkingSessionId = () =>
 
 export const clearActiveParkingSessionId = () => {
   localStorage.removeItem('activeParkingSessionId');
+};
+
+const SYSTEM_TYPE_KEYS = [
+  "laneStatuses",
+  "laneTypes",
+  "vehicleTypes",
+  "sessionStatuses",
+  "paymentStatuses",
+  "paymentMethods",
+  "pricingStrategies",
+  "incidentTypes",
+  "userRoles",
+  "userStatuses",
+  "subscriptionTypes",
+  "subscriptionStatuses"
+];
+
+export const saveSystemTypes = (typesData) => {
+  SYSTEM_TYPE_KEYS.forEach(key => {
+    if (typesData[key]) {
+      localStorage.setItem(key, JSON.stringify(typesData[key]));
+    }
+  });
+};
+
+export const getSystemTypes = () => {
+  const types = {};
+  SYSTEM_TYPE_KEYS.forEach(key => {
+    const data = localStorage.getItem(key);
+    types[key] = data ? JSON.parse(data) : [];
+  });
+  return types;
+};
+
+export const clearSystemTypes = () => {
+  SYSTEM_TYPE_KEYS.forEach(key => {
+    localStorage.removeItem(key);
+  });
+};
+
+export const fetchAllSystemTypesApi = async () => {
+  const requests = Object.keys(API_ENDPOINTS.type).map(key =>
+    axiosClient.get(API_ENDPOINTS.type[key]).then(res => ({ key, data: res.data }))
+  );
+  const responses = await Promise.all(requests);
+
+  const typesData = {};
+  responses.forEach(({ key, data }) => {
+    typesData[key] = data;
+  });
+
+  return typesData;
 };

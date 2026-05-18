@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, Button, Space, Input, Modal, Form, Select, Tag, Popconfirm, Row, Col } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import { adminApi } from '../api/admin.api';
@@ -12,7 +12,7 @@ const UserManagementPage = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form] = Form.useForm();
-  const { showSuccess, showError } = useNotification();
+  const notify = useNotification();
   
   // States for search filters
   const [searchFullName, setSearchFullName] = useState('');
@@ -28,8 +28,7 @@ const UserManagementPage = () => {
       setFilteredData(_data);
     } catch (error) {
       console.error('Failed to fetch users:', error);
-      showError('Lỗi', 'Không thể lấy danh sách người dùng');
-      // Đặt lại state thành mảng rỗng khi có lỗi
+      notify.apiError(error, 'Không thể lấy danh sách người dùng');
       setData([]);
       setFilteredData([]);
     } finally {
@@ -88,11 +87,11 @@ const UserManagementPage = () => {
   const handleDelete = async (id) => {
     try {
       await adminApi.deleteUser(id);
-      showSuccess('Thành công', 'Đã xoá người dùng');
+      notify.success('Đã xoá người dùng');
       fetchUsers();
     } catch (error) {
       console.error('Failed to delete user:', error);
-      showError('Lỗi', 'Không thể xoá người dùng');
+      notify.apiError(error, 'Không thể xoá người dùng');
     }
   };
 
@@ -103,31 +102,20 @@ const UserManagementPage = () => {
       const payload = { ...values };
       
       if (isEditMode) {
-        // If password is empty in edit mode, remove it so backend doesn't overwrite with empty
         if (!payload.password) {
           delete payload.password;
         }
         await adminApi.updateUser(editingId, payload);
-        showSuccess('Thành công', 'Đã cập nhật thông tin người dùng');
+        notify.success('Đã cập nhật thông tin người dùng');
       } else {
         await adminApi.createUser(payload);
-        showSuccess('Thành công', 'Đã thêm người dùng mới');
+        notify.success('Đã thêm người dùng mới');
       }
       setIsModalVisible(false);
       fetchUsers();
     } catch (error) {
       console.error('Save failed:', error);
-      
-      // Parse backend errors
-      if (error.response?.data?.fieldErrors) {
-        const parsedErrors = error.response.data.fieldErrors.map(err => ({
-          name: err.field,
-          errors: [err.message]
-        }));
-        form.setFields(parsedErrors);
-      } else {
-        showError('Lỗi', error.response?.data?.message || 'Có lỗi xảy ra khi lưu thông tin');
-      }
+      notify.apiError(error, 'Có lỗi xảy ra khi lưu thông tin');
     }
   };
 

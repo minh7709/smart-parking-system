@@ -23,10 +23,10 @@ const MonitorPage = () => {
   //   : null;
 
   // Cách 2: dùng IP cứng để test (chú ý: IP này phải đúng và reachable)
-const cameraInUrl = "/camera-in-stream";
-const cameraOutUrl = "/camera-out-stream";
+  const cameraInUrl = "/camera-in-stream";
+  const cameraOutUrl = "/camera-out-stream";
 
- 
+
 
   const [cameraStatus, setCameraStatus] = useState("checking");
   const [pendingConfirm, setPendingConfirm] = useState(null);

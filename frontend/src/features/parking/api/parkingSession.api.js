@@ -14,4 +14,7 @@ export const checkOutApi = (formData, options = {}) =>
   axiosClient.postForm(API_ENDPOINTS.guard.parkingSession.checkOut, formData, options);
 
 export const getParkingSessionsApi = (params = {}) =>
-  axiosClient.get(API_ENDPOINTS.guard.parkingSession.history, { params });
+  axiosClient.get(API_ENDPOINTS.guard.parkingSession.base, { params });
+
+export const countParkingSessionsApi = (params = {}) =>
+  axiosClient.get(API_ENDPOINTS.guard.parkingSession.countParking, { params });

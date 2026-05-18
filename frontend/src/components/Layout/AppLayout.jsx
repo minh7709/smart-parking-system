@@ -8,6 +8,7 @@ import {
   ConfigProvider,
   Dropdown,
   message,
+  Button,
 } from "antd";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -20,6 +21,7 @@ import {
   LockOutlined,
   LogoutOutlined,
   CarOutlined,
+  ArrowLeftOutlined,
 } from "@ant-design/icons";
 import { Outlet } from "react-router-dom";
 import { useNotification } from "../../hooks/useNotification";
@@ -147,33 +149,42 @@ export const AppLayout = () => {
     >
       <Layout style={{ minHeight: "100vh", background: "#f5f5f5" }}>
         {/* SIDEBAR */}
-        <Sider width={230} style={styles.sider}>
-          <div style={styles.logo}>Smart Parking</div>
-          <Menu
-            theme="light"
-            mode="inline"
-            selectedKeys={[selectedKey]}
-            onClick={handleMenuClick}
-            style={{ background: "transparent", borderRight: 0 }}
-            items={[
-              { key: "1", icon: <StarOutlined />, label: "Vé tháng" },
-              { key: "3", icon: <CarOutlined />, label: "Phương tiện" },
-              { key: "2", icon: <VideoCameraOutlined />, label: "Camera" },
-            ]}
-          />
+        <Sider width={230} style={{ ...styles.sider, overflow: 'auto', height: '100vh', position: 'fixed', left: 0, top: 0, bottom: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <div>
+              <div style={styles.logo}>Smart Parking</div>
+              <Menu
+                theme="light"
+                mode="inline"
+                selectedKeys={[selectedKey]}
+                onClick={handleMenuClick}
+                style={{ background: "transparent", borderRight: 0 }}
+                items={[
+                  { key: "1", icon: <StarOutlined />, label: "Vé tháng" },
+                  { key: "3", icon: <CarOutlined />, label: "Phương tiện" },
+                  { key: "2", icon: <VideoCameraOutlined />, label: "Camera" },
+                ]}
+              />
+            </div>
+            <div style={{ marginTop: 'auto', padding: '16px' }}>
+              <Button
+                type="dashed"
+                block
+                icon={<ArrowLeftOutlined />}
+                onClick={() => navigate('/lane')}
+              >
+                Quay lại
+              </Button>
+            </div>
+          </div>
         </Sider>
 
         {/* MAIN CONTENT */}
-        <Layout style={{ background: "transparent" }}>
+        <Layout style={{ marginLeft: 230, background: "transparent", minHeight: "100vh" }}>
           {/* TOPBAR */}
           <Header style={styles.header}>
             <h2 style={{ color: "#141414", margin: 0 }}>{selectedKey === "1" ? "Vé tháng" : selectedKey === "3" ? "Phương tiện" : "Camera"}</h2>
             <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-              <Badge dot>
-                <BellOutlined style={{ fontSize: 18, color: "#555" }} />
-              </Badge>
-
-              {/* Dropdown Avatar với thông tin user */}
               <Dropdown menu={{ items: menuItems }} trigger={["click"]}>
                 <div style={styles.userInfo}>
                   <Avatar icon={<UserOutlined />} />

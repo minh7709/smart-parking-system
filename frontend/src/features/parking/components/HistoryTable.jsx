@@ -3,6 +3,8 @@ import { Card, Table, Tag, Input, Spin, Select, Row, Col } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import { getParkingSessionsApi } from "../api/parkingSession.api";
 import { useNotification } from "../../../hooks/useNotification";
+import { countParkingSessionsApi } from "../api/parkingSession.api";
+import { getVehicleTypesApi } from "../api/vehicleApi";
 
 const styles = {
   card: {
@@ -32,29 +34,37 @@ const HistoryTable = React.forwardRef(({ refreshTrigger }, ref) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const [debouncedSearchText, setDebouncedSearchText] = useState(""); // Lưu text sau khi debounce
   const [vehicleTypeFilter, setVehicleTypeFilter] = useState(null);
   const [parkedCount, setParkedCount] = useState(0);
+  const [vehicleOptions, setVehicleOptions] = useState([]);
 
   useEffect(() => {
-    fetchParkingSessions();
-  }, []);
+    const fetchVehicleTypes = async () => {
+      try {
+        const response = await getVehicleTypesApi();
+        if (Array.isArray(response?.data)) {
+          setVehicleOptions(response.data);
+        }
+      } catch (error) {
+        console.error("Không thể tải danh sách loại xe từ Backend:", error);
+      }
+    };
+    fetchVehicleTypes();
+  }, [])
 
   useEffect(() => {
-    if (refreshTrigger) {
-      fetchParkingSessions();
-    }
-  }, [refreshTrigger]);
-
-  React.useImperativeHandle(ref, () => ({
-    refresh: fetchParkingSessions,
-  }));
+    const handler = setTimeout(() => {
+      setDebouncedSearchText(searchText);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchText]);
 
   const formatDateTime = (dateString) => {
     if (!dateString) return "N/A";
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) {
-        // Nếu không parse được, thử parse lại
         const timestamp = parseInt(dateString);
         if (!isNaN(timestamp)) {
           const parsedDate = new Date(timestamp);
@@ -69,22 +79,26 @@ const HistoryTable = React.forwardRef(({ refreshTrigger }, ref) => {
     }
   };
 
-  const fetchParkingSessions = async () => {
-    setLoading(true);
+  // 2. Fetch API kết hợp các query param từ filter/search
+  // Thêm cờ 'silent' để không hiện vòng xoay loading khi đang auto-refresh ngầm
+  const fetchParkingSessions = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
-      const response = await getParkingSessionsApi({
+      // Chuẩn bị params gọi xuống backend
+      const params = {
         page: 0,
-        size: 50,
+        size: 20,
         sort: "createdAt,desc",
-      });
+        status: "PARKED"
+      };
+
+      // Backend (ví dụ Spring Boot) cần hỗ trợ nhận các tham số này
+      if (debouncedSearchText) params.licensePlate = debouncedSearchText;
+      if (vehicleTypeFilter) params.vehicleType = vehicleTypeFilter;
+
+      const response = await getParkingSessionsApi(params);
 
       if (response?.data?.content) {
-        if (response.data.totalElements !== undefined) {
-          setParkedCount(response.data.totalElements);
-        } else {
-          setParkedCount(response.data.content.length);
-        }
-
         const formattedData = response.data.content.map((session, index) => ({
           key: session.id || index,
           time: formatDateTime(session.timeIn),
@@ -97,25 +111,71 @@ const HistoryTable = React.forwardRef(({ refreshTrigger }, ref) => {
         setData(formattedData);
       }
     } catch (error) {
-      notify.error("Lỗi tải lịch sử: " + error.message);
+      notify.apiError(error, "Lỗi tải dữ liệu");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
+
+  const fetchTotalParkingSessions = async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      const response = await countParkingSessionsApi({ status: "PARKED" });
+      if (response?.data) {
+        setParkedCount(response.data);
+      }
+    } catch (error) {
+      notify.apiError(error, "Lỗi tải dữ liệu");
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTotalParkingSessions();
+  }, []);
+
+  // 3. Gọi API khi filter hoặc text search (đã debounce) thay đổi
+  useEffect(() => {
+    fetchParkingSessions();
+  }, [debouncedSearchText, vehicleTypeFilter]);
+
+  // Hỗ trợ refresh từ component cha
+  useEffect(() => {
+    if (refreshTrigger) {
+      fetchTotalParkingSessions();
+      fetchParkingSessions();
+    }
+  }, [refreshTrigger]);
+
+  React.useImperativeHandle(ref, () => ({
+    refresh: fetchParkingSessions,
+  }));
+
+  // 4. Cơ chế Polling cho Real-time (Làm mới ngầm mỗi 3 giây)
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      fetchTotalParkingSessions(true);
+      fetchParkingSessions(true); // Gửi cờ silent = true
+
+    }, 3000);
+
+    return () => clearInterval(intervalId); // Clear interval khi component unmount hoặc state đổi
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearchText, vehicleTypeFilter]);
 
   const handleSearch = (value) => {
     setSearchText(value);
   };
 
-  const filteredData = data.filter((record) => {
-    const matchPlate = record.plateInOcr.toLowerCase().includes(searchText.toLowerCase());
-    const matchVehicleType = !vehicleTypeFilter || record.vehicleType === vehicleTypeFilter;
-    return matchPlate && matchVehicleType;
-  });
   const columns = [
     { title: "Thời gian", dataIndex: "time" },
-    { title: "Loại xe", dataIndex: "vehicleType" },
-    { title: "Vé tháng", dataIndex: "month" },
+    {
+      title: "Loại xe",
+      dataIndex: "vehicleType",
+      render: (vehicleType) => vehicleType?.label || "N/A"
+    },
+    { title: "Đăng ký", dataIndex: "month" },
     { title: "Biển số vào", dataIndex: "plateInOcr" },
     { title: "Biển số thực tế", dataIndex: "finalPlate" },
   ];
@@ -132,7 +192,7 @@ const HistoryTable = React.forwardRef(({ refreshTrigger }, ref) => {
         .history-table-wrapper .ant-empty-description { color: #141414 !important; }
       `}</style>
       <Card
-        title="Lịch sử"        extra={<span style={{ color: "#1677ff", fontWeight: "bold", fontSize: 16 }}>Hiện đang đỗ: {parkedCount}</span>}        style={styles.card}
+        title="Lịch sử" extra={<span style={{ color: "#1677ff", fontWeight: "bold", fontSize: 16 }}>Hiện đang đỗ: {parkedCount}</span>} style={styles.card}
         styles={{
           header: styles.cardHead,
         }}
@@ -144,12 +204,8 @@ const HistoryTable = React.forwardRef(({ refreshTrigger }, ref) => {
               prefix={<SearchOutlined style={{ color: "#141414" }} />}
               style={styles.searchInCard}
               styles={{
-                input: {
-                  color: "#141414",
-                },
-                textarea: {
-                  color: "#141414",
-                },
+                input: { color: "#141414" },
+                textarea: { color: "#141414" },
               }}
               value={searchText}
               onChange={(e) => handleSearch(e.target.value)}
@@ -159,23 +215,17 @@ const HistoryTable = React.forwardRef(({ refreshTrigger }, ref) => {
             <Select
               placeholder={<span style={{ color: "#141414" }}>Loại xe</span>}
               allowClear
-              style={{
-                width: "100%",
-                ...styles.selectInCard,
-              }}
+              style={{ width: "100%", ...styles.selectInCard }}
               value={vehicleTypeFilter}
               onChange={(value) => setVehicleTypeFilter(value)}
-              options={[
-                { label: "MOTOR", value: "MOTOR" },
-                { label: "CAR", value: "CAR" },
-                { label: "BICYCLE", value: "BICYCLE" },
-              ]}
+              options={vehicleOptions}
             />
           </Col>
         </Row>
         <div className="history-table-wrapper">
           <Spin spinning={loading}>
-            <Table columns={columns} dataSource={filteredData} pagination={false} />
+            {/* Truyền trực tiếp state data thay vì filteredData */}
+            <Table columns={columns} dataSource={data} pagination={false} />
           </Spin>
         </div>
       </Card>

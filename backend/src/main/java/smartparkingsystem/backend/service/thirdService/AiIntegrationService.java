@@ -45,7 +45,7 @@ public class AiIntegrationService {
             // Send path in JSON so AI service can read image from absolute path.
             Map<String, String> body = new HashMap<>();
             body.put("imageUrl", imageUrl);
-
+            System.out.println(imageUrl);
             HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(body, headers);
             ResponseEntity<String> response = restTemplate.postForEntity(aiServiceUrl, requestEntity, String.class);
 

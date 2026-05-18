@@ -20,3 +20,7 @@ export const updateVehicleApi = (id, data) => {
 export const deleteVehicleApi = (id) => {
   return axiosClient.delete(API_ENDPOINTS.vehicles.byId(id));
 };
+
+export const getVehicleTypesApi = () => {
+  return axiosClient.get(API_ENDPOINTS.type.vehicleTypes);
+};

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import smartparkingsystem.backend.entity.Lane;
 import smartparkingsystem.backend.entity.ParkingSession;
+import smartparkingsystem.backend.entity.Vehicle;
 import smartparkingsystem.backend.entity.type.SessionStatus;
 
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import smartparkingsystem.backend.dto.response.admin.LaneUtilizationResponse;
 import smartparkingsystem.backend.dto.response.admin.TrafficTimelineResponse;
+import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 
 @Repository
 public interface ParkingSessionRepository extends JpaRepository<ParkingSession, UUID> {
@@ -34,13 +36,13 @@ public interface ParkingSessionRepository extends JpaRepository<ParkingSession, 
 
     Page<ParkingSession> findByFinalPlateIgnoreCaseAndStatus(String finalPlate, SessionStatus status, Pageable pageable);
 
-    Page<ParkingSession> findByVehicleType(String vehicleType, Pageable pageable);
+    Page<ParkingSession> findByVehicleType(VehicleTypeEnum vehicleType, Pageable pageable);
 
-    Page<ParkingSession> findByVehicleTypeAndStatus(String vehicleType, SessionStatus status, Pageable pageable);
+    Page<ParkingSession> findByVehicleTypeAndStatus(VehicleTypeEnum vehicleType, SessionStatus status, Pageable pageable);
 
-    Page<ParkingSession> findByFinalPlateIgnoreCaseAndVehicleType(String finalPlate, String vehicleType, Pageable pageable);
+    Page<ParkingSession> findByFinalPlateIgnoreCaseAndVehicleType(String finalPlate, VehicleTypeEnum vehicleType, Pageable pageable);
 
-    Page<ParkingSession> findByFinalPlateIgnoreCaseAndVehicleTypeAndStatus(String finalPlate, String vehicleType, SessionStatus status, Pageable pageable);
+    Page<ParkingSession> findByFinalPlateIgnoreCaseAndVehicleTypeAndStatus(String finalPlate, Vehicle vehicleType, SessionStatus status, Pageable pageable);
 
     // Partial/LIKE search methods
     @Query("SELECT p FROM ParkingSession p WHERE UPPER(p.finalPlate) LIKE UPPER(CONCAT('%', :licensePlate, '%'))")
@@ -50,10 +52,10 @@ public interface ParkingSessionRepository extends JpaRepository<ParkingSession, 
     Page<ParkingSession> findByFinalPlateContainingIgnoreCaseAndStatus(@Param("licensePlate") String licensePlate, @Param("status") SessionStatus status, Pageable pageable);
 
     @Query("SELECT p FROM ParkingSession p WHERE UPPER(p.finalPlate) LIKE UPPER(CONCAT('%', :licensePlate, '%')) AND p.vehicleType = :vehicleType")
-    Page<ParkingSession> findByFinalPlateContainingIgnoreCaseAndVehicleType(@Param("licensePlate") String licensePlate, @Param("vehicleType") String vehicleType, Pageable pageable);
+    Page<ParkingSession> findByFinalPlateContainingIgnoreCaseAndVehicleType(@Param("licensePlate") String licensePlate, @Param("vehicleType") VehicleTypeEnum vehicleType, Pageable pageable);
 
     @Query("SELECT p FROM ParkingSession p WHERE UPPER(p.finalPlate) LIKE UPPER(CONCAT('%', :licensePlate, '%')) AND p.vehicleType = :vehicleType AND p.status = :status")
-    Page<ParkingSession> findByFinalPlateContainingIgnoreCaseAndVehicleTypeAndStatus(@Param("licensePlate") String licensePlate, @Param("vehicleType") String vehicleType, @Param("status") SessionStatus status, Pageable pageable);
+    Page<ParkingSession> findByFinalPlateContainingIgnoreCaseAndVehicleTypeAndStatus(@Param("licensePlate") String licensePlate, @Param("vehicleType") VehicleTypeEnum vehicleType, @Param("status") SessionStatus status, Pageable pageable);
 
     long countByTimeInBetween(LocalDateTime startDate, LocalDateTime endDate);
 
