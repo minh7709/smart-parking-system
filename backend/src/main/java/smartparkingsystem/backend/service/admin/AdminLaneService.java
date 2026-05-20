@@ -82,15 +82,6 @@ public class AdminLaneService {
     public void deleteLane(UUID id) {
         Lane existing = laneRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Lane not found with id: " + id));
-        boolean hasActiveSessions;
-        if(existing.getLaneType() == LaneTypeEnum.IN){
-            hasActiveSessions = parkingSessionRepository.existsByEntryLaneAndStatus(existing, SessionStatus.PARKED);
-        } else {
-            hasActiveSessions = parkingSessionRepository.existsByExitLaneAndStatus(existing, SessionStatus.PARKED);
-        }
-        if (hasActiveSessions) {
-            throw new InvalidStateException("Cannot delete lane with active parking sessions. Please resolve them first.");
-        }
         existing.setDeleted(true);
         laneRepository.save(existing);
         log.info("Soft deleted lane with id: {}", id);

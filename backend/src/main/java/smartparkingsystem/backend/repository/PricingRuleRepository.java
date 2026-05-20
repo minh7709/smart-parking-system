@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import smartparkingsystem.backend.entity.PricingRule;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 

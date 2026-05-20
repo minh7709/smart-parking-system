@@ -22,6 +22,7 @@ import smartparkingsystem.backend.repository.PricingRuleRepository;
 import smartparkingsystem.backend.service.auth.UserService;
 import smartparkingsystem.backend.validation.pricingRule.PricingValidatorFactory;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -104,7 +105,8 @@ public class PricingRuleService {
 
         PricingRule pricingRule = pricingRuleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Pricing rule not found with id: " + id));
-
+        PricingRule existing = pricingRuleRepository.findByVehicleTypeAndActiveTrue(pricingRule.getVehicleType())
+                .orElse(null);
         return pricingRuleMapper.toResponse(pricingRule);
     }
 
