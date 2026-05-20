@@ -173,7 +173,7 @@ public class DataInitializer implements CommandLineRunner {
         // Seed sample Vehicles
         if (vehicleRepository.count() == 0) {
             Vehicle vehicle1 = Vehicle.builder()
-                    .licensePlate("29A-123.45")
+                    .licensePlate("29A12345")
                     .vehicleType(VehicleTypeEnum.CAR)
                     .brand("Toyota")
                     .customerName("Nguyen Van A")
@@ -183,7 +183,7 @@ public class DataInitializer implements CommandLineRunner {
             vehicleRepository.save(vehicle1);
 
             Vehicle vehicle2 = Vehicle.builder()
-                    .licensePlate("59P1-664.80")
+                    .licensePlate("59P166480")
                     .vehicleType(VehicleTypeEnum.MOTOR)
                     .brand("Honda")
                     .customerName("Le Thi B")
@@ -219,7 +219,7 @@ public class DataInitializer implements CommandLineRunner {
                         .vehicleType(VehicleTypeEnum.CAR)
                         .timeIn(LocalDateTime.now().minusHours(2))
                         .plateInOcr("29A12345")
-                        .finalPlate("29A-123.45")
+                        .finalPlate("29A12345")
                         .confidenceIn(0.95f)
                         .month(true)
                         .status(SessionStatus.PARKED)
@@ -235,7 +235,7 @@ public class DataInitializer implements CommandLineRunner {
                         .timeOut(LocalDateTime.now().minusHours(1))
                         .plateInOcr("59P166480")
                         .plateOutOcr("59P166480")
-                        .finalPlate("59P1-664.80")
+                        .finalPlate("59P166480")
                         .confidenceIn(0.98f)
                         .confidenceOut(0.97f)
                         .month(false)
