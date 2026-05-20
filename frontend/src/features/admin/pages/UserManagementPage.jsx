@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Table, Button, Space, Input, Modal, Form, Select, Tag, Popconfirm, Row, Col } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import { adminApi } from '../api/admin.api';
@@ -22,8 +22,8 @@ const UserManagementPage = () => {
     try {
       setLoading(true);
       const response = await adminApi.getUsers();
-      // Đảm bảo _data luôn là một mảng
-      const _data = Array.isArray(response?.content) ? response.content : (Array.isArray(response) ? response : []);
+      // ApiResponse trả về data là danh sách người dùng
+      const _data = Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []);
       setData(_data);
       setFilteredData(_data);
     } catch (error) {
@@ -33,7 +33,7 @@ const UserManagementPage = () => {
       setFilteredData([]);
     } finally {
       setLoading(false);
-    }
+    } 
   };
 
   useEffect(() => {
@@ -41,16 +41,24 @@ const UserManagementPage = () => {
   }, []);
 
   useEffect(() => {
-    // Local filtering when search fields change
+    const fullNameQuery =   searchFullName.trim();
+    const phoneQuery = searchPhone.trim();
+
+    if (fullNameQuery == '' && phoneQuery == '') {
+      setFilteredData(data);
+      return;
+    }
+
+    // Local filtering when at least one search field is provided
     let result = [...data];
-    if (searchFullName) {
+    if (fullNameQuery) {
       result = result.filter(item => 
-        item.fullName && item.fullName.toLowerCase().includes(searchFullName.toLowerCase())
+        item.fullName && item.fullName.toLowerCase().includes(fullNameQuery.toLowerCase())
       );
     }
-    if (searchPhone) {
+    if (phoneQuery) {
       result = result.filter(item => 
-        item.phone && item.phone.includes(searchPhone)
+        item.phone && item.phone.includes(phoneQuery)
       );
     }
     setFilteredData(result);
@@ -77,7 +85,6 @@ const UserManagementPage = () => {
       username: record.username,
       fullName: record.fullName,
       phone: record.phone,
-      role: record.role,
       status: record.status,
       // password will be left empty on edit unless modified
     });
@@ -100,6 +107,7 @@ const UserManagementPage = () => {
       const values = await form.validateFields();
       
       const payload = { ...values };
+      delete payload.confirm;
       
       if (isEditMode) {
         if (!payload.password) {
@@ -134,16 +142,6 @@ const UserManagementPage = () => {
       title: 'Số điện thoại',
       dataIndex: 'phone',
       key: 'phone',
-    },
-    {
-      title: 'Vai trò',
-      dataIndex: 'role',
-      key: 'role',
-      render: (role) => (
-        <Tag color={role === 'ADMIN' ? 'red' : 'blue'}>
-          {role === 'ADMIN' ? 'Quản trị viên' : 'Bảo vệ'}
-        </Tag>
-      ),
     },
     {
       title: 'Trạng thái',
@@ -254,42 +252,44 @@ const UserManagementPage = () => {
             <Input disabled={isEditMode} />
           </Form.Item>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="password"
-                label="Mật khẩu"
-                rules={[
-                  { required: !isEditMode, message: 'Vui lòng nhập mật khẩu!' },
-                  { min: 8, max: 100, message: 'Mật khẩu phải từ 8 đến 100 ký tự' }
-                ]}
-                hasFeedback
-              >
-                <Input.Password placeholder={isEditMode ? "Để trống nếu không đổi" : ""} />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="confirm"
-                label="Xác nhận mật khẩu"
-                dependencies={['password']}
-                hasFeedback
-                rules={[
-                  { required: !isEditMode, message: 'Vui lòng xác nhận mật khẩu!' },
-                  ({ getFieldValue }) => ({
-                    validator(_, value) {
-                      if (!value || getFieldValue('password') === value) {
-                        return Promise.resolve();
-                      }
-                      return Promise.reject(new Error('Mật khẩu xác nhận không khớp!'));
-                    },
-                  }),
-                ]}
-              >
-                <Input.Password placeholder="Nhập lại mật khẩu" />
-              </Form.Item>
-            </Col>
-          </Row>
+          {!isEditMode && (
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  name="password"
+                  label="Mật khẩu"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập mật khẩu!' },
+                    { min: 8, max: 100, message: 'Mật khẩu phải từ 8 đến 100 ký tự' }
+                  ]}
+                  hasFeedback
+                >
+                  <Input.Password />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="confirm"
+                  label="Xác nhận mật khẩu"
+                  dependencies={['password']}
+                  hasFeedback
+                  rules={[
+                    { required: true, message: 'Vui lòng xác nhận mật khẩu!' },
+                    ({ getFieldValue }) => ({
+                      validator(_, value) {
+                        if (!value || getFieldValue('password') === value) {
+                          return Promise.resolve();
+                        }
+                        return Promise.reject(new Error('Mật khẩu xác nhận không khớp!'));
+                      },
+                    }),
+                  ]}
+                >
+                  <Input.Password placeholder="Nhập lại mật khẩu" />
+                </Form.Item>
+              </Col>
+            </Row>
+          )}
 
           <Form.Item
             name="fullName"
@@ -314,18 +314,6 @@ const UserManagementPage = () => {
           </Form.Item>
 
           <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="role"
-                label="Vai trò"
-                rules={[{ required: true, message: 'Vui lòng chọn vai trò!' }]}
-              >
-                <Select>
-                  <Select.Option value="GUARD">Bảo vệ</Select.Option>
-                  <Select.Option value="ADMIN">Quản trị viên</Select.Option>
-                </Select>
-              </Form.Item>
-            </Col>
             <Col span={12}>
               <Form.Item
                 name="status"

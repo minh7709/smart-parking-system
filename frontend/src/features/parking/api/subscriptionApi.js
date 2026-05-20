@@ -17,6 +17,14 @@ export const deleteSubscriptionApi = async (id) => {
   return await axiosClient.delete(API_ENDPOINTS.guard.subscriptions.byId(id));
 };
 
+export const confirmAdminSubscriptionApi = async (id, newStatus) => {
+  return await axiosClient.put(
+    API_ENDPOINTS.admin.subscriptions.confirm(id),
+    null,
+    { params: { newStatus } }
+  );
+};
+
 export const getSubscriptionByIdApi = async (id) => {
   return await axiosClient.get(API_ENDPOINTS.guard.subscriptions.byId(id));
 };

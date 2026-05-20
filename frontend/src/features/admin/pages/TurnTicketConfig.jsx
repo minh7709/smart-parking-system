@@ -124,18 +124,25 @@ const PricingRuleConfig = () => {
     }
   };
 
+  const getEnumLabel = (value) => {
+    if (value && typeof value === "object") {
+      return value.label ?? value.value ?? "";
+    }
+    return value ?? "";
+  };
+
   const handleToggleActive = async (record) => {
     try {
       setActivatingId(record.id);
-      await adminApi.updatePricingRule(record.id, {
-        ...record,
-        isActive: !record.isActive,
-      });
-      notify.success(
-        !record.isActive
-          ? `Đã kích hoạt "${record.ruleName}"!`
-          : `Đã vô hiệu hóa "${record.ruleName}"!`,
-      );
+      if (record.isActive) {
+        notify.warning(
+          "Không thể tắt thủ công cấu hình đang hoạt động. Hãy kích hoạt một cấu hình khác để thay thế.",
+        );
+        return;
+      }
+
+      await adminApi.activatePricingRule(record.id);
+      notify.success(`Đã kích hoạt "${record.ruleName}"!`);
       fetchRules();
     } catch (error) {
       console.error("Toggle active error:", error);
@@ -160,12 +167,15 @@ const PricingRuleConfig = () => {
     {
       title: "Chiến thuật",
       dataIndex: "pricingStrategy",
-      render: (s) => <Tag color={s === "FLAT_RATE" ? "blue" : "cyan"}>{s}</Tag>,
+      render: (s) => {
+        const label = getEnumLabel(s);
+        return <Tag color={label === "FLAT_RATE" ? "blue" : "cyan"}>{label}</Tag>;
+      },
     },
     {
       title: "Loại xe",
       dataIndex: "vehicleType",
-      render: (t) => <Tag>{t}</Tag>,
+      render: (t) => <Tag>{getEnumLabel(t)}</Tag>,
     },
     {
       title: "Giá/Phí phạt",
@@ -213,10 +223,13 @@ const PricingRuleConfig = () => {
             type={record.isActive ? "primary" : "default"}
             loading={activatingId === record.id}
             onClick={() => handleToggleActive(record)}
-            icon={record.isActive ? <CheckCircleFilled /> : <StopOutlined />}
             style={{
-              borderColor: record.isActive ? undefined : "#d9d9d9",
-              color: record.isActive ? undefined : "#8c8c8c",
+              borderColor: record.isActive ? "#16a34a" : "#dc2626",
+              color: record.isActive ? "#ffffff" : "#ffffff",
+              backgroundColor: record.isActive ? "#16a34a" : "#dc2626",
+              fontWeight: 600,
+              letterSpacing: "0.2px",
+              borderRadius: 8,
               minWidth: 130,
               transition: "all 0.3s ease",
             }}

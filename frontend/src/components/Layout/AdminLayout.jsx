@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Menu, Input, Avatar, Badge, Dropdown, message } from "antd";
+import { Layout, Menu, Input, Avatar, Badge, Dropdown } from "antd";
 import {
   BarChartOutlined,
   IdcardOutlined,
   UserOutlined,
   TeamOutlined,
   CarOutlined,
+  AlertOutlined,
+  ApartmentOutlined,
   LogoutOutlined,
   BellOutlined,
-  SettingOutlined,
   SearchOutlined,
   InfoCircleOutlined,
   LockOutlined,
@@ -93,7 +94,10 @@ export const AdminLayout = () => {
           onClick={(e) => {
             if (e.key === "1") navigate("/admin/dashboard");
             if (e.key === "2") navigate("/admin/turn-tickets");
+            if (e.key === "3") navigate("/admin/register");
             if (e.key === "4") navigate("/admin/users");
+            if (e.key === "5") navigate("/admin/incidents");
+            if (e.key === "6") navigate("/admin/lanes");
           }}
           items={[
             {
@@ -102,9 +106,10 @@ export const AdminLayout = () => {
               label: "Thống kê doanh thu",
             },
             { key: "2", icon: <IdcardOutlined />, label: "Cấu hình vé" },
-            { key: "3", icon: <UserOutlined />, label: "Danh sách khách hàng" },
+            { key: "3", icon: <CarOutlined />, label: "Quản lý vé đăng ký" },
             { key: "4", icon: <TeamOutlined />, label: "Quản lý nhân sự" },
-            { key: "5", icon: <CarOutlined />, label: "Quản lý xe" },
+            { key: "5", icon: <AlertOutlined />, label: "Báo cáo sự cố" },
+            { key: "6", icon: <ApartmentOutlined />, label: "Quản lý làn" },
           ]}
         />
       </Sider>
@@ -121,7 +126,7 @@ export const AdminLayout = () => {
             borderBottom: "1px solid #f0f0f0",
           }}
         >
-          <h2 style={{ margin: 0, fontSize: "18px" }}>Thống kê</h2>
+          <h2 style={{ margin: 0, fontSize: "18px" }}>Quan tri</h2>
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
             <Input
               placeholder="Tìm kiếm..."
