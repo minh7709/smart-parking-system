@@ -1,6 +1,8 @@
 package smartparkingsystem.backend.mapper;
 
 import org.springframework.stereotype.Component;
+import smartparkingsystem.backend.dto.request.parkingSessionRequest.CheckInRequest;
+import smartparkingsystem.backend.dto.request.parkingSessionRequest.CheckOutRequest;
 import smartparkingsystem.backend.dto.request.parkingSessionRequest.ConfirmCheckInRequest;
 import smartparkingsystem.backend.dto.response.parkingSession.CheckInResponse;
 import smartparkingsystem.backend.dto.response.parkingSession.CheckOutResponse;
@@ -32,6 +34,17 @@ public class ParkingSessionMapper {
                 .build();
     }
 
+    public void updateEntityForCheckOut(ParkingSession session, Lane lane, String imageUrl, float confidenceOrRandom, String plateOutOcr) {
+        if (session == null) {
+            return;
+        }
+        session.setTimeOut(LocalDateTime.now());
+        session.setExitLane(lane);
+        session.setPlateOutOcr(plateOutOcr);
+        session.setConfidenceOut(confidenceOrRandom);
+        session.setImageOutUrl(imageUrl);
+    }
+
     public CheckInResponse toCheckInResponse(String plateInOrc, String imageUrl, float confidenceIn, VehicleTypeEnum vehicleType) {
         if (plateInOrc == null || imageUrl == null || vehicleType == null || confidenceIn < 0 || confidenceIn > 1) {
             return null;
@@ -47,7 +60,7 @@ public class ParkingSessionMapper {
 
     }
 
-    public CheckOutResponse toCheckOutResponse(ParkingSession session, BigInteger fee) {
+    public CheckOutResponse toCheckOutResponse(ParkingSession session, BigInteger parkingAmount, BigInteger penaltyAmount) {
         if (session == null) {
             return null;
         }
@@ -59,7 +72,8 @@ public class ParkingSessionMapper {
                 .timeIn(session.getTimeIn())
                 .timeOut(session.getTimeOut())
                 .status(session.getStatus())
-                .fee(fee)
+                .parkingAmount(parkingAmount)
+                .penaltyAmount(penaltyAmount)
                 .isMonth(session.isMonth())
                 .vehicleType(session.getVehicleType())
                 .build();

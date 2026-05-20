@@ -1,20 +1,17 @@
-import React, { useRef, useState } from "react";
-import { Card, Button, Space, Tooltip, Spin, Select } from "antd";
+import React, { useMemo, useRef, useState } from "react";
+import { Card, Button, Space, Tooltip, Spin, Select, Input, Modal, Upload } from "antd";
 import {
   CameraOutlined,
   ZoomInOutlined,
-  SettingOutlined,
-  ExpandOutlined,
 } from "@ant-design/icons";
-import { checkInApi, checkOutApi } from "../api/parkingSession.api";
+import { checkInApi, checkOutApi, reportIncidentApi, reportLostCardApi } from "../api/parkingSession.api";
 import {
   getAccessToken,
   getActiveParkingSessionId,
-  saveActiveParkingSessionId,
-  clearActiveParkingSessionId,
+  getSystemTypes
 } from "../../../utils/storage";
 import { useNotification } from "../../../hooks/useNotification";
-import ConfirmModal from "./ConfirmModal";
+
 
 const CameraCard = ({
   title,
@@ -27,13 +24,51 @@ const CameraCard = ({
   const notify = useNotification();
   const imgRef = useRef(null);
   const [loading, setLoading] = useState(false);
-  const [detectedPlate, setDetectedPlate] = useState(null);
   const [imgError, setImgError] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [localVehicleType, setLocalVehicleType] = useState(vehicleType || "MOTOR");
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [modalData, setModalData] = useState(null);
+  const [exitSessionId, setExitSessionId] = useState("");
+  const [incidentType, setIncidentType] = useState("");
+  const [incidentModalOpen, setIncidentModalOpen] = useState(false);
+  const [incidentDescription, setIncidentDescription] = useState("");
+  const [incidentSubmitting, setIncidentSubmitting] = useState(false);
+  const [incidentEvidenceFile, setIncidentEvidenceFile] = useState(null);
   const themeColor = "#141414";
+
+  const vehicleTypeOptions = useMemo(() => {
+    const { vehicleTypes } = getSystemTypes();
+    if (Array.isArray(vehicleTypes) && vehicleTypes.length > 0) {
+      return vehicleTypes.map((item) => {
+        const value = String(item.value || "").toUpperCase();
+        const label = item.label || "Unknown";
+        return { label, value };
+      }).filter((option) => option.value);
+    }
+
+    return [
+      { label: "Xe máy", value: "MOTOR" },
+      { label: "Ô tô", value: "CAR" },
+      { label: "Xe đạp", value: "BICYCLE" },
+    ];
+  }, []);
+  const incidentTypeOptions = useMemo(() => {
+    const { incidentTypes } = getSystemTypes();
+    if (Array.isArray(incidentTypes) && incidentTypes.length > 0) {
+      return incidentTypes.map((item) => {
+        const value = String(item.value || "").toUpperCase();
+        const label = item.label || "Unknown";
+        return { label, value };
+      }).filter((option) => option.value);
+    }
+
+    return [
+      { label: "Mất thẻ", value: "LOST_CARD" },
+      { label: "Va chạm", value: "DAMAGE" },
+      { label: "Lỗi hệ thống", value: "SYSTEM_ERROR" },
+      { label: "Chụp sai biển số", value: "WRONG_PLATE" },
+      { label: "Khác", value: "OTHER" },
+    ];
+  }, []);
   const normalizeUuid = (value) => {
     if (!value) {
       return "";
@@ -65,11 +100,11 @@ const CameraCard = ({
     };
   };
 
-  const handleCaptureAndSend = async () => {
+  const captureImageFile = async () => {
     const img = imgRef.current;
     if (!img || !img.complete || img.naturalWidth === 0) {
       notify.error("Hình ảnh chưa sẵn sàng");
-      return;
+      return null;
     }
 
     const canvas = document.createElement("canvas");
@@ -83,11 +118,19 @@ const CameraCard = ({
     );
     if (!blob) {
       notify.error("Không thể chụp ảnh");
-      return;
+      return null;
     }
-    const file = new File([blob], `capture_${Date.now()}.jpg`, {
+
+    return new File([blob], `capture_${Date.now()}.jpg`, {
       type: "image/jpeg",
     });
+  };
+
+  const handleCaptureAndSend = async () => {
+    const file = await captureImageFile();
+    if (!file) {
+      return;
+    }
 
     setLoading(true);
     try {
@@ -106,16 +149,21 @@ const CameraCard = ({
         return;
       }
 
+      const normalizedSessionId =
+        type === "OUT"
+          ? normalizeUuid(exitSessionId) || normalizeUuid(getActiveParkingSessionId())
+          : "";
+
       const requestPayload =
         type === "IN"
           ? {
-            entryLaneId: normalizedLaneId,
-            vehicleType: normalizedVehicleType,
-          }
+              entryLaneId: normalizedLaneId,
+              vehicleType: normalizedVehicleType,
+            }
           : {
-            exitLaneId: normalizedLaneId,
-            parkingSessionId: normalizeUuid(getActiveParkingSessionId()),
-          };
+              exitLaneId: normalizedLaneId,
+              parkingSessionId: normalizedSessionId,
+            };
 
       if (type === "OUT" && !requestPayload.parkingSessionId) {
         notify.error("Thiếu parkingSessionId. Hãy check-in thành công trước khi check-out.");
@@ -141,15 +189,12 @@ const CameraCard = ({
 
       // Trong handleCaptureAndSend, sau response thành công
       if (response?.success) {
-        const plate = response?.data?.plateInOcr || "Đã nhận diện";
-        setDetectedPlate(plate);
-
-        // Truyền toàn bộ data từ response + entryLaneId
-        setModalData({
-          ...response.data,   // plateInOcr, imageInUrl, timeIn, confidenceIn, vehicleType
-          entryLaneId: normalizedLaneId,
-        });
-        setShowConfirmModal(true);
+        if (onSuccess) {
+          onSuccess({
+            ...response.data,
+            entryLaneId: normalizedLaneId,
+          });
+        }
       } else {
         notify.error(response?.message || "Lỗi từ server");
       }
@@ -161,66 +206,146 @@ const CameraCard = ({
     }
   };
 
-  const handleModalConfirmed = (confirmedData) => {
-    if (confirmedData?.id) {
-      saveActiveParkingSessionId(confirmedData.id);
-    }
-
-    const plate = confirmedData?.finalPlate || confirmedData?.plateNumber || "Da nhan dien";
-    notify.success(
-      `Biển số xe: ${plate}`,
-      "Check-in Thành Công"
-    );
-    setShowConfirmModal(false);
-    setModalData(null);
-
-    if (onSuccess) {
-      onSuccess(confirmedData);
+  const handleIncidentTypeChange = (value) => {
+    setIncidentType(value || "");
+    if (value) {
+      setIncidentModalOpen(true);
     }
   };
 
-  const handleModalCancel = () => {
-    setShowConfirmModal(false);
-    setModalData(null);
+  const handleEvidenceChange = (info) => {
+    const file = info?.file?.originFileObj || info?.file || null;
+    setIncidentEvidenceFile(file || null);
+  };
+
+  const handleReportIncident = async () => {
+    if (!incidentType) {
+      notify.error("Vui lòng chọn loại sự cố.");
+      return;
+    }
+
+    if (!incidentEvidenceFile) {
+      notify.error("Vui lòng tải ảnh bằng chứng.");
+      return;
+    }
+
+    const normalizedSessionId = normalizeUuid(exitSessionId) || normalizeUuid(getActiveParkingSessionId());
+    const normalizedLaneId = normalizeUuid(laneId);
+
+    setIncidentSubmitting(true);
+    try {
+      const formData = new FormData();
+      const incidentCode = String(incidentType).toUpperCase().trim();
+
+      if (incidentCode === "LOST_CARD") {
+        if (!normalizedLaneId) {
+          notify.error("Thiếu laneId. Vui lòng chọn lại lane.");
+          return;
+        }
+        const file = await captureImageFile();
+        if (!file) {
+          return;
+        }
+        const requestPayload = {
+          exitLaneId: normalizedLaneId,
+          description: incidentDescription || "",
+        };
+        formData.append(
+          "request",
+          new Blob([JSON.stringify(requestPayload)], {
+            type: "application/json;charset=UTF-8",
+          }),
+          "request.json",
+        );
+        formData.append("image", file);
+        formData.append("evidenceImage", incidentEvidenceFile);
+      } else {
+        if (!normalizedSessionId) {
+          notify.error("Thiếu parkingSessionId. Hãy nhập hoặc check-in trước.");
+          return;
+        }
+        const requestPayload = {
+          parkingSessionId: normalizedSessionId,
+          description: incidentDescription || "",
+          incidentType: incidentCode,
+        };
+        formData.append(
+          "request",
+          new Blob([JSON.stringify(requestPayload)], {
+            type: "application/json;charset=UTF-8",
+          }),
+          "request.json",
+        );
+        formData.append("evidenceImage", incidentEvidenceFile);
+      }
+
+      const response =
+        incidentCode === "LOST_CARD"
+          ? await reportLostCardApi(formData, buildAuthRequestOptions())
+          : await reportIncidentApi(formData, buildAuthRequestOptions());
+      if (response?.success) {
+        notify.success("Báo sự cố thành công");
+        setIncidentModalOpen(false);
+        setIncidentDescription("");
+        setIncidentType("");
+        setIncidentEvidenceFile(null);
+      } else {
+        notify.error(response?.message || "Lỗi từ server");
+      }
+    } catch (error) {
+      console.error(error);
+      notify.apiError(error, "Báo sự cố thất bại");
+    } finally {
+      setIncidentSubmitting(false);
+    }
   };
 
   return (
     <>
-      <ConfirmModal
-        visible={showConfirmModal}
-        initialData={modalData}
-        onCancel={handleModalCancel}
-        onConfirmed={handleModalConfirmed}
-      />
+      <div style={{ marginLeft: 10, marginBottom: 10}}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              background: themeColor,
+              boxShadow: `0 0 8px ${themeColor}`,
+            }}
+          />
+          <span style={{ color: "#1700c3", fontWeight: 800, letterSpacing: 1 }}>{title}</span>
+        </div>
+      </div>
       <Card
-        title={
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                background: themeColor,
-                boxShadow: `0 0 8px ${themeColor}`,
-              }}
-            />
-            <span style={{ color: "#141414", fontWeight: 600, letterSpacing: 1 }}>{title}</span>
-          </div>
-        }
         extra={
           <Space size="small">
             {type === "IN" && (
               <Select
                 value={localVehicleType}
                 onChange={setLocalVehicleType}
-                options={[
-                  { label: "Xe máy", value: "MOTOR" },
-                  { label: "Ô tô", value: "CAR" },
-                  { label: "Xe đạp", value: "BICYCLE" },
-                ]}
+                options={vehicleTypeOptions}
                 style={{ width: 100 }}
               />
             )}
+            {type === "OUT" && (
+              <Select
+                value={incidentType || undefined}
+                onChange={handleIncidentTypeChange}
+                options={incidentTypeOptions}
+                placeholder="Báo sự cố"
+                allowClear
+                style={{ width: 160 }}
+              />
+            )}
+            {type === "OUT" && (
+              <Input
+                value={exitSessionId}
+                onChange={(event) => setExitSessionId(event.target.value)}
+                placeholder="Parking session ID"
+                style={{ width: 300 }}
+              />
+            )}
+            
             <Tooltip title="Chụp và gửi" color="#141414" overlayStyle={{ color: "#fff" }}>
               <Button
                 type="primary"
@@ -277,9 +402,9 @@ const CameraCard = ({
               }}
             >
               <span>
-                Khong the ket noi camera.
+                Không thể kết nối camera.
                 <br />
-                Kiem tra IP DroidCam
+                Vui lòng kiểm tra lại IP của lane.
               </span>
             </div>
           ) : (
@@ -337,6 +462,53 @@ const CameraCard = ({
           )}
         </div>
       </Card>
+      <Modal
+        title="Báo sự cố"
+        open={incidentModalOpen}
+        onCancel={() => setIncidentModalOpen(false)}
+        onOk={handleReportIncident}
+        okText="Gửi"
+        cancelText="Hủy"
+        okButtonProps={{ loading: incidentSubmitting }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
+              Parking session ID
+            </div>
+            <Input
+              value={exitSessionId}
+              onChange={(event) => setExitSessionId(event.target.value)}
+              placeholder="Parking session ID"
+            />
+          </div>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
+              Mô tả
+            </div>
+            <Input.TextArea
+              value={incidentDescription}
+              onChange={(event) => setIncidentDescription(event.target.value)}
+              placeholder="Mô tả chi tiết về sự cố (không bắt buộc)"
+              rows={4}
+            />
+          </div>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
+              Ảnh bằng chứng
+            </div>
+            <Upload
+              accept="image/*"
+              maxCount={1}
+              beforeUpload={() => false}
+              onChange={handleEvidenceChange}
+              onRemove={() => setIncidentEvidenceFile(null)}
+            >
+              <Button>Chọn ảnh</Button>
+            </Upload>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 };

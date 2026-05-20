@@ -23,7 +23,9 @@ export const API_ENDPOINTS = {
 			reportLostCard: "/v1/guard/parking-session/report-incident/lost-card",
 			reportIncident: "/v1/guard/parking-session/report-incident",
 			countParking: "/v1/guard/parking-session/count",
-			imageById: (id, type) => `/v1/guard/parking-session/${id}/image?type=${type}`
+			byLicensePlate: (licensePlate) => `/v1/guard/parking-session/${licensePlate}`,
+			imageById: (id, type) => `/v1/guard/parking-session/${id}/image?type=${type}`,
+			imageByUrl: (imageUrl) => `/v1/guard/parking-session/image/by-url?imageUrl=${encodeURIComponent(imageUrl)}`
 		},
 
 		subscriptions: {

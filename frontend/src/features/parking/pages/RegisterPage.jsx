@@ -145,9 +145,7 @@ const RegisterPage = () => {
         const payload = {
           licensePlate: allValues.licensePlate,
           subType: allValues.subType,
-          subStatus: allValues.subStatus,
           startDate: allValues.startDate ? allValues.startDate.format("YYYY-MM-DDTHH:mm:ss") : null,
-          endDate: allValues.endDate ? allValues.endDate.format("YYYY-MM-DDTHH:mm:ss") : null,
           paymentMethod: allValues.paymentMethod ?? "CASH",
         };
 
@@ -348,18 +346,6 @@ const RegisterPage = () => {
             {/* Cập nhật: hiển thị trạng thái, ngày kết thúc, giá tiền */}
             {editingId && (
               <>
-                <Col span={12}>
-                  <Form.Item label="Trạng thái" name="subStatus" rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}>
-                    <Select placeholder="Chọn trạng thái">
-                      {subStatuses.map((s) => <Option key={s.value ?? s} value={s.value ?? s}>{s.label ?? s}</Option>)}
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item label="Ngày kết thúc" name="endDate" rules={[{ required: true, message: "Vui lòng chọn ngày kết thúc!" }]}>
-                    <DatePicker style={{ width: "100%" }} format="YYYY-MM-DD HH:mm:ss" showTime />
-                  </Form.Item>
-                </Col>
                 <Col span={12}>
                   <Form.Item label="Giá tiền (VNĐ)" name="price">
                     <Input type="number" placeholder="VD: 150000" disabled />

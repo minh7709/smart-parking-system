@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { Card, Table, Input, Spin, Row, Col, Button, Modal, Image } from "antd";
+import React, { useState, useEffect } from "react";
+import { Card, Table, Input, Spin, Select, Row, Col, Modal, Image } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
-import {
-  getParkingSessionsByLicensePlateApi,
-  getParkingSessionImageApi,
-} from "../api/parkingSession.api";
+import { getParkingSessionsApi, getParkingSessionImageApi } from "../api/parkingSession.api";
 import { useNotification } from "../../../hooks/useNotification";
+import { countParkingSessionsApi } from "../api/parkingSession.api";
+import { getVehicleTypesApi } from "../api/vehicleApi";
+import { getSystemTypes } from "../../../utils/storage";
 
 const styles = {
   card: {
@@ -23,62 +23,74 @@ const styles = {
     color: "#141414",
     borderRadius: 8,
   },
+  selectInCard: {
+    background: "#ffffff",
+    borderRadius: 8,
+    color: "#141414",
+  },
+  placeholderColor: "#808080",
 };
 
-const HistoryTable = () => {
+const ParkedTable = React.forwardRef(({ refreshTrigger }, ref) => {
   const notify = useNotification();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const [activePlate, setActivePlate] = useState("");
+  const [debouncedSearchText, setDebouncedSearchText] = useState(""); // Lưu text sau khi debounce
+  const [vehicleTypeFilter, setVehicleTypeFilter] = useState(null);
+  const [parkedCount, setParkedCount] = useState(0);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
   const [imageInSrc, setImageInSrc] = useState(null);
   const [imageOutSrc, setImageOutSrc] = useState(null);
   const [imageLoading, setImageLoading] = useState(false);
+  const { vehicleTypes, sessionStatuses } = getSystemTypes();
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchText(searchText);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchText]);
 
   const formatDateTime = (dateString) => {
     if (!dateString) return "N/A";
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) {
-        const timestamp = parseInt(dateString, 10);
+        const timestamp = parseInt(dateString);
         if (!isNaN(timestamp)) {
           const parsedDate = new Date(timestamp);
-          return (
-            parsedDate.toLocaleDateString("vi-VN") +
-            " " +
-            parsedDate.toLocaleTimeString("vi-VN")
-          );
+          return parsedDate.toLocaleDateString("vi-VN") + " " + parsedDate.toLocaleTimeString("vi-VN");
         }
         return "N/A";
       }
-      return (
-        date.toLocaleDateString("vi-VN") +
-        " " +
-        date.toLocaleTimeString("vi-VN")
-      );
+      return date.toLocaleDateString("vi-VN") + " " + date.toLocaleTimeString("vi-VN");
     } catch (error) {
       notify.apiError(error, "Lỗi định dạng ngày tháng");
       return "N/A";
     }
   };
 
-  const fetchHistory = async (plate) => {
-    const normalizedPlate = plate?.trim();
-    if (!normalizedPlate) {
-      notify.error("Vui lòng nhập biển số xe.");
-      return;
-    }
-
-    setLoading(true);
+  // 2. Fetch API kết hợp các query param từ filter/search
+  // Thêm cờ 'silent' để không hiện vòng xoay loading khi đang auto-refresh ngầm
+  const fetchParkingSessions = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
-      const response = await getParkingSessionsByLicensePlateApi(normalizedPlate, {
+      // Chuẩn bị params gọi xuống backend
+      const params = {
         page: pagination.current - 1,
         size: pagination.pageSize,
         sort: "createdAt,desc",
-      });
+        status: "PARKED"
+      };
+
+      // Backend (ví dụ Spring Boot) cần hỗ trợ nhận các tham số này
+      if (debouncedSearchText) params.licensePlate = debouncedSearchText;
+      if (vehicleTypeFilter) params.vehicleType = vehicleTypeFilter;
+
+      const response = await getParkingSessionsApi(params);
 
       if (response?.data?.content) {
         const formattedData = response.data.content.map((session, index) => ({
@@ -88,8 +100,6 @@ const HistoryTable = () => {
           month: session.month != null ? (session.month ? "Có" : "Không") : "N/A",
           plateInOcr: session.plateInOcr || "N/A",
           finalPlate: session.finalPlate || "N/A",
-          plateOutOcr: session.plateOutOcr || "N/A",
-          status: session.status || "N/A",
           fullData: session,
         }));
         setData(formattedData);
@@ -97,20 +107,68 @@ const HistoryTable = () => {
           ...prev,
           total: response.data.totalElements ?? response.data.total ?? prev.total,
         }));
-      } else {
-        setData([]);
       }
     } catch (error) {
       notify.apiError(error, "Lỗi tải dữ liệu");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
+    }
+  };
+
+  const fetchTotalParkingSessions = async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      const response = await countParkingSessionsApi({ status: "PARKED" });
+      if (response?.data) {
+        setParkedCount(response.data);
+      }
+    } catch (error) {
+      notify.apiError(error, "Lỗi tải dữ liệu");
+    } finally {
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (!activePlate) return;
-    fetchHistory(activePlate);
-  }, [activePlate, pagination.current, pagination.pageSize]);
+    fetchTotalParkingSessions();
+  }, []);
+
+  // 3. Gọi API khi filter hoặc text search (đã debounce) thay đổi
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, current: 1 }));
+  }, [debouncedSearchText, vehicleTypeFilter]);
+
+  useEffect(() => {
+    fetchParkingSessions();
+  }, [debouncedSearchText, vehicleTypeFilter, pagination.current, pagination.pageSize]);
+
+  // Hỗ trợ refresh từ component cha
+  useEffect(() => {
+    if (refreshTrigger) {
+      fetchTotalParkingSessions();
+      fetchParkingSessions();
+    }
+  }, [refreshTrigger]);
+
+  React.useImperativeHandle(ref, () => ({
+    refresh: fetchParkingSessions,
+  }));
+
+  // 4. Cơ chế Polling cho Real-time (Làm mới ngầm mỗi 3 giây)
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      fetchTotalParkingSessions(true);
+      fetchParkingSessions(true); // Gửi cờ silent = true
+
+    }, 3000);
+
+    return () => clearInterval(intervalId); // Clear interval khi component unmount hoặc state đổi
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearchText, vehicleTypeFilter, pagination.current, pagination.pageSize]);
+
+  const handleSearch = (value) => {
+    setSearchText(value);
+  };
 
   const handleRowClick = (record) => {
     setSelectedSession(record.fullData);
@@ -137,7 +195,7 @@ const HistoryTable = () => {
       setImageOutSrc(null);
 
       try {
-        if (selectedSession.status?.value === "PARKED") {
+        if (selectedSession.status?.value === 'PARKED') {
           const inBlob = await getParkingSessionImageApi(selectedSession.id, "in");
           inUrl = URL.createObjectURL(inBlob);
           if (isActive) setImageInSrc(inUrl);
@@ -168,6 +226,7 @@ const HistoryTable = () => {
       if (outUrl) URL.revokeObjectURL(outUrl);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [imageModalOpen, selectedSession?.id, selectedSession?.status?.value]);
 
   const columns = [
@@ -175,35 +234,34 @@ const HistoryTable = () => {
     {
       title: "Loại xe",
       dataIndex: "vehicleType",
-      render: (vehicleType) => vehicleType?.label || "N/A",
+      render: (vehicleType) => vehicleType?.label || "N/A"
     },
     { title: "Đăng ký", dataIndex: "month" },
     { title: "Biển số vào", dataIndex: "plateInOcr" },
     { title: "Biển số thực tế", dataIndex: "finalPlate" },
-    { title: "Biển số ra", dataIndex: "plateOutOcr" },
-    { title: "Trạng thái", dataIndex: "status", render: (status) => status?.label || "N/A" },
   ];
 
   return (
     <>
       <style>{`
-        .history-table-search input::placeholder { color: #808080 !important; opacity: 1 !important; display: block !important; }
-        .history-table-wrapper :where(.ant-table, .ant-table-container, th, td) { background: #fff !important; color: #141414 !important; border-bottom: 2px solid #d1d5db !important; }
-        .history-table-wrapper th { font-weight: bold; background: #f9fafb !important; color: #1d4ed8 !important; }
-        .history-table-wrapper tr:hover>td { background: #f5f5f5 !important; }
-        .history-table-wrapper .ant-empty-description { color: #141414 !important; }
+        .parked-table-search input::placeholder, .parked-table-search .ant-select-selection-placeholder { color: #808080 !important; opacity: 1 !important; display: block !important; }
+        .parked-table-search .ant-select-selector { background: #fff !important; border-color: #d9d9d9 !important; }
+        .parked-table-search .ant-select-selection-item, .parked-table-search .ant-select-arrow { color: #141414 !important; }
+        .parked-table-wrapper :where(.ant-table, .ant-table-container, th, td) { background: #fff !important; color: #141414 !important; border-bottom: 2px solid #d1d5db !important; }
+        .parked-table-wrapper th { font-weight: bold; background: #f9fafb !important; color: #1d4ed8 !important; }
+        .parked-table-wrapper tr:hover>td { background: #f5f5f5 !important; }
+        .parked-table-wrapper .ant-empty-description { color: #141414 !important; }
       `}</style>
       <Card
-        title="Lịch sử phiên gửi xe"
-        style={styles.card}
+        title="Danh sách xe đang đỗ" extra={<span style={{ color: "#1677ff", fontWeight: "bold", fontSize: 16 }}>Hiện đang đỗ: {parkedCount}</span>} style={styles.card}
         styles={{
           header: styles.cardHead,
         }}
       >
         <Row gutter={12} style={{ marginBottom: 16 }}>
-          <Col flex="auto" className="history-table-search">
+          <Col flex="auto" className="parked-table-search">
             <Input
-              placeholder="Nhập biển số đầy đủ..."
+              placeholder="Tìm biển số..."
               prefix={<SearchOutlined style={{ color: "#141414" }} />}
               style={styles.searchInCard}
               styles={{
@@ -211,28 +269,23 @@ const HistoryTable = () => {
                 textarea: { color: "#141414" },
               }}
               value={searchText}
-              onChange={(event) => setSearchText(event.target.value)}
+              onChange={(e) => handleSearch(e.target.value)}
             />
           </Col>
-          <Col>
-            <Button
-              type="primary"
-              onClick={() => {
-                const plate = searchText.trim();
-                if (!plate) {
-                  notify.error("Vui lòng nhập biển số xe.");
-                  return;
-                }
-                setActivePlate(plate);
-                setPagination((prev) => ({ ...prev, current: 1 }));
-              }}
-            >
-              Tìm
-            </Button>
+          <Col style={{ width: 150 }} className="parked-table-search">
+            <Select
+              placeholder={<span style={{ color: "#141414" }}>Loại xe</span>}
+              allowClear
+              style={{ width: "100%", ...styles.selectInCard }}
+              value={vehicleTypeFilter}
+              onChange={(value) => setVehicleTypeFilter(value)}
+              options={vehicleTypes}
+            />
           </Col>
         </Row>
-        <div className="history-table-wrapper">
+        <div className="parked-table-wrapper">
           <Spin spinning={loading}>
+            {/* Truyền trực tiếp state data thay vì filteredData */}
             <Table
               columns={columns}
               dataSource={data}
@@ -287,6 +340,8 @@ const HistoryTable = () => {
       </Modal>
     </>
   );
-};
+});
 
-export default HistoryTable;
+ParkedTable.displayName = 'ParkedTable';
+
+export default ParkedTable;

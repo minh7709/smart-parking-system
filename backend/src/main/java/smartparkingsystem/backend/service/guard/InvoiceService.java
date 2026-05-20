@@ -47,7 +47,8 @@ public class InvoiceService {
         return invoiceRepository.save(invoice);
     }
 
-    public Invoice updateInvoiceAmount(Invoice invoice, BigInteger parkingAmount, BigInteger penaltyAmount) {
+    public Invoice updateInvoiceAmount(Invoice invoice, BigInteger parkingAmount, BigInteger penaltyAmount, BigInteger subscriptionAmount) {
+        invoice.setSubscriptionAmount(subscriptionAmount);
         invoice.setParkingAmount(parkingAmount);
         invoice.setPenaltyAmount(penaltyAmount);
         invoice.setTotalAmount(parkingAmount.add(penaltyAmount));

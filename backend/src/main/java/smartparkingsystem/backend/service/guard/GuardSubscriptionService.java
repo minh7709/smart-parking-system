@@ -100,18 +100,18 @@ public class GuardSubscriptionService {
             subscription.setStartDate(request.getStartDate());
             subscription.setEndDate(calculateEndDate(request.getStartDate(), request.getSubType()));
         }
-        if(!vehicle.getVehicleType().equals(subscription.getVehicle().getVehicleType())){
+
+        if(!request.getSubType().equals(subscription.getSubscriptionPricing().getDurationType())){
             Invoice invoice = invoiceRepository.findBySubscriptionId(subscriptionId)
                     .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy hóa đơn cho đăng ký với ID: " + subscriptionId));
 
             SubscriptionPricing subscriptionPricing  = subscriptionPricingService.
                     getSubscriptionPricingByDurationTypeAndVehicleType(request.getSubType(), vehicle.getVehicleType());
             subscription.setSubscriptionPricing(subscriptionPricing);
-
-            invoiceService.updateInvoiceAmount(invoice, subscriptionPricing.getPrice(), BigInteger.ZERO);
+            subscription.setPrice(subscriptionPricing.getPrice());
+            invoiceService.updateInvoiceAmount(invoice, BigInteger.ZERO, BigInteger.ZERO, subscriptionPricing.getPrice());
         }
         subscription.setVehicle(vehicle);
-
         subscriptionRepository.save(subscription);
         return subscriptionMapper.toResponse(subscription);
     }

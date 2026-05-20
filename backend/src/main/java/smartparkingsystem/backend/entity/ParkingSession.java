@@ -50,7 +50,7 @@ public class ParkingSession {
     @Column(name = "plate_out_ocr", length = 20)
     private String plateOutOcr;
 
-    @Column(name = "final_plate", length = 20)
+    @Column(name = "final_plate", length = 20, nullable = false)
     private String finalPlate;
 
     @Column(name = "image_in_url")

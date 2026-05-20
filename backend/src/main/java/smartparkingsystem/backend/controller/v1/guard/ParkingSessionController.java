@@ -99,6 +99,15 @@ public class ParkingSessionController {
         Page<ParkingSessionResponse> page = parkingSessionService.getAllParkingSessions(pageable, status, licensePlate, vehicleType);
         return ResponseEntity.ok(ApiResponse.success(page, "Parking sessions retrieved successfully"));
     }
+
+    @GetMapping("/{licensePlate}")
+    public ResponseEntity<ApiResponse<Page<ParkingSessionResponse>>> getParkingSessionsByLicensePlate(
+            @PathVariable String licensePlate,
+            Pageable pageable) {
+        Page<ParkingSessionResponse> page = parkingSessionService.getParkingSessionsByLicensePlate(licensePlate, pageable);
+        return ResponseEntity.ok(ApiResponse.success(page, "Parking sessions retrieved successfully"));
+    }
+
     @GetMapping("/count")
     public ResponseEntity<ApiResponse<Long>> getTotalParkedVehicles(
             @RequestParam (required = false) SessionStatus status
@@ -108,7 +117,7 @@ public class ParkingSessionController {
     }
 
     @GetMapping("/{parkingSessionId}/image")
-    public ResponseEntity<Resource> getParkingSessionImage(
+    public ResponseEntity<Resource> getParkingSessionImageById(
             @PathVariable UUID parkingSessionId,
             @RequestParam String type) {
         Path imagePath = parkingSessionService.getParkingSessionImagePath(parkingSessionId, type);
@@ -127,4 +136,24 @@ public class ParkingSessionController {
                 .contentType(MediaType.parseMediaType(contentType))
                 .body(resource);
     }
+        @GetMapping("/image/by-url")
+    public ResponseEntity<Resource> getParkingSessionImageByUrl(
+            @RequestParam String imageUrl) {
+        Path imagePath = parkingSessionService.getImagePath(imageUrl);
+        String contentType = "application/octet-stream";
+        try {
+            String detectedType = Files.probeContentType(imagePath);
+            if (detectedType != null && !detectedType.isBlank()) {
+                contentType = detectedType;
+            }
+        } catch (IOException ignored) {
+        }
+
+        FileSystemResource resource = new FileSystemResource(imagePath.toFile());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + imagePath.getFileName() + "\"")
+                .contentType(MediaType.parseMediaType(contentType))
+                .body(resource);
+    }
+
 }

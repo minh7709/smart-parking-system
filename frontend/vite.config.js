@@ -12,12 +12,12 @@ export default defineConfig({
         secure: false,
       },
       '/camera-in-stream': {
-        target: 'http://192.168.100.101:8080', // IP hiện tại của iPhone bạn
+        target: 'http://192.168.1.67:8080', // IP hiện tại của iPhone bạn
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/camera-in-stream/, '/stream.mjpg'),
       },
       '/camera-out-stream': {
-        target: 'http://192.168.100.101:8080', // IP hiện tại của iPhone bạn
+        target: 'http://192.168.1.67:8080', // IP hiện tại của iPhone bạn
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/camera-out-stream/, '/stream.mjpg'),
       },

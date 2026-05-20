@@ -3,14 +3,16 @@ import { useLocation } from "react-router-dom";
 import { Row, Col, Alert } from "antd";
 import { AppLayout } from "../../../components/Layout/AppLayout";
 import CameraCard from "../components/CameraCard";
+import ParkedTable from "../components/ParkedTable";
 import HistoryTable from "../components/HistoryTable";
 import ConfirmModal from "../components/ConfirmModal";
-import { getLaneSelection } from "../../../utils/storage";
+import ConfirmCheckOutModal from "../components/ConfirmCheckOutModal";
+import { getLaneSelection, saveActiveParkingSessionId } from "../../../utils/storage";
 
 const MonitorPage = () => {
   const location = useLocation();
   const savedSelection = getLaneSelection();
-  const historyTableRef = React.useRef();
+  const parkedTableRef = React.useRef();
 
   const checkInLane = location.state?.checkInLane || savedSelection.checkInLane;
   const checkOutLane =
@@ -30,6 +32,7 @@ const MonitorPage = () => {
 
   const [cameraStatus, setCameraStatus] = useState("checking");
   const [pendingConfirm, setPendingConfirm] = useState(null);
+  const [pendingConfirmOut, setPendingConfirmOut] = useState(null);
 
   if (!cameraInUrl) {
     return (
@@ -76,23 +79,44 @@ const MonitorPage = () => {
             laneId={checkOutLane?.id}
             vehicleType="MOTO"
             videoSrc={cameraOutUrl}
-            onSuccess={(data) => console.log("Check-out success", data)}
+            onSuccess={(data) => {
+              setPendingConfirmOut({
+                ...data,
+                exitLaneId: checkOutLane?.id,
+              });
+            }}
           />
         </Col>
       </Row>
       <div style={{ marginTop: 20 }}>
-        <HistoryTable ref={historyTableRef} />
+        <ParkedTable ref={parkedTableRef} />
+      </div>
+      <div style={{ marginTop: 20 }}>
+        <HistoryTable />
       </div>
 
       <ConfirmModal
         visible={!!pendingConfirm}
         initialData={pendingConfirm}
-        onCancel={() => setPendingConfirm(null)}
+        onClose={() => setPendingConfirm(null)}
         onConfirmed={(confirmed) => {
-          // after confirm, clear modal and refresh history table
+          // after confirm, clear modal and refresh parked table
           setPendingConfirm(null);
+          if (confirmed?.id) {
+            saveActiveParkingSessionId(confirmed.id);
+          }
           console.log('confirm-check-in result', confirmed);
-          historyTableRef.current?.refresh();
+          parkedTableRef.current?.refresh();
+        }}
+      />
+
+      <ConfirmCheckOutModal
+        visible={!!pendingConfirmOut}
+        initialData={pendingConfirmOut}
+        onClose={() => setPendingConfirmOut(null)}
+        onConfirmed={() => {
+          setPendingConfirmOut(null);
+          parkedTableRef.current?.refresh();
         }}
       />
     </div>

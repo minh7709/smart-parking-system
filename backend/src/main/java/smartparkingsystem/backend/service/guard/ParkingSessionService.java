@@ -79,12 +79,21 @@ public class ParkingSessionService {
         if (imageUrl == null || imageUrl.isBlank()) {
             throw new ValidationException("URL ảnh không được để trống");
         }
+        imageUrl = imageUrl.trim();
+        if (imageUrl.startsWith("\"") && imageUrl.endsWith("\"")) {
+            imageUrl = imageUrl.substring(1, imageUrl.length() - 1);
+        }
+
         String relativeImagePath = imageUrl.replace("\\", "/");
-        Path imagePath = Path.of(uploadRootPath, "images", relativeImagePath);
+        Path baseDir = Path.of(uploadRootPath, "images").toAbsolutePath().normalize();
+        Path imagePath = baseDir.resolve(relativeImagePath).normalize();
+        if (!imagePath.startsWith(baseDir)) {
+            throw new ValidationException("Đường dẫn ảnh không hợp lệ");
+        }
         try {
             Files.deleteIfExists(imagePath);
         } catch (IOException e) {
-            return;
+            throw new ResourceNotFoundException("Không thể xóa file ảnh do lỗi hệ thống");
         }
     }
 
@@ -115,18 +124,10 @@ public class ParkingSessionService {
     }
 
     private CheckOutResponse processCheckOutForBicycle(ParkingSession session, Lane lane, String imageUrl) {
-
-        session.setTimeOut(LocalDateTime.now());
-        session.setExitLane(lane);
-        session.setPlateOutOcr("BICYCLE");
-        session.setConfidenceOut(1.0f);
-        session.setImageOutUrl(imageUrl);
+        parkingSessionMapper.updateEntityForCheckOut(session, lane, imageUrl, 1.0f, "BICYCLE");
         parkingSessionRepository.save(session);
-
         BigInteger fee = calculateFee(session);
-        invoiceService.createInvoiceForParkingSession(session, fee, userService.getCurrentUser());
-
-        return parkingSessionMapper.toCheckOutResponse(session, fee);
+        return parkingSessionMapper.toCheckOutResponse(session, fee, BigInteger.ZERO);
     }
 
     public CheckOutResponse processCheckOut(CheckOutRequest request, MultipartFile image) {
@@ -149,28 +150,19 @@ public class ParkingSessionService {
         } else {
             throw new ResourceNotFoundException("Không tìm thấy phiên đỗ xe mở với biển số: " + licensePlate);
         }
-
-        invoiceService.createInvoiceForParkingSession(session, fee, userService.getCurrentUser());
-
-        session.setTimeOut(LocalDateTime.now());
-        session.setExitLane(lane);
-        session.setPlateOutOcr(licensePlate);
-        session.setConfidenceOut(confidenceOrRandom(aiResult.getConfidence()));
-        session.setImageOutUrl(imageUrl);
+        parkingSessionMapper.updateEntityForCheckOut(session, lane, imageUrl, confidenceOrRandom(aiResult.getConfidence()), licensePlate);
         parkingSessionRepository.save(session);
 
-        return parkingSessionMapper.toCheckOutResponse(session, fee);
+        return parkingSessionMapper.toCheckOutResponse(session, fee, BigInteger.ZERO);
     }
 
     public void processConfirmCheckOut(ConfirmCheckOutRequest request) {
         ParkingSession session = parkingSessionRepository.findFirstByIdAndStatus(request.getParkingSessionId(), SessionStatus.PARKED)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe mở với ID: " + request.getParkingSessionId()));
         session.setStatus(SessionStatus.COMPLETED);
-
-        Invoice invoice = invoiceRepository.findByParkingSession(session)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy hóa đơn cho phiên đỗ xe với ID: " + request.getParkingSessionId()));
-
-        invoiceService.updateInvoiceStatus(invoice, PaymentStatus.SUCCESS, request.getPaymentMethod());
+        Invoice invoice = invoiceService.createInvoiceForParkingSession(session, request.getParkingAmount(), userService.getCurrentUser());
+        invoiceRepository.save(invoice);
+        parkingSessionRepository.save(session);
     }
 
     public void reportGeneralIncident(IncidentRequest request, MultipartFile evidenceImage) {
@@ -211,19 +203,16 @@ public class ParkingSessionService {
 
         String evidenceUrl = storeImage(evidenceImage, "evidence", "Không thể lưu ảnh bằng chứng");
         guardIncidentService.reportIncident(session, request.getDescription(), IncidentTypeEnum.LOST_CARD, evidenceUrl);
-
-
-        session.setExitLane(lane);
-        session.setTimeOut(LocalDateTime.now());
-        session.setPlateOutOcr(licensePlate);
-        session.setConfidenceOut(confidenceOrRandom(aiResult.getConfidence()));
-        session.setImageOutUrl(imageUrl);
-        session.setStatus(SessionStatus.COMPLETED);
+        parkingSessionMapper.updateEntityForCheckOut(session, lane, imageUrl, confidenceOrRandom(aiResult.getConfidence()), licensePlate);
         parkingSessionRepository.save(session);
 
-        Invoice invoice = invoiceService.createInvoiceForPenalty(session, calculatePenalty(session), calculateFee(session), userService.getCurrentUser());
+        BigInteger penalty = calculatePenalty(session);
+        BigInteger fee = calculateFee(session);
+        
 
-        return parkingSessionMapper.toCheckOutResponse(session, invoice.getTotalAmount());
+        Invoice invoice = invoiceService.createInvoiceForPenalty(session, penalty, fee, userService.getCurrentUser());
+
+        return parkingSessionMapper.toCheckOutResponse(session, fee, penalty);
     }
 
     private String storeImage(MultipartFile image, String folder, String failureMessage) {
@@ -303,18 +292,23 @@ public class ParkingSessionService {
         return page.map(parkingSessionMapper::toParkingSessionResponse);
     }
 
+    public Page<ParkingSessionResponse> getParkingSessionsByLicensePlate(String licensePlate, Pageable pageable) {
+        Sort sort = Sort.by("timeIn").descending();
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+        return parkingSessionRepository.findByFinalPlateIgnoreCase(licensePlate, sortedPageable)
+                .map(parkingSessionMapper::toParkingSessionResponse);
+    }
+
     public Long getTotalParkedVehicles(SessionStatus status) {
         return parkingSessionRepository.countByStatus(status);
     }
 
     public Path getParkingSessionImagePath(UUID parkingSessionId, String type) {
+        ParkingSession session = parkingSessionRepository.findById(parkingSessionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe với ID: " + parkingSessionId));
         if (type == null || type.isBlank()) {
             throw new ValidationException("Type ảnh không được để trống");
         }
-
-        ParkingSession session = parkingSessionRepository.findById(parkingSessionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe với ID: " + parkingSessionId));
-
         String imageUrl;
         String normalizedType = type.trim().toLowerCase();
         if ("in".equals(normalizedType)) {
@@ -324,12 +318,18 @@ public class ParkingSessionService {
         } else {
             throw new ValidationException("Type ảnh không hợp lệ, chỉ chấp nhận 'in' hoặc 'out'");
         }
+        return getImagePath(imageUrl);
+    }
 
+    public Path getImagePath(String imageUrl) {
         if (imageUrl == null || imageUrl.isBlank()) {
-            throw new ResourceNotFoundException("Không tìm thấy ảnh " + normalizedType + " cho phiên đỗ xe với ID: " + parkingSessionId);
+            throw new ResourceNotFoundException("Không tìm thấy ảnh cho phiên đỗ xe");
         }
-
-        Path imagePath = Path.of(uploadRootPath, "images", imageUrl.replace("\\", "/"));
+        imageUrl = imageUrl.trim();
+        if (imageUrl.startsWith("\"") && imageUrl.endsWith("\"")) {
+            imageUrl = imageUrl.substring(1, imageUrl.length() - 1);
+        }
+        Path imagePath = Path.of(uploadRootPath, "images", imageUrl.replace("\\", "/")).toAbsolutePath().normalize();
         if (!Files.exists(imagePath)) {
             throw new ResourceNotFoundException("Không tìm thấy file ảnh: " + imageUrl);
         }

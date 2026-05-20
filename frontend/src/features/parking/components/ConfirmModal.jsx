@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Input, Image, Row, Col, Button } from 'antd';
-import { confirmCheckInApi } from '../api/parkingSession.api';
+import { cancelCheckInApi, confirmCheckInApi, getParkingSessionImageByUrlApi } from '../api/parkingSession.api';
 import { useNotification } from '../../../hooks/useNotification';
 
-const ConfirmModal = ({ visible, initialData, onCancel, onConfirmed }) => {
+const ConfirmModal = ({ visible, initialData, onClose, onConfirmed }) => {
   const notify = useNotification();
   const [plate, setPlate] = useState('');
   const [loading, setLoading] = useState(false);
+  const [imageSrc, setImageSrc] = useState(null);
+  const [imageLoading, setImageLoading] = useState(false);
 
   // Cập nhật plate khi initialData thay đổi
   useEffect(() => {
@@ -15,9 +17,47 @@ const ConfirmModal = ({ visible, initialData, onCancel, onConfirmed }) => {
     }
   }, [initialData]);
 
+  useEffect(() => {
+    let isActive = true;
+    let objectUrl = null;
+
+    const fetchImage = async () => {
+      if (!initialData?.imageInUrl) {
+        setImageSrc(null);
+        return;
+      }
+
+      setImageLoading(true);
+      try {
+        const blob = await getParkingSessionImageByUrlApi(initialData.imageInUrl);
+        objectUrl = URL.createObjectURL(blob);
+        if (isActive) {
+          setImageSrc(objectUrl);
+        }
+      } catch (err) {
+        console.error(err);
+        if (isActive) {
+          setImageSrc(null);
+          notify.apiError(err, 'Lỗi tải ảnh');
+        }
+      } finally {
+        if (isActive) setImageLoading(false);
+      }
+    };
+
+    fetchImage();
+
+    return () => {
+      isActive = false;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [initialData?.imageInUrl, notify]);
+
   const handleConfirm = async () => {
     if (!initialData) {
-      notify.error('Thiếu thông tin từ check-in');
+      notify.error('Dữ liệu không hợp lệ. Vui lòng thử lại.');
       return;
     }
 
@@ -27,6 +67,9 @@ const ConfirmModal = ({ visible, initialData, onCancel, onConfirmed }) => {
       return;
     }
 
+    if (onClose) {
+      onClose();
+    }
     setLoading(true);
     try {
       // Tạo payload đúng theo yêu cầu của confirm API
@@ -36,7 +79,7 @@ const ConfirmModal = ({ visible, initialData, onCancel, onConfirmed }) => {
         imageInUrl: initialData.imageInUrl,
         timeIn: initialData.timeIn,
         confidenceIn: initialData.confidenceIn,
-        vehicleType: initialData.vehicleType.value,
+        vehicleType: initialData.vehicleType?.value || "MOTOR",
         entryLaneId: initialData.entryLaneId,
       };
 
@@ -56,9 +99,22 @@ const ConfirmModal = ({ visible, initialData, onCancel, onConfirmed }) => {
     }
   };
 
-  const handleCancelClick = () => {
-    notify.info('Bạn đã hủy xác nhận check-in', 'Đã hủy');
-    onCancel();
+  const handleCancelClick = async () => {
+    if (onClose) {
+      onClose();
+    }
+    setLoading(true);
+    try {
+      if (initialData?.imageInUrl) {
+        await cancelCheckInApi(initialData.imageInUrl);
+      }
+      notify.info('Bạn đã hủy xác nhận check-in', 'Đã hủy');
+    } catch (err) {
+      console.error(err);
+      notify.apiError(err, 'Lỗi khi hủy check-in');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -78,10 +134,12 @@ const ConfirmModal = ({ visible, initialData, onCancel, onConfirmed }) => {
     >
       <Row gutter={12}>
         <Col span={12}>
-          {initialData?.imageInUrl ? (
-            <Image src={initialData.imageInUrl} alt="capture" style={{ width: '100%' }} />
+          {imageSrc ? (
+            <Image src={imageSrc} alt="capture" style={{ width: '100%' }} />
           ) : (
-            <div style={{ width: '100%', height: 160, background: '#f0f0f0' }} />
+            <div style={{ width: '100%', height: 160, background: '#f0f0f0' }}>
+              {imageLoading ? 'Đang tải ảnh...' : null}
+            </div>
           )}
         </Col>
         <Col span={12}>

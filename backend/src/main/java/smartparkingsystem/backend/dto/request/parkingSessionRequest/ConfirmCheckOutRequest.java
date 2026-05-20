@@ -5,6 +5,7 @@ import lombok.Data;
 import org.springframework.validation.annotation.Validated;
 import smartparkingsystem.backend.entity.type.PaymentMethod;
 
+import java.math.BigInteger;
 import java.util.UUID;
 
 @Data
@@ -15,4 +16,7 @@ public class ConfirmCheckOutRequest {
 
     @NotNull(message = "Parking session ID is required")
     private UUID parkingSessionId;
+
+    private BigInteger parkingAmount;
+    private BigInteger penaltyAmount;
 }

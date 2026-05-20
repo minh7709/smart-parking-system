@@ -22,7 +22,8 @@ public class CheckOutResponse {
     private LocalDateTime timeIn;
     private LocalDateTime timeOut; //
     private SessionStatus status; //
-    private BigInteger fee; //
+    private BigInteger parkingAmount; //
+    private BigInteger penaltyAmount; //
     private boolean isMonth; //
     private VehicleTypeEnum vehicleType; //
 }

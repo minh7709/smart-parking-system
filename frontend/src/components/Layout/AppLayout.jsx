@@ -2,20 +2,15 @@ import React, { useState, useEffect } from "react";
 import {
   Layout,
   Menu,
-  Input,
-  Badge,
   Avatar,
   ConfigProvider,
   Dropdown,
-  message,
   Button,
 } from "antd";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   StarOutlined,
   VideoCameraOutlined,
-  SearchOutlined,
-  BellOutlined,
   UserOutlined,
   InfoCircleOutlined,
   LockOutlined,
@@ -35,10 +30,17 @@ const styles = {
     background: "#ffffff",
     borderBottom: "1px solid #e5e7eb",
     boxShadow: "0 6px 20px rgba(15, 23, 42, 0.08)",
+    height: 64,
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
     padding: "0 24px",
+    position: "fixed",
+    top: 0,
+    left: 230,
+    right: 0,
+    width: "calc(100% - 230px)",
+    zIndex: 1000,
   },
   search: { width: 250, background: "#ffffff", border: "1px solid #d9d9d9", color: "#141414" },
   userInfo: {
@@ -202,7 +204,7 @@ export const AppLayout = () => {
               </Dropdown>
             </div>
           </Header>
-          <Content style={{ margin: 24 }}>
+          <Content style={{ margin: "88px 24px 24px" }}>
             <Outlet />
           </Content>
         </Layout>
