@@ -22,6 +22,7 @@ import smartparkingsystem.backend.repository.PricingRuleRepository;
 import smartparkingsystem.backend.service.auth.UserService;
 import smartparkingsystem.backend.validation.pricingRule.PricingValidatorFactory;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -104,7 +105,8 @@ public class PricingRuleService {
 
         PricingRule pricingRule = pricingRuleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Pricing rule not found with id: " + id));
-
+        PricingRule existing = pricingRuleRepository.findByVehicleTypeAndActiveTrue(pricingRule.getVehicleType())
+                .orElse(null);
         return pricingRuleMapper.toResponse(pricingRule);
     }
 
@@ -140,7 +142,20 @@ public class PricingRuleService {
 
         PricingRule pricingRule = pricingRuleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Pricing rule not found with id: " + id));
-
+        List<PricingRule> activeRules = pricingRuleRepository.findByVehicleTypeAndActiveTrue(pricingRule.getVehicleType())
+                .stream()
+                .toList();
+        if(activeRules.isEmpty()){
+            pricingRuleRepository.delete(pricingRule);
+            log.info("Pricing rule deleted successfully with id: {}", id);
+            return;
+        }
+        if (activeRules.size() == 1 && activeRules.get(0).getId().equals(id)) {
+            throw new InvalidStateException(
+                    "Không thể xóa cấu hình giá đang hoạt động duy nhất cho loại xe " + pricingRule.getVehicleType() + ". " +
+                    "Vui lòng kích hoạt một cấu hình giá khác trước khi xóa cấu hình này để đảm bảo bãi xe luôn có cấu hình giá hợp lệ cho loại xe này."
+            );
+        }
         pricingRuleRepository.delete(pricingRule);
         log.info("Pricing rule deleted successfully with id: {}", id);
     }
