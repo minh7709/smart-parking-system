@@ -14,6 +14,7 @@ import ChangePasswordPage from "../features/auth/pages/ChangePasswordPage";
 import AdminDashboard from "../features/admin/pages/AdminDashboard";
 import AdminIncident from "../features/admin/pages/AdminIncident";
 import AdminLane from "../features/admin/pages/AdminLane";
+import AdminMonthTicket from "../features/admin/pages/AdminMonthTicket";
 import AdminRegisterPage from "../features/admin/pages/AdminRegisterPage";
 import TurnTicketConfig from "../features/admin/pages/TurnTicketConfig";
 import UserManagementPage from "../features/admin/pages/UserManagementPage";
@@ -45,6 +46,7 @@ const AppRoutes = () => {
         <Route path="/admin/change-password" element={<ChangePasswordPage />} />
         <Route path="/admin/turn-tickets" element={<TurnTicketConfig />} />
         <Route path="/admin/register" element={<AdminRegisterPage />} />
+        <Route path="/admin/month-tickets" element={<AdminMonthTicket />} />
         <Route path="/admin/users" element={<UserManagementPage />} />
         <Route path="/admin/incidents" element={<AdminIncident />} />
         <Route path="/admin/lanes" element={<AdminLane />} />

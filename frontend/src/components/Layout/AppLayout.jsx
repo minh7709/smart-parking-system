@@ -162,7 +162,12 @@ export const AppLayout = () => {
         <Sider width={230} style={{ ...styles.sider, overflow: 'auto', height: '100vh', position: 'fixed', left: 0, top: 0, bottom: 0 }}>
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <div>
-              <div style={styles.logo}>Smart Parking</div>
+              <div
+                style={{ ...styles.logo, cursor: "pointer" }}
+                onClick={() => navigate("/monitor")}
+              >
+                Smart Parking
+              </div>
               <Menu
                 theme="dark"
                 mode="inline"

@@ -26,4 +26,12 @@ export const adminApi = {
   deleteLane: (id) => axiosClient.delete(`/v1/admin/lanes/${id}`),
   getLaneTypes: () => axiosClient.get("/v1/type/lane-types"),
   getLaneStatuses: () => axiosClient.get("/v1/type/lane-statuses"),
+
+  getSubscriptionPricings: (params) => axiosClient.get("/v1/admin/pricing-subscription", { params }),
+  createSubscriptionPricing: (data) => axiosClient.post("/v1/admin/pricing-subscription", data),
+  updateSubscriptionPricing: (id, data) => axiosClient.put(`/v1/admin/pricing-subscription/${id}`, data),
+  deleteSubscriptionPricing: (id) => axiosClient.delete(`/v1/admin/pricing-subscription/${id}`),
+  activateSubscriptionPricing: (id) => axiosClient.post(`/v1/admin/pricing-subscription/${id}/activate`),
+  getSubscriptionTypes: () => axiosClient.get("/v1/type/subscription-types"),
+  getVehicleTypes: () => axiosClient.get("/v1/type/vehicle-types"),
 };

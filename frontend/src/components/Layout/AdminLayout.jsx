@@ -78,11 +78,13 @@ export const AdminLayout = () => {
         style={{ borderRight: "1px solid #f0f0f0" }}
       >
         <div
+          onClick={() => navigate("/admin/dashboard")}
           style={{
             padding: "20px",
             fontSize: "20px",
             fontWeight: "bold",
             color: "#1890ff",
+            cursor: "pointer",
           }}
         >
           Admin Panel
@@ -95,9 +97,10 @@ export const AdminLayout = () => {
             if (e.key === "1") navigate("/admin/dashboard");
             if (e.key === "2") navigate("/admin/turn-tickets");
             if (e.key === "3") navigate("/admin/register");
-            if (e.key === "4") navigate("/admin/users");
-            if (e.key === "5") navigate("/admin/incidents");
-            if (e.key === "6") navigate("/admin/lanes");
+            if (e.key === "4") navigate("/admin/month-tickets");
+            if (e.key === "5") navigate("/admin/users");
+            if (e.key === "6") navigate("/admin/incidents");
+            if (e.key === "7") navigate("/admin/lanes");
           }}
           items={[
             {
@@ -107,9 +110,10 @@ export const AdminLayout = () => {
             },
             { key: "2", icon: <IdcardOutlined />, label: "Cấu hình vé" },
             { key: "3", icon: <CarOutlined />, label: "Quản lý vé đăng ký" },
-            { key: "4", icon: <TeamOutlined />, label: "Quản lý nhân sự" },
-            { key: "5", icon: <AlertOutlined />, label: "Báo cáo sự cố" },
-            { key: "6", icon: <ApartmentOutlined />, label: "Quản lý làn" },
+            { key: "4", icon: <IdcardOutlined />, label: "Cấu hình vé tháng" },
+            { key: "5", icon: <TeamOutlined />, label: "Quản lý nhân sự" },
+            { key: "6", icon: <AlertOutlined />, label: "Báo cáo sự cố" },
+            { key: "7", icon: <ApartmentOutlined />, label: "Quản lý làn" },
           ]}
         />
       </Sider>
@@ -126,22 +130,8 @@ export const AdminLayout = () => {
             borderBottom: "1px solid #f0f0f0",
           }}
         >
-          <h2 style={{ margin: 0, fontSize: "18px" }}>Quan tri</h2>
+          <h2 style={{ margin: 0, fontSize: "18px" }}>Quản trị</h2>
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-            <Input
-              placeholder="Tìm kiếm..."
-              prefix={<SearchOutlined />}
-              style={{
-                width: 250,
-                borderRadius: "20px",
-                backgroundColor: "#f5f5f5",
-                border: "none",
-              }}
-            />
-            <Badge count={5}>
-              <BellOutlined style={{ fontSize: "20px", cursor: "pointer" }} />
-            </Badge>
-
             {/* Thêm Dropdown bao bọc Avatar và Tên ở đây */}
             <Dropdown menu={{ items: adminMenuItems }} trigger={["click"]}>
               <div

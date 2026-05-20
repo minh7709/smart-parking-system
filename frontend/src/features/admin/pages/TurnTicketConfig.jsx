@@ -15,6 +15,7 @@ import {
   Checkbox,
   Tooltip,
   Badge,
+  Popconfirm,
 } from "antd";
 import { useNotification } from "../../../hooks/useNotification";
 import {
@@ -36,6 +37,9 @@ const PricingRuleConfig = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState("FLAT_RATE");
   const [activatingId, setActivatingId] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editingIsActive, setEditingIsActive] = useState(true);
   const [form] = Form.useForm();
 
   const fetchRules = async () => {
@@ -65,7 +69,7 @@ const PricingRuleConfig = () => {
         vehicleType: values.vehicleType,
         pricingStrategy: values.pricingStrategy,
         penaltyFee: values.penaltyFee,
-        isActive: true,
+        isActive: isEditMode ? editingIsActive : true,
         startTime: values.startTime
           ? values.startTime.format("YYYY-MM-DDTHH:mm:ss")
           : null,
@@ -109,9 +113,16 @@ const PricingRuleConfig = () => {
       }
       // Gọi API
 
-      await adminApi.createPricingRule(payload);
-      notify.success("Lưu cấu hình thành công!");
+      if (isEditMode) {
+        await adminApi.updatePricingRule(editingId, payload);
+        notify.success("Cập nhật cấu hình thành công!");
+      } else {
+        await adminApi.createPricingRule(payload);
+        notify.success("Lưu cấu hình thành công!");
+      }
       setIsModalVisible(false);
+      setIsEditMode(false);
+      setEditingId(null);
       form.resetFields();
       fetchRules();
     } catch (error) {
@@ -127,6 +138,13 @@ const PricingRuleConfig = () => {
   const getEnumLabel = (value) => {
     if (value && typeof value === "object") {
       return value.label ?? value.value ?? "";
+    }
+    return value ?? "";
+  };
+
+  const getEnumValue = (value) => {
+    if (value && typeof value === "object") {
+      return value.value ?? value.label ?? "";
     }
     return value ?? "";
   };
@@ -152,6 +170,60 @@ const PricingRuleConfig = () => {
     }
   };
 
+  const openEditModal = (record) => {
+    setIsEditMode(true);
+    setEditingId(record.id);
+    setEditingIsActive(!!record.isActive);
+
+    const pricingStrategy = getEnumValue(record.pricingStrategy);
+    setSelectedStrategy(pricingStrategy || "FLAT_RATE");
+
+    let progressiveConfig = [];
+    if (pricingStrategy === "PROGRESSIVE") {
+      progressiveConfig = (record.progressiveConfig || []).map((item) => ({
+        fromHour: item?.timeMilestone ? item.timeMilestone / 60 : item?.fromHour,
+        pricePerHour: item?.price ?? item?.pricePerHour,
+      }));
+    } else if (pricingStrategy === "TIME_WINDOW") {
+      progressiveConfig = (record.progressiveConfig || []).map((item) => ({
+        fromHour: item?.fromHour,
+        toHour: item?.toHour,
+        pricePerHour: item?.pricePerHour,
+        isFixed: item?.isFixed ?? false,
+      }));
+    }
+
+    const normalizeNumber = (value) => {
+      if (value && typeof value === "object") {
+        return value.value ?? value.amount ?? null;
+      }
+      return value ?? null;
+    };
+
+    form.setFieldsValue({
+      ruleName: record.ruleName,
+      vehicleType: getEnumValue(record.vehicleType),
+      pricingStrategy,
+      basePrice: normalizeNumber(record.basePrice),
+      blockMinutes: record.blockMinutes,
+      maxPricePerDay: normalizeNumber(record.maxPricePerDay),
+      penaltyFee: normalizeNumber(record.penaltyFee),
+      startTime: null,
+      progressiveConfig,
+    });
+    setIsModalVisible(true);
+  };
+
+  const deletePricingRule = async (id) => {
+    try {
+      await adminApi.deletePricingRule(id);
+      notify.success("Đã xóa cấu hình!");
+      fetchRules();
+    } catch (error) {
+      console.error("Delete error:", error);
+      notify.apiError(error, "Không thể xóa cấu hình");
+    }
+  };
   const columns = [
     {
       title: "Tên quy tắc",
@@ -240,14 +312,24 @@ const PricingRuleConfig = () => {
       ),
     },
     {
+      title: "Sửa",
+      render: (_, record) => (
+        <Button type="text" onClick={() => openEditModal(record)}>
+          Sửa
+        </Button>
+      ),
+    },
+    {
       title: "Xóa",
       render: (_, record) => (
-        <Button
-          type="text"
-          danger
-          icon={<DeleteOutlined />}
-          onClick={() => adminApi.deletePricingRule(record.id).then(fetchRules)}
-        />
+        <Popconfirm
+          title="Bạn có chắc chắn muốn xóa cấu hình này?"
+          onConfirm={() => deletePricingRule(record.id)}
+          okText="Có"
+          cancelText="Không"
+        >
+          <Button type="text" danger icon={<DeleteOutlined />} />
+        </Popconfirm>
       ),
     },
   ];
@@ -275,9 +357,13 @@ const PricingRuleConfig = () => {
       </Card>
 
       <Modal
-        title="Thêm Cấu hình Giá Vé mới"
+        title={isEditMode ? "Cập nhật Cấu hình Giá Vé" : "Thêm Cấu hình Giá Vé mới"}
         open={isModalVisible}
-        onCancel={() => setIsModalVisible(false)}
+        onCancel={() => {
+          setIsModalVisible(false);
+          setIsEditMode(false);
+          setEditingId(null);
+        }}
         footer={null}
         width={700}
       >
@@ -302,7 +388,7 @@ const PricingRuleConfig = () => {
               rules={[{ required: true }]}
               style={{ width: 300 }}
             >
-              <Select placeholder="Chọn xe">
+              <Select placeholder="Chọn xe" disabled={isEditMode}>
                 <Option value="CAR">Ô tô</Option>
                 <Option value="MOTOR">Xe máy</Option>
                 <Option value="BICYCLE">Xe đạp</Option>
@@ -315,7 +401,7 @@ const PricingRuleConfig = () => {
               rules={[{ required: true }]}
               style={{ width: 300 }}
             >
-              <Select onChange={(value) => setSelectedStrategy(value)}>
+              <Select onChange={(value) => setSelectedStrategy(value)} disabled={isEditMode}>
                 {/* ĐÃ THÊM ĐỦ 5 CHIẾN THUẬT */}
                 <Option value="FLAT_RATE">Giá cố định (Flat Rate)</Option>
                 <Option value="ROLLING_BLOCK">
