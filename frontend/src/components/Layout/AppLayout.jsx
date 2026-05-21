@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Layout,
   Menu,
@@ -20,7 +20,7 @@ import {
 } from "@ant-design/icons";
 import { Outlet } from "react-router-dom";
 import { useNotification } from "../../hooks/useNotification";
-
+import { clearSystemTypes, clearAuthFromLocalStorage } from "../../utils/storage";
 const { Header, Sider, Content } = Layout;
 
 const styles = {
@@ -63,22 +63,20 @@ export const AppLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const notify = useNotification();
-  const [userName, setUserName] = useState("Người dùng");
-
-  // Lấy thông tin user từ localStorage khi component mount
-  useEffect(() => {
+  const [userName] = useState(() => {
     const userInfo = localStorage.getItem("user");
-    if (userInfo) {
-      try {
-        const user = JSON.parse(userInfo);
-        setUserName(
-          user.fullName || user.username || user.email || "Người dùng",
-        );
-      } catch (e) {
-        console.error("Lỗi parse userInfo:", e);
-      }
+    if (!userInfo) {
+      return "Người dùng";
     }
-  }, []);
+
+    try {
+      const user = JSON.parse(userInfo);
+      return user.fullName || user.username || user.email || "Người dùng";
+    } catch (e) {
+      console.error("Lỗi parse userInfo:", e);
+      return "Người dùng";
+    }
+  });
 
   // Xác định menu nào đang được chọn dựa trên URL hiện tại
   const selectedKey = location.pathname.includes("/register") ? "1" : location.pathname.includes("/vehicles") ? "3" : "2";
@@ -92,16 +90,8 @@ export const AppLayout = () => {
 
   // Xử lý đăng xuất
   const handleLogout = () => {
-    // Xóa tất cả dữ liệu trong localStorage
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("tokenType");
-    localStorage.removeItem("expiresIn");
-    localStorage.removeItem("expiresAt");
-    localStorage.removeItem("user");
-    localStorage.removeItem("selectedCheckInLane");
-    localStorage.removeItem("selectedCheckOutLane");
-
+    clearAuthFromLocalStorage();
+    clearSystemTypes();
     notify.success("Đăng xuất thành công!");
     navigate("/login");
   };

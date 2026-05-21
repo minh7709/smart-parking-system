@@ -74,6 +74,9 @@ public class PricingRuleService {
             throw new DuplicateResourceException("Cấu hình giá vé lượt có tên '" + request.getRuleName() + "' đã tồn tại");
         }
 
+        if(request.getIsActive() && !pricingRule.isActive()){
+            handleRuleActivation(pricingRule);
+        }
         // Update fields
         pricingRuleMapper.updateEntity(request, pricingRule);
 

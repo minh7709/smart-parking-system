@@ -15,10 +15,6 @@ public class GuardIncidentService {
     private final IncidentRepository incidentRepository;
     private final UserService userService;
 
-    public void reportIncident(ParkingSession session, String description, IncidentTypeEnum type) {
-        reportIncident(session, description, type, null);
-    }
-
     public void reportIncident(ParkingSession session, String description, IncidentTypeEnum type, @Nullable String evidenceUrl) {
         incidentRepository.save(Incident.builder()
                 .parkingSession(session)

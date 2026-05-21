@@ -27,8 +27,6 @@ public class PricingRuleMapper {
                 .pricingStrategy(entity.getStrategy())
                 .basePrice(entity.getBasePrice())
                 .blockMinutes(entity.getBlockMinutes())
-                .thresholdMinutes(entity.getThresholdMinutes())
-                .thresholdPrice(entity.getThresholdPrice())
                 .maxPricePerDay(entity.getMaxPricePerDay())
                 .progressiveConfig(entity.getProgressiveConfig())
                 .penaltyFee(entity.getPenaltyFee())
@@ -52,8 +50,6 @@ public class PricingRuleMapper {
                 .strategy(request.getPricingStrategy())
                 .basePrice(request.getBasePrice())
                 .blockMinutes(request.getBlockMinutes())
-                .thresholdMinutes(request.getThresholdMinutes())
-                .thresholdPrice(request.getThresholdPrice())
                 .maxPricePerDay(request.getMaxPricePerDay())
                 .progressiveConfig(request.getProgressiveConfig())
                 .penaltyFee(request.getPenaltyFee())
@@ -74,8 +70,6 @@ public class PricingRuleMapper {
         entity.setStrategy(request.getPricingStrategy());
         entity.setBasePrice(request.getBasePrice());
         entity.setBlockMinutes(request.getBlockMinutes());
-        entity.setThresholdMinutes(request.getThresholdMinutes());
-        entity.setThresholdPrice(request.getThresholdPrice());
         entity.setMaxPricePerDay(request.getMaxPricePerDay());
         entity.setProgressiveConfig(request.getProgressiveConfig());
         entity.setPenaltyFee(request.getPenaltyFee());

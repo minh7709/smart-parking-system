@@ -1,5 +1,6 @@
 import axios from 'axios';
 import API_ENDPOINTS from './endpoints';
+import { saveAuthToLocalStorage, clearAuthFromLocalStorage, clearSystemTypes } from "../utils/storage";
 
 const API_BASE_PATH = import.meta.env.VITE_API_BASE_PATH || '/api';
 
@@ -27,33 +28,36 @@ const normalizeAccessToken = (rawToken) => {
 };
 
 const clearAuthStorage = () => {
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('refreshToken');
-  localStorage.removeItem('tokenType');
-  localStorage.removeItem('expiresIn');
-  localStorage.removeItem('expiresAt');
-  localStorage.removeItem('user');
+  try {
+    clearAuthFromLocalStorage();
+    clearSystemTypes();
+  } catch (e) {
+    // fallback to manual clear if helper fails
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('tokenType');
+    localStorage.removeItem('expiresIn');
+    localStorage.removeItem('expiresAt');
+    localStorage.removeItem('user');
+  }
 };
 
 const persistRefreshData = (data) => {
-  if (!data?.accessToken) {
-    return;
-  }
-
-  localStorage.setItem('accessToken', data.accessToken);
-
-  if (data.refreshToken) {
-    localStorage.setItem('refreshToken', data.refreshToken);
-  }
-
-  if (data.tokenType) {
-    localStorage.setItem('tokenType', data.tokenType);
-  }
-
-  if (typeof data.expiresIn === 'number') {
-    const expiresAt = Date.now() + data.expiresIn * 1000;
-    localStorage.setItem('expiresIn', String(data.expiresIn));
-    localStorage.setItem('expiresAt', String(expiresAt));
+  if (!data?.accessToken) return;
+  // reuse storage helper to persist full auth payload when available
+  try {
+    saveAuthToLocalStorage(data);
+  } catch (e) {
+    // fallback to manual persistence
+    localStorage.setItem('accessToken', data.accessToken);
+    if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
+    if (data.tokenType) localStorage.setItem('tokenType', data.tokenType);
+    if (typeof data.expiresIn === 'number') {
+      const expiresAt = Date.now() + data.expiresIn * 1000;
+      localStorage.setItem('expiresIn', String(data.expiresIn));
+      localStorage.setItem('expiresAt', String(expiresAt));
+    }
+    if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
   }
 };
 
@@ -82,7 +86,24 @@ const tryRefreshToken = async () => {
       const response = await axios.post(`${API_BASE_PATH}${API_ENDPOINTS.auth.refresh}`, { refreshToken }, {
         headers: { 'Content-Type': 'application/json' }
       });
-
+      /*
+        // Biến 'response' của Axios nguyên bản:
+          {
+            status: 200,
+            statusText: "OK",
+            headers: { ... },
+            config: { ... },
+            data: { // <--- ĐÂY CHÍNH LÀ JSON CỦA SPRING BOOT TRẢ VỀ
+              success: true,
+              message: "string",
+              data: { // <--- ĐÂY LÀ OBJECT CHỨA TOKEN
+                accessToken: "string",
+                refreshToken: "string",
+                user: { ... }
+              }
+            }
+          }
+      */
       const payload = response.data;
       if (!payload?.data?.accessToken) {
         throw new Error(payload?.message || 'Làm mới phiên đăng nhập thất bại');
@@ -93,6 +114,12 @@ const tryRefreshToken = async () => {
     })()
       .catch(() => {
         clearAuthStorage();
+        // redirect to login to force re-auth
+        try {
+          window.location.replace('/login');
+        } catch (e) {
+          /* ignore */
+        }
         return false;
       })
       .finally(() => {

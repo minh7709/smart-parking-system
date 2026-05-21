@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Layout, Menu, Avatar, Dropdown } from "antd";
 import {
   BarChartOutlined,
@@ -24,11 +24,7 @@ export const AdminLayout = () => {
   const [userName, setUserName] = useState("Admin");
 
   // Đồng bộ hóa trạng thái sáng của Menu dựa trên URL hiện tại
-  const [selectedKey, setSelectedKey] = useState(location.pathname);
-
-  useEffect(() => {
-    setSelectedKey(location.pathname);
-  }, [location.pathname]);
+  const selectedKey = useMemo(() => location.pathname, [location.pathname]);
 
   // Lấy thông tin admin từ localStorage
   useEffect(() => {

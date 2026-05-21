@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import smartparkingsystem.backend.dto.request.IncidentRequest;
 import smartparkingsystem.backend.dto.request.parkingSessionRequest.*;
@@ -20,7 +21,6 @@ import smartparkingsystem.backend.entity.ParkingSession;
 import smartparkingsystem.backend.entity.PricingRule;
 import smartparkingsystem.backend.entity.type.*;
 import smartparkingsystem.backend.exception.DuplicateResourceException;
-import smartparkingsystem.backend.exception.InvalidStateException;
 import smartparkingsystem.backend.exception.ResourceNotFoundException;
 import smartparkingsystem.backend.exception.ValidationException;
 import smartparkingsystem.backend.mapper.ParkingSessionMapper;
@@ -36,9 +36,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -60,7 +58,7 @@ public class ParkingSessionService {
     private CheckInResponse processCheckInForBicycle(CheckInRequest request, Lane lane, String imageUrl) {
         return parkingSessionMapper.toCheckInResponse("BICYCLE", imageUrl, 1.0f, request.getVehicleType());
     }
-
+    @Transactional
     public CheckInResponse processCheckIn(CheckInRequest request, MultipartFile image) {
         Lane lane = laneRepository.findById(request.getEntryLaneId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy làn với ID: " + request.getEntryLaneId()));
@@ -74,7 +72,7 @@ public class ParkingSessionService {
         String licensePlate = aiResult.getPlateNumber();
         return parkingSessionMapper.toCheckInResponse(licensePlate, imageUrl, confidenceOrRandom(aiResult.getConfidence()), request.getVehicleType());
     }
-
+    @Transactional
     public void cancelCheckIn(String imageUrl) {
         if (imageUrl == null || imageUrl.isBlank()) {
             throw new ValidationException("URL ảnh không được để trống");
@@ -96,7 +94,7 @@ public class ParkingSessionService {
             throw new ResourceNotFoundException("Không thể xóa file ảnh do lỗi hệ thống");
         }
     }
-
+    @Transactional
     public ParkingSessionResponse processConfirmCheckIn(ConfirmCheckInRequest request) {
         if(request.getVehicleType() != VehicleTypeEnum.BICYCLE) {
             parkingSessionRepository.findFirstByStatusAndFinalPlateIgnoreCase(SessionStatus.PARKED, request.getFinalPlate())
@@ -114,11 +112,10 @@ public class ParkingSessionService {
         }
 
         ParkingSession session = parkingSessionMapper.toEntityForConfirmCheckIn(request, lane, isMonth);
+        session = parkingSessionRepository.save(session);
         if (!request.getPlateInOcr().equals(request.getFinalPlate())) {
-            guardIncidentService.reportIncident(session, "Biển số xác nhận không khớp với biển số OCR", IncidentTypeEnum.WRONG_PLATE);
+            guardIncidentService.reportIncident(session, "Biển số xác nhận không khớp với biển số OCR", IncidentTypeEnum.WRONG_PLATE, request.getImageInUrl());
         }
-
-        parkingSessionRepository.save(session);
 
         return parkingSessionMapper.toParkingSessionResponse(session);
     }
@@ -129,7 +126,7 @@ public class ParkingSessionService {
         BigInteger fee = calculateFee(session);
         return parkingSessionMapper.toCheckOutResponse(session, fee, BigInteger.ZERO);
     }
-
+    @Transactional
     public CheckOutResponse processCheckOut(CheckOutRequest request, MultipartFile image) {
         Lane lane = laneRepository.findById(request.getExitLaneId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy làn với ID: " + request.getExitLaneId()));
@@ -155,7 +152,7 @@ public class ParkingSessionService {
 
         return parkingSessionMapper.toCheckOutResponse(session, fee, BigInteger.ZERO);
     }
-
+    @Transactional
     public void processConfirmCheckOut(ConfirmCheckOutRequest request) {
         ParkingSession session = parkingSessionRepository.findFirstByIdAndStatus(request.getParkingSessionId(), SessionStatus.PARKED)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe mở với ID: " + request.getParkingSessionId()));
@@ -164,7 +161,7 @@ public class ParkingSessionService {
         invoiceRepository.save(invoice);
         parkingSessionRepository.save(session);
     }
-
+    @Transactional
     public void reportGeneralIncident(IncidentRequest request, MultipartFile evidenceImage) {
         ParkingSession session = parkingSessionRepository.findById(request.getParkingSessionId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên đỗ xe với ID: " + request.getParkingSessionId()));
@@ -188,7 +185,7 @@ public class ParkingSessionService {
         FeeCalculationStrategy strategy = feeCalculationFactory.getCalculator(pricingRule.getStrategy());
         return strategy.calculateFee(session.getTimeIn(), LocalDateTime.now(), pricingRule);
     }
-
+    @Transactional
     public CheckOutResponse reportLostCard(CheckOutWithoutCardRequest request, MultipartFile image, MultipartFile evidenceImage) {
         Lane lane = laneRepository.findById(request.getExitLaneId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy làn với ID: " + request.getExitLaneId()));
@@ -244,7 +241,7 @@ public class ParkingSessionService {
             throw new IllegalStateException(failureMessage, ex);
         }
     }
-
+    @Transactional
     public Page<ParkingSessionResponse> getAllParkingSessions(Pageable pageable, SessionStatus status, String licensePlate, VehicleTypeEnum vehicleType) {
         Sort sort = Sort.by("timeIn").descending();
         Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
@@ -291,7 +288,7 @@ public class ParkingSessionService {
 
         return page.map(parkingSessionMapper::toParkingSessionResponse);
     }
-
+    @Transactional
     public Page<ParkingSessionResponse> getParkingSessionsByLicensePlate(String licensePlate, Pageable pageable) {
         Sort sort = Sort.by("timeIn").descending();
         Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);

@@ -33,12 +33,6 @@ public class PricingRuleRequest {
     @Min(value = 1, message = "Số phút theo block phải ít nhất là 1")
     private Integer blockMinutes;
 
-    @Min(value = 1, message = "Số phút ngưỡng phải ít nhất là 1")
-    private Integer thresholdMinutes;
-
-    @DecimalMin(value = "0", message = "Giá ngưỡng phải lớn hơn hoặc bằng 0")
-    private BigInteger thresholdPrice;
-
     @DecimalMin(value = "0", message = "Giá tối đa mỗi ngày phải lớn hơn 0")
     private BigInteger maxPricePerDay;
 

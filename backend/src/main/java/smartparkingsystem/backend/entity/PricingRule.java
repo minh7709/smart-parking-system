@@ -46,12 +46,6 @@ public class PricingRule {
     @Column(name = "block_minutes")
     private Integer blockMinutes;
 
-    @Column(name = "threshold_minutes")
-    private Integer thresholdMinutes;
-
-    @Column(name = "threshold_price")
-    private BigInteger thresholdPrice;
-
     @Column(name = "max_price_per_day")
     private BigInteger maxPricePerDay;
 

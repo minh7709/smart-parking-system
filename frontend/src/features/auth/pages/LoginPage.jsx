@@ -11,6 +11,7 @@ import LoginForm from "../components/LoginForm";
 import ResetPasswordForm from "../components/ResetPasswordForm";
 import VerifyOtpForm from "../components/VerifyOtpForm";
 import { saveAuthToLocalStorage, fetchAllSystemTypesApi, saveSystemTypes } from "../../../utils/storage";
+import { useAuth } from "../../../context/AuthContext";
 
 import {
   validateOtp,
@@ -33,6 +34,7 @@ const LoginPage = () => {
   const [resetToken, setResetToken] = useState("");
 
   const [loading, setLoading] = useState(false);
+  const { setUser } = useAuth();
 
   const resetForgotFlow = () => {
     setPhone("");
@@ -65,6 +67,12 @@ const LoginPage = () => {
         response.data?.refreshToken
       ) {
         saveAuthToLocalStorage(response.data);
+        // update auth context so ProtectedRoute sees new user immediately
+        try {
+          setUser(response.data.user);
+        } catch (e) {
+          // if context not available, ignore
+        }
         notify.success("Đăng nhập thành công!");
         const typesData = await fetchAllSystemTypesApi();
         saveSystemTypes(typesData);

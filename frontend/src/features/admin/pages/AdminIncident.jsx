@@ -142,7 +142,7 @@ const AdminIncident = () => {
 			</Card>
 
 			<Modal
-				title="Anh su co"
+				title="Ảnh sự cố"
 				open={isModalOpen}
 				onCancel={handleCloseModal}
 				footer={null}

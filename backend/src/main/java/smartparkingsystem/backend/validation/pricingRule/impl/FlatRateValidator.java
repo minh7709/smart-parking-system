@@ -22,8 +22,6 @@ public class FlatRateValidator implements PricingStrategyValidator {
         }
         pricingRuleRequest.setBlockMinutes(null);
         pricingRuleRequest.setMaxPricePerDay(null);
-        pricingRuleRequest.setThresholdPrice(null);
-        pricingRuleRequest.setThresholdMinutes(null);
         pricingRuleRequest.setProgressiveConfig(null);
         return check;
     }

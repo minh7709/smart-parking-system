@@ -53,27 +53,25 @@ public class ProgressiveCalculator implements FeeCalculationStrategy {
                 .toList();
 
         BigInteger fee = BigInteger.ZERO;
+        BigInteger pricePerHour = BigInteger.ZERO;
         for (TimeWindowAndProgressiveConfig cfg : configs) {
-            if (cfg.getFromHour() == null || cfg.getToHour() == null || cfg.getPricePerHour() == null) {
+            if (cfg.getFromHour() == null || cfg.getToHour() == null || cfg.getPrice() == null) {
                 continue; // skip malformed config entries
             }
+            if(totalHoursRoundedUp <= 0) {
+                break; // current total hours is before this config's range
+            }
+
             long from = Math.max(0, cfg.getFromHour());
             long to = Math.max(from, cfg.getToHour());
-            if (from >= totalHoursRoundedUp) {
-                break; // remaining hours are outside session
-            }
-            long overlapHours = Math.min(totalHoursRoundedUp, to) - from;
-            if (overlapHours <= 0) {
-                continue;
-            }
-            BigInteger pricePerHour = BigInteger.valueOf(cfg.getPricePerHour());
-            if (Boolean.TRUE.equals(cfg.getIsFixed())) {
-                fee = fee.add(pricePerHour);
-            } else {
-                fee = fee.add(pricePerHour.multiply(BigInteger.valueOf(overlapHours)));
-            }
+            long dis = to - from;
+            pricePerHour = BigInteger.valueOf(cfg.getPrice());
+            fee = fee.add(pricePerHour.multiply(BigInteger.valueOf(Math.min(totalHoursRoundedUp, dis))));
+            totalHoursRoundedUp -= dis;
         }
-
+        if(totalHoursRoundedUp > 0) {
+            fee = fee.add(pricePerHour.multiply(BigInteger.valueOf(totalHoursRoundedUp)));
+        }
         return fee;
     }
 

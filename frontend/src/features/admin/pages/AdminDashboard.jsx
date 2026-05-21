@@ -5,24 +5,31 @@ import {
   Card,
   Statistic,
   Table,
-  Button,
   Select,
   Radio,
   DatePicker,
-  Tag,
   Alert,
   Spin,
 } from "antd";
 import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from "recharts";
+import {
   ArrowUpOutlined,
   ArrowDownOutlined,
-  DownloadOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import axiosClient from "../../../api/axiosClient";
 import API_ENDPOINTS from "../../../api/endpoints";
-
-const { RangePicker } = DatePicker;
 
 const RANGE_TO_UNIT = {
   ngay: "day",
@@ -43,6 +50,10 @@ const safeNumber = (value) => (Number.isFinite(value) ? value : 0);
 
 const formatCurrency = (value) =>
   new Intl.NumberFormat("vi-VN").format(safeNumber(value));
+
+const CHART_COLORS = ["#1677ff", "#52c41a", "#faad14", "#ff4d4f"];
+
+const renderCurrencyTooltip = (value) => `${formatCurrency(value)} đ`;
 
 const AdminDashboard = () => {
   const [rangeType, setRangeType] = useState("ngay");
@@ -130,13 +141,6 @@ const AdminDashboard = () => {
     setDateRange([dayjs().startOf(unit), dayjs().endOf(unit)]);
   };
 
-  const handleRangeChange = (values) => {
-    if (!values || values.length !== 2) {
-      return;
-    }
-    setDateRange(values);
-  };
-
   const laneOptions = useMemo(() => {
     const names = laneUtilization
       .map((lane) => lane?.laneName)
@@ -198,39 +202,6 @@ const AdminDashboard = () => {
     [filteredLaneUtilization]
   );
 
-  const revenueColumns = [
-    { title: "THỜI GIAN", dataIndex: "timestamp", key: "timestamp" },
-    {
-      title: "DOANH THU",
-      dataIndex: "totalRevenue",
-      key: "totalRevenue",
-      align: "right",
-      render: (value) => <strong>{formatCurrency(value)} đ</strong>,
-    },
-  ];
-
-  const trafficColumns = [
-    { title: "THỜI GIAN", dataIndex: "timestamp", key: "timestamp" },
-    {
-      title: "VÉ LƯỢT",
-      dataIndex: "regularCount",
-      key: "regularCount",
-      align: "right",
-    },
-    {
-      title: "VÉ THÁNG",
-      dataIndex: "monthlyCount",
-      key: "monthlyCount",
-      align: "right",
-    },
-    {
-      title: "TỔNG",
-      dataIndex: "totalCount",
-      key: "totalCount",
-      align: "right",
-    },
-  ];
-
   const laneColumns = [
     { title: "CỔNG", dataIndex: "laneName", key: "laneName" },
     {
@@ -263,32 +234,6 @@ const AdminDashboard = () => {
             <Radio.Button value="tuan">Tuần</Radio.Button>
             <Radio.Button value="thang">Tháng</Radio.Button>
           </Radio.Group>
-
-          <span style={{ fontWeight: "bold", color: "#888", marginLeft: 10 }}>
-            CỔNG KIỂM SOÁT
-          </span>
-          <Select
-            value={selectedLane}
-            style={{ width: 160 }}
-            onChange={setSelectedLane}
-          >
-            {laneOptions.map((laneName) => (
-              <Select.Option key={laneName} value={laneName}>
-                {laneName === "all" ? "Tất cả cổng" : laneName}
-              </Select.Option>
-            ))}
-          </Select>
-        </div>
-
-        <div style={{ display: "flex", gap: "10px" }}>
-          <RangePicker value={dateRange} onChange={handleRangeChange} />
-          <Button
-            type="primary"
-            icon={<DownloadOutlined />}
-            style={{ backgroundColor: "#00875a" }}
-          >
-            Xuất báo cáo
-          </Button>
         </div>
       </div>
 
@@ -386,12 +331,16 @@ const AdminDashboard = () => {
               Phân tích dòng tiền theo thời gian (đơn vị: đồng)
             </p>
             <Spin spinning={loading}>
-              <Table
-                columns={revenueColumns}
-                dataSource={revenueTimelineData}
-                pagination={false}
-                size="small"
-              />
+              <div style={{ width: "100%", height: 280 }}>
+                <ResponsiveContainer>
+                  <LineChart data={revenueTimelineData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                    <XAxis dataKey="timestamp" />
+                    <YAxis tickFormatter={(value) => formatCurrency(value)} />
+                    <Tooltip formatter={(value) => renderCurrencyTooltip(value)} />
+                    <Line type="monotone" dataKey="totalRevenue" stroke={CHART_COLORS[0]} strokeWidth={2} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </Spin>
           </Card>
         </Col>
@@ -400,13 +349,21 @@ const AdminDashboard = () => {
             title="Lưu lượng xe"
             style={{ borderRadius: "12px", height: "100%" }}
           >
+            <p style={{ color: "#888" }}>
+              Tổng lượt vào ra theo vé lượt và vé tháng
+            </p>
             <Spin spinning={loading}>
-              <Table
-                columns={trafficColumns}
-                dataSource={trafficTimelineData}
-                pagination={false}
-                size="small"
-              />
+              <div style={{ width: "100%", height: 280 }}>
+                <ResponsiveContainer>
+                  <LineChart data={trafficTimelineData} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
+                    <XAxis dataKey="timestamp" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="regularCount" name="Vé lượt" stroke={CHART_COLORS[1]} strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="monthlyCount" name="Vé tháng" stroke={CHART_COLORS[2]} strokeWidth={2} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </Spin>
             <div
               style={{
@@ -445,6 +402,31 @@ const AdminDashboard = () => {
                   formatter={(value) => formatCurrency(value)}
                 />
               </Col>
+              <Col span={24} style={{ marginTop: 16 }}>
+                <div style={{ width: "100%", height: 220 }}>
+                  <ResponsiveContainer>
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: "Tiền mặt", value: safeNumber(revenueBreakdown?.cashRevenue) },
+                          { name: "Online", value: safeNumber(revenueBreakdown?.onlinePaymentRevenue) },
+                        ]}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        label
+                      >
+                        <Cell fill={CHART_COLORS[1]} />
+                        <Cell fill={CHART_COLORS[0]} />
+                      </Pie>
+                      <Tooltip formatter={(value) => renderCurrencyTooltip(value)} />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </Col>
               <Col span={12} style={{ marginTop: 16 }}>
                 <Statistic
                   title="Vé lượt"
@@ -475,13 +457,26 @@ const AdminDashboard = () => {
           </Card>
         </Col>
       </Row>
-
+      
       {/* BẢNG GIAO DỊCH GẦN ĐÂY */}
       <Card
         title="Lưu lượng theo cổng"
         style={{ borderRadius: "12px" }}
-        extra={<Button type="link">Xem tất cả</Button>}
       >
+        <span style={{ fontWeight: "bold", color: "#888", marginLeft: 10, marginRight: 20 }}>
+            CỔNG KIỂM SOÁT
+          </span>
+        <Select
+            value={selectedLane}
+            style={{ width: 160 }}
+            onChange={setSelectedLane}
+          >
+            {laneOptions.map((laneName) => (
+              <Select.Option key={laneName} value={laneName}>
+                {laneName === "all" ? "Tất cả cổng" : laneName}
+              </Select.Option>
+            ))}
+          </Select>
         <Spin spinning={loading}>
           <Table columns={laneColumns} dataSource={laneTableData} pagination={false} />
         </Spin>

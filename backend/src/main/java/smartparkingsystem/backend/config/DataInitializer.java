@@ -30,6 +30,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import org.jspecify.annotations.NonNull;
+import smartparkingsystem.backend.service.guard.InvoiceService;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -63,6 +64,8 @@ public class DataInitializer implements CommandLineRunner {
 
     @Autowired
     private IncidentRepository incidentRepository;
+    @Autowired
+    private InvoiceService invoiceService;
 
     @Override
     public void run(@NonNull String... args) throws Exception {
@@ -204,6 +207,8 @@ public class DataInitializer implements CommandLineRunner {
                             .status(SubStatus.ACTIVE)
                             .build();
                     subscriptionRepository.save(subscription1);
+                    Invoice invoice = invoiceService.createInvoiceForSubscription(subscription1, guard, PaymentMethod.CASH);
+                    invoiceService.updateInvoiceStatus(invoice, PaymentStatus.SUCCESS);
                 }
             }
 

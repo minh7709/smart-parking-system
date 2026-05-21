@@ -37,20 +37,12 @@ public class TimeWindowCalculator implements FeeCalculationStrategy {
             );
         }
 
-        // Validate pricing rule and base price
-        if (rule == null || rule.getBasePrice() == null) {
-            throw new ResourceNotFoundException(
-                "Cần có quy tắc giá với basePrice để tính phí gửi xe. " +
-                "Không tìm thấy quy tắc giá đang hoạt động cho loại xe này."
-            );
-        }
-
         if (timeIn.toLocalDate().equals(timeOut.toLocalDate())) {
             for(TimeWindowAndProgressiveConfig cfg : rule.getProgressiveConfig()) {
-                if (cfg.getFromHour() == null || cfg.getToHour() == null || cfg.getPricePerHour() == null) {
+                if (cfg.getFromHour() == null || cfg.getToHour() == null || cfg.getPrice() == null) {
                     continue; // skip malformed config entries
                 }
-                BigInteger price = BigInteger.valueOf(cfg.getPricePerHour());
+                BigInteger price = BigInteger.valueOf(cfg.getPrice());
                 if (isTimeInConfigWindow(timeOut, cfg)) {
                     return price;
                 }
@@ -60,10 +52,10 @@ public class TimeWindowCalculator implements FeeCalculationStrategy {
         BigInteger fee = BigInteger.ZERO;
         if(timeIn.toLocalDate().equals(timeOut.toLocalDate())) {
             for(TimeWindowAndProgressiveConfig cfg : rule.getProgressiveConfig()) {
-                if (cfg.getFromHour() == null || cfg.getToHour() == null || cfg.getPricePerHour() == null) {
+                if (cfg.getFromHour() == null || cfg.getToHour() == null || cfg.getPrice() == null) {
                     continue; // skip malformed config entries
                 }
-                BigInteger price = BigInteger.valueOf(cfg.getPricePerHour());
+                BigInteger price = BigInteger.valueOf(cfg.getPrice());
                 if (isTimeInConfigWindow(timeOut, cfg)) {
                     fee = fee.add(price);
                 }
@@ -72,10 +64,10 @@ public class TimeWindowCalculator implements FeeCalculationStrategy {
         }
         BigInteger maxPrice = null;
         for(TimeWindowAndProgressiveConfig cfg : rule.getProgressiveConfig()) {
-            if (cfg.getFromHour() == null || cfg.getToHour() == null || cfg.getPricePerHour() == null) {
+            if (cfg.getFromHour() == null || cfg.getToHour() == null || cfg.getPrice() == null) {
                 continue; // skip malformed config entries
             }
-            BigInteger price = BigInteger.valueOf(cfg.getPricePerHour());
+            BigInteger price = BigInteger.valueOf(cfg.getPrice());
             if (maxPrice == null || price.compareTo(maxPrice) > 0) {
                 maxPrice = price;
             }

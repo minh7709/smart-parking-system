@@ -12,7 +12,7 @@ import {
   Tag,
   Space,
   Divider,
-  Checkbox,
+  Switch,
   Tooltip,
   Badge,
   Popconfirm,
@@ -73,17 +73,14 @@ const PricingRuleConfig = () => {
         vehicleType: values.vehicleType,
         pricingStrategy: values.pricingStrategy,
         penaltyFee: values.penaltyFee,
-        isActive: isEditMode ? editingIsActive : true,
-        startTime: values.startTime
-          ? values.startTime.format("YYYY-MM-DDTHH:mm:ss")
-          : null,
+        isActive: values.isActive ?? (isEditMode ? editingIsActive : true),
       };
 
       // Các trường chung (không dùng cho PROGRESSIVE)
-      if (values.pricingStrategy !== "PROGRESSIVE") {
+      if (values.pricingStrategy !== "PROGRESSIVE" && values.pricingStrategy !== "TIME_WINDOW") {
         payload.basePrice = values.basePrice;
       }
-      if (values.pricingStrategy === "ROLLING_BLOCK") {
+      if (values.pricingStrategy === "ROLLING_BLOCK" || values.pricingStrategy === "DAILY_CAPPED") {
         payload.blockMinutes = values.blockMinutes;
       }
       if (values.pricingStrategy === "DAILY_CAPPED") {
@@ -97,10 +94,10 @@ const PricingRuleConfig = () => {
           notify.error("Vui lòng thêm ít nhất 1 mốc giá cho Lũy tiến!");
           return;
         }
-        // Chuyển đổi sang { timeMilestone, price }
         payload.progressiveConfig = configArray.map((item) => ({
-          timeMilestone: item.fromHour * 60, // giả sử fromHour là số giờ, muốn phút thì *60
-          price: item.pricePerHour,
+          fromHour: item.fromHour,
+          toHour: item.toHour,
+          price: item.price,
         }));
       } else if (values.pricingStrategy === "TIME_WINDOW") {
         const configArray = values.progressiveConfig || [];
@@ -111,8 +108,7 @@ const PricingRuleConfig = () => {
         payload.progressiveConfig = configArray.map((item) => ({
           fromHour: item.fromHour,
           toHour: item.toHour,
-          pricePerHour: item.pricePerHour,
-          isFixed: item.isFixed || false,
+          price: item.price,
         }));
       }
       // Gọi API
@@ -185,15 +181,15 @@ const PricingRuleConfig = () => {
     let progressiveConfig = [];
     if (pricingStrategy === "PROGRESSIVE") {
       progressiveConfig = (record.progressiveConfig || []).map((item) => ({
-        fromHour: item?.timeMilestone ? item.timeMilestone / 60 : item?.fromHour,
-        pricePerHour: item?.price ?? item?.pricePerHour,
+        fromHour: item?.fromHour ?? (item?.timeMilestone ? item.timeMilestone / 60 : null),
+        toHour: item?.toHour ?? null,
+        price: item?.pricePerHour ?? item?.price,
       }));
     } else if (pricingStrategy === "TIME_WINDOW") {
       progressiveConfig = (record.progressiveConfig || []).map((item) => ({
         fromHour: item?.fromHour,
         toHour: item?.toHour,
-        pricePerHour: item?.pricePerHour,
-        isFixed: item?.isFixed ?? false,
+        price: item?.pricePerHour ?? item?.price,
       }));
     }
 
@@ -212,6 +208,7 @@ const PricingRuleConfig = () => {
       blockMinutes: record.blockMinutes,
       maxPricePerDay: normalizeNumber(record.maxPricePerDay),
       penaltyFee: normalizeNumber(record.penaltyFee),
+      isActive: record.isActive ?? true,
       startTime: null,
       progressiveConfig,
     });
@@ -375,7 +372,7 @@ const PricingRuleConfig = () => {
           form={form}
           layout="vertical"
           onFinish={handleFinish}
-          initialValues={{ pricingStrategy: "FLAT_RATE" }}
+          initialValues={{ pricingStrategy: "FLAT_RATE", isActive: true }}
         >
           <Form.Item
             name="ruleName"
@@ -422,22 +419,22 @@ const PricingRuleConfig = () => {
           </Divider>
 
           {/* Giá cơ bản (Hiển thị cho tất cả TRỪ Lũy tiến) */}
-          {selectedStrategy !== "PROGRESSIVE" && (
+          {selectedStrategy !== "PROGRESSIVE" && selectedStrategy !== "TIME_WINDOW" && (
             <Form.Item
               name="basePrice"
               label="Giá cơ bản (VNĐ)"
-              rules={[{ required: true }]}
+              rules={[{ required: true, message: "Vui lòng nhập giá cơ bản" }]}
             >
               <InputNumber style={{ width: "100%" }} />
             </Form.Item>
           )}
 
-          {/* Hiện blockMinutes nếu là Rolling Block */}
-          {selectedStrategy === "ROLLING_BLOCK" && (
+          {/* Hiện blockMinutes nếu là Rolling Block / Daily Capped */}
+          {['ROLLING_BLOCK', 'DAILY_CAPPED'].includes(selectedStrategy) && (
             <Form.Item
               name="blockMinutes"
               label="Số phút mỗi Block"
-              rules={[{ required: true }]}
+              rules={[{ required: true, message: "Vui lòng nhập số phút mỗi block" }]}
             >
               <InputNumber style={{ width: "100%" }} />
             </Form.Item>
@@ -448,14 +445,14 @@ const PricingRuleConfig = () => {
             <Form.Item
               name="maxPricePerDay"
               label="Giá tối đa một ngày (VNĐ)"
-              rules={[{ required: true }]}
+              rules={[{ required: true, message: "Vui lòng nhập giá tối đa mỗi ngày" }]}
             >
               <InputNumber style={{ width: "100%" }} />
             </Form.Item>
           )}
 
           {/* Mảng động (Dynamic List) cho PROGRESSIVE và TIME_WINDOW */}
-          {["PROGRESSIVE", "TIME_WINDOW"].includes(selectedStrategy) && (
+          {['PROGRESSIVE', 'TIME_WINDOW'].includes(selectedStrategy) && (
             <div
               style={{
                 background: "#f5f5f5",
@@ -487,6 +484,55 @@ const PricingRuleConfig = () => {
                           ),
                         );
                       }
+                      if (selectedStrategy === "PROGRESSIVE") {
+                        const rows = (names || []).map((_, index) =>
+                          form.getFieldValue(["progressiveConfig", index])
+                        );
+                        if (!rows.length) return Promise.resolve();
+                        const firstFrom = rows[0]?.fromHour;
+                        if (firstFrom !== 0) {
+                          return Promise.reject(
+                            new Error("Mốc đầu tiên phải bắt đầu từ 0 giờ"),
+                          );
+                        }
+                        for (let i = 0; i < rows.length - 1; i += 1) {
+                          const currentTo = rows[i]?.toHour;
+                          const nextFrom = rows[i + 1]?.fromHour;
+                          if (currentTo == null || nextFrom == null || currentTo !== nextFrom) {
+                            return Promise.reject(
+                              new Error("Các mốc phải liền nhau (toHour = fromHour tiếp theo)"),
+                            );
+                          }
+                        }
+                      }
+                      if (selectedStrategy === "TIME_WINDOW") {
+                        const rows = (names || []).map((_, index) =>
+                          form.getFieldValue(["progressiveConfig", index])
+                        );
+                        let totalHours = 0;
+                        for (const row of rows) {
+                          const from = row?.fromHour;
+                          const to = row?.toHour;
+                          if (from == null || to == null) {
+                            return Promise.reject(new Error("Vui lòng nhập đủ giờ bắt đầu và kết thúc"));
+                          }
+                          if (from < 0 || from > 24 || to < 0 || to > 24) {
+                            return Promise.reject(new Error("Giờ phải nằm trong khoảng 0-24"));
+                          }
+                          if (to === from) {
+                            return Promise.reject(new Error("Giờ bắt đầu và kết thúc không được trùng nhau"));
+                          }
+                          if (to < from) {
+                            totalHours += (24 - from) + to;
+                          } else {
+                            totalHours += (to - from);
+                          }
+                        }
+                        if (totalHours !== 24) {
+                          return Promise.reject(new Error("Tổng thời gian phải đủ 24 giờ"));
+                        }
+                      }
+                      return Promise.resolve();
                     },
                   },
                 ]}
@@ -507,6 +553,8 @@ const PricingRuleConfig = () => {
                         >
                           <InputNumber
                             placeholder="VD: 0"
+                            min={0}
+                            max={24}
                             style={{ width: 90 }}
                           />
                         </Form.Item>
@@ -519,29 +567,23 @@ const PricingRuleConfig = () => {
                         >
                           <InputNumber
                             placeholder="VD: 6"
+                            min={0}
+                            max={24}
                             style={{ width: 90 }}
                           />
                         </Form.Item>
 
                         <Form.Item
                           {...restField}
-                          name={[name, "pricePerHour"]}
-                          label="Giá/Giờ (VNĐ)"
+                          name={[name, "price"]}
+                          label="Giá (VNĐ)"
                           rules={[{ required: true }]}
                         >
                           <InputNumber
                             placeholder="VD: 15000"
+                            min={0}
                             style={{ width: 120 }}
                           />
-                        </Form.Item>
-
-                        <Form.Item
-                          {...restField}
-                          name={[name, "isFixed"]}
-                          valuePropName="checked"
-                          style={{ paddingTop: 30 }}
-                        >
-                          <Checkbox>Cố định</Checkbox>
                         </Form.Item>
 
                         <MinusCircleOutlined
@@ -570,9 +612,17 @@ const PricingRuleConfig = () => {
           <Form.Item
             name="penaltyFee"
             label="Phí phạt mất thẻ (VNĐ)"
-            rules={[{ required: true }]}
+            rules={[{ required: true, message: "Vui lòng nhập phí phạt" }]}
           >
             <InputNumber style={{ width: "100%" }} />
+          </Form.Item>
+
+          <Form.Item
+            name="isActive"
+            label="Kích hoạt"
+            valuePropName="checked"
+          >
+            <Switch checkedChildren="Bật" unCheckedChildren="Tắt" />
           </Form.Item>
           <Button type="primary" htmlType="submit" block size="large">
             Lưu cấu hình
