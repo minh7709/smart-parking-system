@@ -41,8 +41,8 @@ const VehiclePage = () => {
 
   // ── Load enum từ localStorage (sau khi đăng nhập đã cache) ──────────
   useEffect(() => {
-    const { vehicleTypes: types } = getSystemTypes();
-    setVehicleTypes(types ?? []);
+    const types = getSystemTypes("vehicleTypes") ?? [{label: "Xe hơi", value: "CAR"}, {label: "Xe máy", value: "MOTOR"}, {label: "Xe đạp", value: "BICYCLE"}];
+    setVehicleTypes(types);
   }, []);
 
   // ── Hàm fetch chính ───────────────────────────────────────────

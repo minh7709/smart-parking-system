@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Menu, Input, Avatar, Badge, Dropdown } from "antd";
+import { Layout, Menu, Avatar, Dropdown } from "antd";
 import {
   BarChartOutlined,
   IdcardOutlined,
@@ -9,20 +9,26 @@ import {
   AlertOutlined,
   ApartmentOutlined,
   LogoutOutlined,
-  BellOutlined,
-  SearchOutlined,
   InfoCircleOutlined,
   LockOutlined,
 } from "@ant-design/icons";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useNotification } from "../../hooks/useNotification";
 
 const { Header, Sider, Content } = Layout;
 
 export const AdminLayout = () => {
   const navigate = useNavigate();
+  const location = useLocation(); // Hook lắng nghe sự thay đổi của URL
   const notify = useNotification();
   const [userName, setUserName] = useState("Admin");
+
+  // Đồng bộ hóa trạng thái sáng của Menu dựa trên URL hiện tại
+  const [selectedKey, setSelectedKey] = useState(location.pathname);
+
+  useEffect(() => {
+    setSelectedKey(location.pathname);
+  }, [location.pathname]);
 
   // Lấy thông tin admin từ localStorage
   useEffect(() => {
@@ -43,13 +49,52 @@ export const AdminLayout = () => {
     navigate("/login");
   };
 
-  // Menu cho Dropdown của Admin
+  // Cấu hình các mục Menu cho Sidebar - Đặt key trùng khớp với Route của dự án luôn
+  const sidebarMenuItems = [
+    {
+      key: "/admin/dashboard",
+      icon: <BarChartOutlined />,
+      label: "Thống kê doanh thu",
+    },
+    { 
+      key: "/admin/turn-tickets", 
+      icon: <IdcardOutlined />, 
+      label: "Cấu hình giá vé lượt" 
+    },
+    { 
+      key: "/admin/register", 
+      icon: <CarOutlined />, 
+      label: "Quản lý gói đăng ký" 
+    },
+    { 
+      key: "/admin/month-tickets", 
+      icon: <IdcardOutlined />, 
+      label: "Cấu hình giá vé đăng ký" 
+    },
+    { 
+      key: "/admin/users", 
+      icon: <TeamOutlined />, 
+      label: "Quản lý nhân sự" 
+    },
+    { 
+      key: "/admin/incidents", 
+      icon: <AlertOutlined />, 
+      label: "Báo cáo sự cố" 
+    },
+    { 
+      key: "/admin/lanes", 
+      icon: <ApartmentOutlined />, 
+      label: "Quản lý làn" 
+    },
+  ];
+
+  // Menu cho Dropdown của Admin (Góc trên cùng bên phải)
   const adminMenuItems = [
     {
       key: "profile",
       icon: <InfoCircleOutlined />,
       label: "Thông tin",
-      onClick: () => navigate("/admin/profile"), // Điều hướng về đúng route admin profile
+      onClick: () => navigate("/admin/profile"),
     },
     {
       key: "change-password",
@@ -91,30 +136,13 @@ export const AdminLayout = () => {
         </div>
         <Menu
           mode="inline"
-          defaultSelectedKeys={["1"]}
+          selectedKeys={[selectedKey]} // Chuyển từ defaultSelectedKeys sang selectedKeys cố định theo State
           style={{ borderRight: 0 }}
           onClick={(e) => {
-            if (e.key === "1") navigate("/admin/dashboard");
-            if (e.key === "2") navigate("/admin/turn-tickets");
-            if (e.key === "3") navigate("/admin/register");
-            if (e.key === "4") navigate("/admin/month-tickets");
-            if (e.key === "5") navigate("/admin/users");
-            if (e.key === "6") navigate("/admin/incidents");
-            if (e.key === "7") navigate("/admin/lanes");
+            // e.key lúc này chính là path của Route (Ví dụ: "/admin/dashboard")
+            navigate(e.key);
           }}
-          items={[
-            {
-              key: "1",
-              icon: <BarChartOutlined />,
-              label: "Thống kê doanh thu",
-            },
-            { key: "2", icon: <IdcardOutlined />, label: "Cấu hình vé" },
-            { key: "3", icon: <CarOutlined />, label: "Quản lý vé đăng ký" },
-            { key: "4", icon: <IdcardOutlined />, label: "Cấu hình vé tháng" },
-            { key: "5", icon: <TeamOutlined />, label: "Quản lý nhân sự" },
-            { key: "6", icon: <AlertOutlined />, label: "Báo cáo sự cố" },
-            { key: "7", icon: <ApartmentOutlined />, label: "Quản lý làn" },
-          ]}
+          items={sidebarMenuItems}
         />
       </Sider>
 
@@ -132,7 +160,6 @@ export const AdminLayout = () => {
         >
           <h2 style={{ margin: 0, fontSize: "18px" }}>Quản trị</h2>
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-            {/* Thêm Dropdown bao bọc Avatar và Tên ở đây */}
             <Dropdown menu={{ items: adminMenuItems }} trigger={["click"]}>
               <div
                 style={{
@@ -154,6 +181,7 @@ export const AdminLayout = () => {
           </div>
         </Header>
 
+        {/* CONTENT */}
         <Content style={{ padding: "24px", backgroundColor: "#f9fafc" }}>
           <Outlet />
         </Content>
@@ -161,4 +189,3 @@ export const AdminLayout = () => {
     </Layout>
   );
 };
-

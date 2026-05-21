@@ -1,12 +1,12 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Table, Button, Space, Input, Modal, Form, Select, Tag, Popconfirm, Row, Col } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import { adminApi } from '../api/admin.api';
 import { useNotification } from '../../../hooks/useNotification';
+import { getSystemTypes } from '../../../utils/storage';
 
 const UserManagementPage = () => {
   const [data, setData] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -14,23 +14,29 @@ const UserManagementPage = () => {
   const [form] = Form.useForm();
   const notify = useNotification();
   
+  const userStatuses = useMemo(() => getSystemTypes("userStatuses") ?? [], []);
+  
   // States for search filters
-  const [searchFullName, setSearchFullName] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
+  const [filterStatus, setFilterStatus] = useState(null);
+  const debounceTimer = useRef(null);
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await adminApi.getUsers();
+      const params = {};
+      if (searchPhone.trim()) params.phone = searchPhone.trim();
+      if (filterStatus) params.status = filterStatus;
+
+      const response = await adminApi.getUsers(params);
       // ApiResponse trả về data là danh sách người dùng
       const _data = Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []);
       setData(_data);
-      setFilteredData(_data);
     } catch (error) {
       console.error('Failed to fetch users:', error);
       notify.apiError(error, 'Không thể lấy danh sách người dùng');
       setData([]);
-      setFilteredData([]);
     } finally {
       setLoading(false);
     } 
@@ -38,31 +44,22 @@ const UserManagementPage = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [searchPhone, filterStatus]);
 
-  useEffect(() => {
-    const fullNameQuery =   searchFullName.trim();
-    const phoneQuery = searchPhone.trim();
+  const handlePhoneChange = (e) => {
+    const val = e.target.value;
+    setSearchInput(val);
+    clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      setSearchPhone(val);
+    }, 500);
+  };
 
-    if (fullNameQuery == '' && phoneQuery == '') {
-      setFilteredData(data);
-      return;
-    }
-
-    // Local filtering when at least one search field is provided
-    let result = [...data];
-    if (fullNameQuery) {
-      result = result.filter(item => 
-        item.fullName && item.fullName.toLowerCase().includes(fullNameQuery.toLowerCase())
-      );
-    }
-    if (phoneQuery) {
-      result = result.filter(item => 
-        item.phone && item.phone.includes(phoneQuery)
-      );
-    }
-    setFilteredData(result);
-  }, [searchFullName, searchPhone, data]);
+  const handleResetFilters = () => {
+    setSearchInput('');
+    setSearchPhone('');
+    setFilterStatus(null);
+  };
 
   const handleAdd = () => {
     setIsEditMode(false);
@@ -85,7 +82,7 @@ const UserManagementPage = () => {
       username: record.username,
       fullName: record.fullName,
       phone: record.phone,
-      status: record.status,
+      status: typeof record.status === 'object' ? record.status?.value : record.status,
       // password will be left empty on edit unless modified
     });
     setIsModalVisible(true);
@@ -147,11 +144,15 @@ const UserManagementPage = () => {
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
-      render: (status) => (
-        <Tag color={status === 'ACTIVE' ? 'green' : 'red'}>
-          {status === 'ACTIVE' ? 'Hoạt động' : 'Không hoạt động'}
-        </Tag>
-      ),
+      render: (status) => {
+        const val = typeof status === 'object' ? status?.value : status;
+        const label = typeof status === 'object' ? status?.label : status;
+        return (
+          <Tag color={val === 'ACTIVE' ? 'green' : 'red'}>
+            {label ?? val}
+          </Tag>
+        );
+      },
     },
     {
       title: 'Thao tác',
@@ -194,32 +195,45 @@ const UserManagementPage = () => {
         </Col>
       </Row>
 
-      <Row className="mb-6" gutter={16}>
-        <Col>
-          <Input 
-            placeholder="Tìm theo họ & tên" 
-            prefix={<SearchOutlined />} 
-            value={searchFullName}
-            onChange={(e) => setSearchFullName(e.target.value)}
-            style={{ width: 300 }}
-            size="large"
-          />
-        </Col>
+      <Row className="mb-6" gutter={16} align="middle">
         <Col>
           <Input 
             placeholder="Tìm theo số điện thoại" 
             prefix={<SearchOutlined />} 
-            value={searchPhone}
-            onChange={(e) => setSearchPhone(e.target.value)}
+            value={searchInput}
+            onChange={handlePhoneChange}
             style={{ width: 300 }}
             size="large"
+            allowClear
+            onClear={() => { setSearchInput(''); setSearchPhone(''); }}
           />
+        </Col>
+        <Col>
+          <Select
+            placeholder="Lọc theo trạng thái"
+            value={filterStatus}
+            onChange={(val) => setFilterStatus(val ?? null)}
+            style={{ width: 200 }}
+            size="large"
+            allowClear
+          >
+            {userStatuses.map((s) => (
+              <Select.Option key={s.value ?? s} value={s.value ?? s}>
+                {s.label ?? s}
+              </Select.Option>
+            ))}
+          </Select>
+        </Col>
+        <Col>
+          <Button onClick={handleResetFilters} size="large">
+            Làm mới
+          </Button>
         </Col>
       </Row>
 
       <Table 
         columns={columns} 
-        dataSource={filteredData}
+        dataSource={data}
         rowKey="id"
         loading={loading}
         pagination={{
@@ -320,9 +334,12 @@ const UserManagementPage = () => {
                 label="Trạng thái"
                 rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}
               >
-                <Select>
-                  <Select.Option value="ACTIVE">Hoạt động</Select.Option>
-                  <Select.Option value="INACTIVE">Không hoạt động</Select.Option>
+                <Select placeholder="Chọn trạng thái">
+                  {userStatuses.map((s) => (
+                    <Select.Option key={s.value ?? s} value={s.value ?? s}>
+                      {s.label ?? s}
+                    </Select.Option>
+                  ))}
                 </Select>
               </Form.Item>
             </Col>

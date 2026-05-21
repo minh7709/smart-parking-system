@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
 	Button,
 	Card,
@@ -17,6 +17,7 @@ import {
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { adminApi } from "../api/admin.api";
 import { useNotification } from "../../../hooks/useNotification";
+import { getSystemTypes } from "../../../utils/storage";
 
 const { Option } = Select;
 
@@ -27,8 +28,8 @@ const AdminMonthTicket = () => {
 	const [total, setTotal] = useState(0);
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
-	const [vehicleTypes, setVehicleTypes] = useState([]);
-	const [subscriptionTypes, setSubscriptionTypes] = useState([]);
+	const vehicleTypes = useMemo(() => getSystemTypes("vehicleTypes") ?? [], []);
+	const subscriptionTypes = useMemo(() => getSystemTypes("subscriptionTypes") ?? [], []);
 	const [filterVehicleType, setFilterVehicleType] = useState(null);
 
 	const [isModalVisible, setIsModalVisible] = useState(false);
@@ -65,30 +66,8 @@ const AdminMonthTicket = () => {
 		}
 	};
 
-	const fetchVehicleTypes = async () => {
-		try {
-			const res = await adminApi.getVehicleTypes();
-			setVehicleTypes(Array.isArray(res?.data) ? res.data : []);
-		} catch (error) {
-			notify.apiError(error, "Không thể tải loại xe");
-			setVehicleTypes([]);
-		}
-	};
-
-	const fetchSubscriptionTypes = async () => {
-		try {
-			const res = await adminApi.getSubscriptionTypes();
-			setSubscriptionTypes(Array.isArray(res?.data) ? res.data : []);
-		} catch (error) {
-			notify.apiError(error, "Không thể tải loại vé tháng");
-			setSubscriptionTypes([]);
-		}
-	};
-
 	useEffect(() => {
 		fetchSubscriptionPricings();
-		fetchVehicleTypes();
-		fetchSubscriptionTypes();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
@@ -228,7 +207,7 @@ const AdminMonthTicket = () => {
 				</Col>
 				<Col>
 					<Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-						Thêm gói
+						Thêm cấu hình  giá
 					</Button>
 				</Col>
 			</Row>

@@ -14,21 +14,11 @@ const MonitorPage = () => {
   const savedSelection = getLaneSelection();
   const parkedTableRef = React.useRef();
 
-  const checkInLane = location.state?.checkInLane || savedSelection.checkInLane;
-  const checkOutLane =
-    location.state?.checkOutLane || savedSelection.checkOutLane;
+  const checkInLane =  location.state?.checkInLane || savedSelection.checkInLane;
+  const checkOutLane = location.state?.checkOutLane || savedSelection.checkOutLane;
 
-  // THAY IP CỦA BẠN VÀO ĐÂY
-  // Cách 1: dùng IP từ lane (nếu có)
-  // const cameraInUrl = checkInLane?.ipCamera
-  //   ? `http://${checkInLane.ipCamera}:4747/video`
-  //   : null;
-
-  // Cách 2: dùng IP cứng để test (chú ý: IP này phải đúng và reachable)
-  const cameraInUrl = "/camera-in-stream";
-  const cameraOutUrl = "/camera-out-stream";
-
-
+  const cameraInUrl = 'http://' + checkInLane?.ipCamera + ':8080/stream.mjpg';
+  const cameraOutUrl = 'http://' + checkOutLane?.ipCamera + ':8080/stream.mjpg';
 
   const [cameraStatus, setCameraStatus] = useState("checking");
   const [pendingConfirm, setPendingConfirm] = useState(null);

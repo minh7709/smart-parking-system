@@ -84,13 +84,18 @@ export const saveSystemTypes = (typesData) => {
   });
 };
 
-export const getSystemTypes = () => {
-  const types = {};
-  SYSTEM_TYPE_KEYS.forEach(key => {
-    const data = localStorage.getItem(key);
-    types[key] = data ? JSON.parse(data) : [];
-  });
-  return types;
+export const getSystemTypes = (key) => {
+  if (!key) {
+    const types = {};
+    SYSTEM_TYPE_KEYS.forEach(typeKey => {
+      const data = localStorage.getItem(typeKey);
+      types[typeKey] = data ? JSON.parse(data) : [];
+    });
+    return types;
+  }
+
+  const data = localStorage.getItem(key);
+  return data ? JSON.parse(data) : [];
 };
 
 export const clearSystemTypes = () => {

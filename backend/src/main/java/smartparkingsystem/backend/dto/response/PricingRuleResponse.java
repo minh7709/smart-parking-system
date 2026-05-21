@@ -17,7 +17,6 @@ import java.util.UUID;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PricingRuleResponse {
-
     private UUID id;
     private String ruleName;
     private VehicleTypeEnum vehicleType;
@@ -28,6 +27,7 @@ public class PricingRuleResponse {
     private BigInteger thresholdPrice;
     private BigInteger maxPricePerDay;
     private List<TimeWindowAndProgressiveConfig> progressiveConfig;
+    private BigInteger penaltyFee;
     private Boolean isActive;
     private LocalDateTime createdAt;
     private String createdBy;

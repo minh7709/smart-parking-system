@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Card,
   Table,
@@ -26,6 +26,7 @@ import {
   StopOutlined,
 } from "@ant-design/icons";
 import { adminApi } from "../api/admin.api";
+import { getSystemTypes } from "../../../utils/storage";
 
 const { Option } = Select;
 
@@ -41,6 +42,9 @@ const PricingRuleConfig = () => {
   const [editingId, setEditingId] = useState(null);
   const [editingIsActive, setEditingIsActive] = useState(true);
   const [form] = Form.useForm();
+
+  const vehicleTypes = useMemo(() => getSystemTypes("vehicleTypes") ?? [], []);
+  const pricingStrategies = useMemo(() => getSystemTypes("pricingStrategies") ?? [], []);
 
   const fetchRules = async () => {
     try {
@@ -389,9 +393,11 @@ const PricingRuleConfig = () => {
               style={{ width: 300 }}
             >
               <Select placeholder="Chọn xe" disabled={isEditMode}>
-                <Option value="CAR">Ô tô</Option>
-                <Option value="MOTOR">Xe máy</Option>
-                <Option value="BICYCLE">Xe đạp</Option>
+                {vehicleTypes.map((t) => (
+                  <Option key={t.value ?? t} value={t.value ?? t}>
+                    {t.label ?? t}
+                  </Option>
+                ))}
               </Select>
             </Form.Item>
 
@@ -402,16 +408,11 @@ const PricingRuleConfig = () => {
               style={{ width: 300 }}
             >
               <Select onChange={(value) => setSelectedStrategy(value)} disabled={isEditMode}>
-                {/* ĐÃ THÊM ĐỦ 5 CHIẾN THUẬT */}
-                <Option value="FLAT_RATE">Giá cố định (Flat Rate)</Option>
-                <Option value="ROLLING_BLOCK">
-                  Theo Block (Rolling Block)
-                </Option>
-                <Option value="PROGRESSIVE">Lũy tiến (Progressive)</Option>
-                <Option value="DAILY_CAPPED">
-                  Giới hạn ngày (Daily Capped)
-                </Option>
-                <Option value="TIME_WINDOW">Khung giờ (Time Window)</Option>
+                {pricingStrategies.map((s) => (
+                  <Option key={s.value ?? s} value={s.value ?? s}>
+                    {s.label ?? s}
+                  </Option>
+                ))}
               </Select>
             </Form.Item>
           </Space>
@@ -568,19 +569,11 @@ const PricingRuleConfig = () => {
 
           <Form.Item
             name="penaltyFee"
-            label="Phí phạt trễ/sai quy định (VNĐ)"
+            label="Phí phạt mất thẻ (VNĐ)"
             rules={[{ required: true }]}
           >
             <InputNumber style={{ width: "100%" }} />
           </Form.Item>
-          <Form.Item
-            name="startTime"
-            label="Ngày bắt đầu áp dụng"
-            rules={[{ required: true }]}
-          >
-            <DatePicker style={{ width: "100%" }} showTime />
-          </Form.Item>
-
           <Button type="primary" htmlType="submit" block size="large">
             Lưu cấu hình
           </Button>

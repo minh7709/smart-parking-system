@@ -34,9 +34,23 @@ const CameraCard = ({
   const [incidentSubmitting, setIncidentSubmitting] = useState(false);
   const [incidentEvidenceFile, setIncidentEvidenceFile] = useState(null);
   const themeColor = "#141414";
-
+ /*const SYSTEM_TYPE_KEYS = [
+  "laneStatuses",
+  "laneTypes",
+  "vehicleTypes",
+  "sessionStatuses",
+  "paymentStatuses",
+  "paymentMethods",
+  "pricingStrategies",
+  "incidentTypes",
+  "userRoles",
+  "userStatuses",
+  "subscriptionTypes",
+  "subscriptionStatuses"
+]; */
   const vehicleTypeOptions = useMemo(() => {
-    const { vehicleTypes } = getSystemTypes();
+    const vehicleTypes = getSystemTypes('vehicleTypes') ?? [];
+
     if (Array.isArray(vehicleTypes) && vehicleTypes.length > 0) {
       return vehicleTypes.map((item) => {
         const value = String(item.value || "").toUpperCase();
@@ -52,7 +66,7 @@ const CameraCard = ({
     ];
   }, []);
   const incidentTypeOptions = useMemo(() => {
-    const { incidentTypes } = getSystemTypes();
+    const incidentTypes = getSystemTypes('incidentTypes') ?? [];
     if (Array.isArray(incidentTypes) && incidentTypes.length > 0) {
       return incidentTypes.map((item) => {
         const value = String(item.value || "").toUpperCase();

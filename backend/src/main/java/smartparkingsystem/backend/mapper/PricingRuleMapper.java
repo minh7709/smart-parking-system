@@ -31,6 +31,7 @@ public class PricingRuleMapper {
                 .thresholdPrice(entity.getThresholdPrice())
                 .maxPricePerDay(entity.getMaxPricePerDay())
                 .progressiveConfig(entity.getProgressiveConfig())
+                .penaltyFee(entity.getPenaltyFee())
                 .isActive(entity.isActive())
                 .createdAt(entity.getCreatedAt())
                 .createdBy(entity.getCreator() != null ? entity.getCreator().getUsername() : null)

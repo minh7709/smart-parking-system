@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Card, Table, Row, Col, Select, Button, Modal, Spin } from "antd";
 import dayjs from "dayjs";
 import { adminApi } from "../api/admin.api";
 import { useNotification } from "../../../hooks/useNotification";
+import { getSystemTypes } from '../../../utils/storage';
 
 const { Option } = Select;
 
@@ -15,7 +16,7 @@ const AdminIncident = () => {
 	const [total, setTotal] = useState(0);
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
-	const [incidentTypes, setIncidentTypes] = useState([]);
+	const incidentTypes = useMemo(() => getSystemTypes("incidentTypes") ?? [], []);
 	const [filterType, setFilterType] = useState(null);
 	const [refreshTick, setRefreshTick] = useState(0);
 
@@ -26,20 +27,6 @@ const AdminIncident = () => {
 	useEffect(() => {
 		notifyRef.current = notify;
 	}, [notify]);
-
-	useEffect(() => {
-		const fetchIncidentTypes = async () => {
-			try {
-				const res = await adminApi.getIncidentTypes();
-				setIncidentTypes(res?.data ?? []);
-			} catch (error) {
-				notifyRef.current.apiError(error, "Lỗi khi tải danh sách loại sự cố");
-			}
-		};
-
-		fetchIncidentTypes();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
 
 	useEffect(() => {
 		const fetchIncidents = async (page = currentPage, size = pageSize) => {

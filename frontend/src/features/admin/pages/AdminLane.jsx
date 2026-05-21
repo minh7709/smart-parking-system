@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Button, Card, Col, Form, Input, Modal, Popconfirm, Row, Select, Space, Table, Tag } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { adminApi } from "../api/admin.api";
 import { useNotification } from "../../../hooks/useNotification";
+import { getSystemTypes } from "../../../utils/storage";
 
 const { Option } = Select;
 
@@ -10,8 +11,8 @@ const AdminLane = () => {
 	const notify = useNotification();
 	const [data, setData] = useState([]);
 	const [loading, setLoading] = useState(false);
-	const [laneTypes, setLaneTypes] = useState([]);
-	const [laneStatuses, setLaneStatuses] = useState([]);
+	const laneTypes = useMemo(() => getSystemTypes("laneTypes") ?? [], []);
+	const laneStatuses = useMemo(() => getSystemTypes("laneStatuses") ?? [], []);
 
 	const [isModalVisible, setIsModalVisible] = useState(false);
 	const [isEditMode, setIsEditMode] = useState(false);
@@ -32,32 +33,8 @@ const AdminLane = () => {
 		}
 	};
 
-	const fetchLaneTypes = async () => {
-		try {
-			const response = await adminApi.getLaneTypes();
-			const items = Array.isArray(response?.data) ? response.data : [];
-			setLaneTypes(items);
-		} catch (error) {
-			notify.apiError(error, "Lỗi khi tải loại làn");
-			setLaneTypes([]);
-		}
-	};
-
-	const fetchLaneStatuses = async () => {
-		try {
-			const response = await adminApi.getLaneStatuses();
-			const items = Array.isArray(response?.data) ? response.data : [];
-			setLaneStatuses(items);
-		} catch (error) {
-			notify.apiError(error, "Lỗi khi tải trạng thái làn");
-			setLaneStatuses([]);
-		}
-	};
-
 	useEffect(() => {
 		fetchLanes();
-		fetchLaneTypes();
-		fetchLaneStatuses();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
@@ -73,8 +50,8 @@ const AdminLane = () => {
 		setEditingId(record.id);
 		form.setFieldsValue({
 			laneName: record.laneName,
-			laneType: record.laneType,
-			status: record.status,
+			laneType: record.laneType.value,
+			status: record.status.value,
 			ipCamera: record.ipCamera,
 		});
 		setIsModalVisible(true);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   Card, Input, Select, Button, Row, Col,
   Table, Space, Tag, Popconfirm, Tooltip
@@ -23,20 +23,14 @@ const AdminRegisterPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const [subTypes, setSubTypes] = useState([]);
-  const [subStatuses, setSubStatuses] = useState([]);
+  const subTypes = useMemo(() => getSystemTypes("subscriptionTypes") ?? [], []);
+  const subStatuses = useMemo(() => getSystemTypes("subscriptionStatuses") ?? [], []);
 
   const [searchInput, setSearchInput] = useState("");
   const [searchPlate, setSearchPlate] = useState("");
   const [filterType, setFilterType] = useState(null);
   const [filterStatus, setFilterStatus] = useState(null);
   const debounceTimer = useRef(null);
-
-  useEffect(() => {
-    const types = getSystemTypes();
-    setSubTypes(types.subscriptionTypes ?? []);
-    setSubStatuses(types.subscriptionStatuses ?? []);
-  }, []);
 
   const fetchSubscriptions = useCallback(
     async (page = currentPage, size = pageSize, silent = false) => {

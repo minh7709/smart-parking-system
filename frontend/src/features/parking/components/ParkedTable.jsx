@@ -45,7 +45,7 @@ const ParkedTable = React.forwardRef(({ refreshTrigger }, ref) => {
   const [imageInSrc, setImageInSrc] = useState(null);
   const [imageOutSrc, setImageOutSrc] = useState(null);
   const [imageLoading, setImageLoading] = useState(false);
-  const { vehicleTypes, sessionStatuses } = getSystemTypes();
+  const vehicleTypes = getSystemTypes('vehicleTypes') ?? [];
 
   useEffect(() => {
     const handler = setTimeout(() => {

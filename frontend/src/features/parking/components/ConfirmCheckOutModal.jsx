@@ -36,7 +36,8 @@ const ConfirmCheckOutModal = ({ visible, initialData, onClose, onConfirmed }) =>
   const [imageLoading, setImageLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState(null);
 
-  const { paymentMethods, vehicleTypes } = useMemo(() => getSystemTypes(), []);
+  const paymentMethods = getSystemTypes('paymentMethods') ?? [];
+  const vehicleTypes = getSystemTypes('vehicleTypes') ?? [];
 
   const paymentOptions = useMemo(() => {
     if (Array.isArray(paymentMethods) && paymentMethods.length > 0) {

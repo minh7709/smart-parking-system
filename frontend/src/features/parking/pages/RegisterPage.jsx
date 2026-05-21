@@ -49,11 +49,56 @@ const RegisterPage = () => {
 
   // ── Load enum từ localStorage (cache khi đăng nhập) ──────────────────
   useEffect(() => {
-    const types = getSystemTypes();
-    setSubTypes(types.subscriptionTypes ?? []);
-    setSubStatuses(types.subscriptionStatuses ?? []);
-    setPaymentMethods(types.paymentMethods ?? []);
-    setVehicleTypes(types.vehicleTypes ?? []);
+    const subTypes = getSystemTypes("subscriptionTypes") ?? [
+    {
+        "label": "Tháng",
+        "value": "MONTHLY"
+    },
+    {
+        "label": "Quý",
+        "value": "QUARTERLY"
+    },
+    {
+        "label": "Năm",
+        "value": "YEARLY"
+    }
+];
+    const subStatuses = getSystemTypes("subscriptionStatuses") ?? [
+    {
+        "label": "Đang xử lý",
+        "value": "PENDING"
+    },
+    {
+        "label": "Còn hạn",
+        "value": "ACTIVE"
+    },
+    {
+        "label": "Hết hạn",
+        "value": "EXPIRED"
+    },
+    {
+        "label": "Đã hủy",
+        "value": "CANCELLED"
+    }
+];
+    const paymentMethods = getSystemTypes("paymentMethods") ?? [
+    {
+        "label": "Tiền mặt",
+        "value": "CASH"
+    },
+    {
+        "label": "Chuyển khoản",
+        "value": "ONLINE_PAYMENT"
+    }
+];
+    const vehicleTypes = getSystemTypes("vehicleTypes") ?? [
+      {label: "Xe hơi", value: "CAR"}, 
+      {label: "Xe máy", value: "MOTOR"}, 
+      {label: "Xe đạp", value: "BICYCLE"}];
+    setSubTypes(subTypes);
+    setSubStatuses(subStatuses);
+    setPaymentMethods(paymentMethods);
+    setVehicleTypes(vehicleTypes);
   }, []);
 
   // ── Hàm fetch chính ───────────────────────────────────────────
