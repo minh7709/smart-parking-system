@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Row,
   Col,
@@ -10,75 +10,242 @@ import {
   Radio,
   DatePicker,
   Tag,
+  Alert,
+  Spin,
 } from "antd";
 import {
   ArrowUpOutlined,
   ArrowDownOutlined,
   DownloadOutlined,
 } from "@ant-design/icons";
+import dayjs from "dayjs";
+import axiosClient from "../../../api/axiosClient";
+import API_ENDPOINTS from "../../../api/endpoints";
 
 const { RangePicker } = DatePicker;
 
-// Dữ liệu mẫu cho bảng
-const tableData = [
-  {
-    key: "1",
-    time: "14:25 22/10/2023",
-    plate: "30A-123.45",
-    type: "Vé Lượt",
-    gate: "Cổng 1 (Vào)",
-    amount: "30,000đ",
-  },
-  {
-    key: "2",
-    time: "14:20 22/10/2023",
-    plate: "51G-987.65",
-    type: "Vé Tháng",
-    gate: "Cổng 2 (Ra)",
-    amount: "0đ",
-  },
-  {
-    key: "3",
-    time: "14:15 22/10/2023",
-    plate: "29D-555.22",
-    type: "Vé Lượt",
-    gate: "Cổng 1 (Vào)",
-    amount: "50,000đ",
-  },
-];
+const RANGE_TO_UNIT = {
+  ngay: "day",
+  tuan: "week",
+  thang: "month",
+};
 
-const columns = [
-  { title: "THỜI GIAN", dataIndex: "time", key: "time", fontWeight: "bold" },
-  {
-    title: "BIỂN SỐ XE",
-    dataIndex: "plate",
-    key: "plate",
-    render: (text) => <strong>{text}</strong>,
-  },
-  {
-    title: "LOẠI VÉ",
-    dataIndex: "type",
-    key: "type",
-    render: (type) => (
-      <Tag
-        color={type === "Vé Lượt" ? "blue" : "green"}
-        style={{ borderRadius: "10px" }}
-      >
-        {type}
-      </Tag>
-    ),
-  },
-  { title: "CỔNG", dataIndex: "gate", key: "gate" },
-  {
-    title: "THÀNH TIỀN",
-    dataIndex: "amount",
-    key: "amount",
-    align: "right",
-    render: (text) => <strong>{text}</strong>,
-  },
-];
+const RANGE_TO_INTERVAL = {
+  ngay: "HOUR",
+  tuan: "DAY",
+  thang: "WEEK",
+};
+
+const formatDateTime = (value) =>
+  value ? value.format("YYYY-MM-DDTHH:mm:ss") : null;
+
+const safeNumber = (value) => (Number.isFinite(value) ? value : 0);
+
+const formatCurrency = (value) =>
+  new Intl.NumberFormat("vi-VN").format(safeNumber(value));
 
 const AdminDashboard = () => {
+  const [rangeType, setRangeType] = useState("ngay");
+  const [dateRange, setDateRange] = useState([
+    dayjs().startOf("day"),
+    dayjs().endOf("day"),
+  ]);
+  const [selectedLane, setSelectedLane] = useState("all");
+
+  const [summary, setSummary] = useState(null);
+  const [trafficTimeline, setTrafficTimeline] = useState([]);
+  const [revenueTimeline, setRevenueTimeline] = useState([]);
+  const [revenueBreakdown, setRevenueBreakdown] = useState(null);
+  const [penalties, setPenalties] = useState(null);
+  const [laneUtilization, setLaneUtilization] = useState([]);
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const interval = RANGE_TO_INTERVAL[rangeType];
+
+  const params = useMemo(() => {
+    const [start, end] = dateRange || [];
+    return {
+      startDate: formatDateTime(start),
+      endDate: formatDateTime(end),
+    };
+  }, [dateRange]);
+
+  useEffect(() => {
+    const fetchStatistics = async () => {
+      if (!params.startDate || !params.endDate) {
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const [
+          summaryRes,
+          trafficTimelineRes,
+          trafficLanesRes,
+          revenueTimelineRes,
+          revenueBreakdownRes,
+          penaltiesRes,
+        ] = await Promise.all([
+          axiosClient.get(API_ENDPOINTS.admin.statistics.summary, { params }),
+          axiosClient.get(API_ENDPOINTS.admin.statistics.trafficTimeline, {
+            params: { ...params, interval },
+          }),
+          axiosClient.get(API_ENDPOINTS.admin.statistics.trafficLanes, { params }),
+          axiosClient.get(API_ENDPOINTS.admin.statistics.revenueTimeline, {
+            params: { ...params, interval },
+          }),
+          axiosClient.get(API_ENDPOINTS.admin.statistics.revenueBreakdown, {
+            params,
+          }),
+          axiosClient.get(API_ENDPOINTS.admin.statistics.revenuePenalties, {
+            params,
+          }),
+        ]);
+
+        setSummary(summaryRes?.data || null);
+        setTrafficTimeline(trafficTimelineRes?.data || []);
+        setLaneUtilization(trafficLanesRes?.data || []);
+        setRevenueTimeline(revenueTimelineRes?.data || []);
+        setRevenueBreakdown(revenueBreakdownRes?.data || null);
+        setPenalties(penaltiesRes?.data || null);
+      } catch (err) {
+        setError(err?.message || "Không thể tải dữ liệu thống kê");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStatistics();
+  }, [params, interval]);
+
+  const handleRangeTypeChange = (event) => {
+    const value = event.target.value;
+    setRangeType(value);
+
+    const unit = RANGE_TO_UNIT[value];
+    setDateRange([dayjs().startOf(unit), dayjs().endOf(unit)]);
+  };
+
+  const handleRangeChange = (values) => {
+    if (!values || values.length !== 2) {
+      return;
+    }
+    setDateRange(values);
+  };
+
+  const laneOptions = useMemo(() => {
+    const names = laneUtilization
+      .map((lane) => lane?.laneName)
+      .filter(Boolean);
+    return ["all", ...new Set(names)];
+  }, [laneUtilization]);
+
+  const filteredLaneUtilization = useMemo(() => {
+    if (selectedLane === "all") {
+      return laneUtilization;
+    }
+    return laneUtilization.filter((lane) => lane.laneName === selectedLane);
+  }, [laneUtilization, selectedLane]);
+
+  const busiestTraffic = useMemo(() => {
+    if (!trafficTimeline.length) {
+      return null;
+    }
+    return trafficTimeline.reduce((current, item) => {
+      const currentTotal =
+        safeNumber(current?.regularCount) + safeNumber(current?.monthlyCount);
+      const nextTotal =
+        safeNumber(item?.regularCount) + safeNumber(item?.monthlyCount);
+      return nextTotal > currentTotal ? item : current;
+    }, trafficTimeline[0]);
+  }, [trafficTimeline]);
+
+  const revenueTimelineData = useMemo(
+    () =>
+      revenueTimeline.map((item, index) => ({
+        key: `${item?.timestamp || index}`,
+        timestamp: item?.timestamp,
+        totalRevenue: item?.totalRevenue,
+      })),
+    [revenueTimeline]
+  );
+
+  const trafficTimelineData = useMemo(
+    () =>
+      trafficTimeline.map((item, index) => ({
+        key: `${item?.timestamp || index}`,
+        timestamp: item?.timestamp,
+        regularCount: item?.regularCount,
+        monthlyCount: item?.monthlyCount,
+        totalCount:
+          safeNumber(item?.regularCount) + safeNumber(item?.monthlyCount),
+      })),
+    [trafficTimeline]
+  );
+
+  const laneTableData = useMemo(
+    () =>
+      filteredLaneUtilization.map((lane, index) => ({
+        key: `${lane?.laneName || index}`,
+        laneName: lane?.laneName,
+        entryCount: lane?.entryCount,
+        exitCount: lane?.exitCount,
+      })),
+    [filteredLaneUtilization]
+  );
+
+  const revenueColumns = [
+    { title: "THỜI GIAN", dataIndex: "timestamp", key: "timestamp" },
+    {
+      title: "DOANH THU",
+      dataIndex: "totalRevenue",
+      key: "totalRevenue",
+      align: "right",
+      render: (value) => <strong>{formatCurrency(value)} đ</strong>,
+    },
+  ];
+
+  const trafficColumns = [
+    { title: "THỜI GIAN", dataIndex: "timestamp", key: "timestamp" },
+    {
+      title: "VÉ LƯỢT",
+      dataIndex: "regularCount",
+      key: "regularCount",
+      align: "right",
+    },
+    {
+      title: "VÉ THÁNG",
+      dataIndex: "monthlyCount",
+      key: "monthlyCount",
+      align: "right",
+    },
+    {
+      title: "TỔNG",
+      dataIndex: "totalCount",
+      key: "totalCount",
+      align: "right",
+    },
+  ];
+
+  const laneColumns = [
+    { title: "CỔNG", dataIndex: "laneName", key: "laneName" },
+    {
+      title: "LƯỢT VÀO",
+      dataIndex: "entryCount",
+      key: "entryCount",
+      align: "right",
+    },
+    {
+      title: "LƯỢT RA",
+      dataIndex: "exitCount",
+      key: "exitCount",
+      align: "right",
+    },
+  ];
   return (
     <div>
       {/* BỘ LỌC */}
@@ -91,7 +258,7 @@ const AdminDashboard = () => {
       >
         <div style={{ display: "flex", gap: "15px", alignItems: "center" }}>
           <span style={{ fontWeight: "bold", color: "#888" }}>THỜI GIAN</span>
-          <Radio.Group defaultValue="ngay">
+          <Radio.Group value={rangeType} onChange={handleRangeTypeChange}>
             <Radio.Button value="ngay">Ngày</Radio.Button>
             <Radio.Button value="tuan">Tuần</Radio.Button>
             <Radio.Button value="thang">Tháng</Radio.Button>
@@ -100,15 +267,21 @@ const AdminDashboard = () => {
           <span style={{ fontWeight: "bold", color: "#888", marginLeft: 10 }}>
             CỔNG KIỂM SOÁT
           </span>
-          <Select defaultValue="all" style={{ width: 120 }}>
-            <Select.Option value="all">Tất cả cổng</Select.Option>
-            <Select.Option value="1">Cổng 1</Select.Option>
-            <Select.Option value="2">Cổng 2</Select.Option>
+          <Select
+            value={selectedLane}
+            style={{ width: 160 }}
+            onChange={setSelectedLane}
+          >
+            {laneOptions.map((laneName) => (
+              <Select.Option key={laneName} value={laneName}>
+                {laneName === "all" ? "Tất cả cổng" : laneName}
+              </Select.Option>
+            ))}
           </Select>
         </div>
 
         <div style={{ display: "flex", gap: "10px" }}>
-          <RangePicker />
+          <RangePicker value={dateRange} onChange={handleRangeChange} />
           <Button
             type="primary"
             icon={<DownloadOutlined />}
@@ -119,47 +292,68 @@ const AdminDashboard = () => {
         </div>
       </div>
 
+      {error && (
+        <Alert
+          type="error"
+          message="Không thể tải dữ liệu thống kê"
+          description={error}
+          showIcon
+          style={{ marginBottom: 20 }}
+        />
+      )}
+
       {/* 4 THẺ THỐNG KÊ */}
       <Row gutter={16} style={{ marginBottom: 20 }}>
         <Col span={6}>
           <Card style={{ borderRadius: "12px" }}>
             <Statistic
               title="Tổng doanh thu"
-              value={1245000000}
+              value={safeNumber(summary?.totalRevenue)}
               suffix="đ"
-              style={{ color: "#000" }}
+              formatter={(value) => formatCurrency(value)}
             />
             <div
               style={{ color: "#52c41a", marginTop: "10px", fontSize: "12px" }}
             >
-              <ArrowUpOutlined /> 12.5% so với kỳ trước
+              <ArrowUpOutlined /> Theo khoảng đã chọn
             </div>
           </Card>
         </Col>
         <Col span={6}>
           <Card style={{ borderRadius: "12px" }}>
-            <Statistic title="Lưu lượng xe" value={18542} suffix="lượt" />
+            <Statistic
+              title="Lưu lượng xe"
+              value={safeNumber(summary?.totalSessions)}
+              suffix="lượt"
+            />
             <div
               style={{ color: "#52c41a", marginTop: "10px", fontSize: "12px" }}
             >
-              <ArrowUpOutlined /> 8.2% so với kỳ trước
+              <ArrowUpOutlined /> Theo khoảng đã chọn
             </div>
           </Card>
         </Col>
         <Col span={6}>
           <Card style={{ borderRadius: "12px" }}>
-            <Statistic title="Trung bình ngày" value={41500000} suffix="đ" />
+            <Statistic
+              title="Xe đang đỗ"
+              value={safeNumber(summary?.parkedCount)}
+              suffix="xe"
+            />
             <div
               style={{ color: "#ff4d4f", marginTop: "10px", fontSize: "12px" }}
             >
-              <ArrowDownOutlined /> 2.4% so với kỳ trước
+              <ArrowDownOutlined /> Tình trạng hiện tại
             </div>
           </Card>
         </Col>
         <Col span={6}>
           <Card style={{ borderRadius: "12px" }}>
-            <Statistic title="Tỷ lệ lấp đầy" value={85} suffix="%" />
-            {/* Bạn có thể dùng component Progress của Antd ở đây */}
+            <Statistic
+              title="Đăng ký đang hoạt động"
+              value={safeNumber(summary?.activeSubscriptions)}
+              suffix="gói"
+            />
             <div
               style={{
                 background: "#e0e0e0",
@@ -171,7 +365,7 @@ const AdminDashboard = () => {
               <div
                 style={{
                   background: "#0958d9",
-                  width: "85%",
+                  width: "100%",
                   height: "100%",
                   borderRadius: "4px",
                 }}
@@ -189,21 +383,16 @@ const AdminDashboard = () => {
             style={{ borderRadius: "12px", height: "100%" }}
           >
             <p style={{ color: "#888" }}>
-              Phân tích dòng tiền theo thời gian (đơn vị: triệu đồng)
+              Phân tích dòng tiền theo thời gian (đơn vị: đồng)
             </p>
-            {/* Chỗ này sau bạn dùng thẻ <LineChart> của Recharts nhúng vào */}
-            <div
-              style={{
-                height: "250px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "#f5f5f5",
-                borderRadius: "8px",
-              }}
-            >
-              [Khu vực gắn Biểu đồ Line Chart (Nên dùng thư viện Recharts)]
-            </div>
+            <Spin spinning={loading}>
+              <Table
+                columns={revenueColumns}
+                dataSource={revenueTimelineData}
+                pagination={false}
+                size="small"
+              />
+            </Spin>
           </Card>
         </Col>
         <Col span={8}>
@@ -211,20 +400,14 @@ const AdminDashboard = () => {
             title="Lưu lượng xe"
             style={{ borderRadius: "12px", height: "100%" }}
           >
-            {/* Biểu đồ cột mini ở đây */}
-            <div
-              style={{
-                height: "180px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "#f5f5f5",
-                borderRadius: "8px",
-                marginBottom: "15px",
-              }}
-            >
-              [Biểu đồ cột Bar Chart]
-            </div>
+            <Spin spinning={loading}>
+              <Table
+                columns={trafficColumns}
+                dataSource={trafficTimelineData}
+                pagination={false}
+                size="small"
+              />
+            </Spin>
             <div
               style={{
                 display: "flex",
@@ -234,19 +417,74 @@ const AdminDashboard = () => {
               }}
             >
               <span>Bận rộn nhất:</span>
-              <strong>Chủ Nhật (12:00 - 21:00)</strong>
+              <strong>
+                {busiestTraffic?.timestamp || "Chưa có dữ liệu"}
+              </strong>
             </div>
+          </Card>
+        </Col>
+      </Row>
+
+      <Row gutter={16} style={{ marginBottom: 20 }}>
+        <Col span={12}>
+          <Card title="Phân bổ doanh thu" style={{ borderRadius: "12px" }}>
+            <Row gutter={12}>
+              <Col span={12}>
+                <Statistic
+                  title="Tiền mặt"
+                  value={safeNumber(revenueBreakdown?.cashRevenue)}
+                  suffix="đ"
+                  formatter={(value) => formatCurrency(value)}
+                />
+              </Col>
+              <Col span={12}>
+                <Statistic
+                  title="Online"
+                  value={safeNumber(revenueBreakdown?.onlinePaymentRevenue)}
+                  suffix="đ"
+                  formatter={(value) => formatCurrency(value)}
+                />
+              </Col>
+              <Col span={12} style={{ marginTop: 16 }}>
+                <Statistic
+                  title="Vé lượt"
+                  value={safeNumber(revenueBreakdown?.sessionRevenue)}
+                  suffix="đ"
+                  formatter={(value) => formatCurrency(value)}
+                />
+              </Col>
+              <Col span={12} style={{ marginTop: 16 }}>
+                <Statistic
+                  title="Vé tháng"
+                  value={safeNumber(revenueBreakdown?.subscriptionRevenue)}
+                  suffix="đ"
+                  formatter={(value) => formatCurrency(value)}
+                />
+              </Col>
+            </Row>
+          </Card>
+        </Col>
+        <Col span={12}>
+          <Card title="Phí phạt" style={{ borderRadius: "12px" }}>
+            <Statistic
+              title="Tổng phí phạt"
+              value={safeNumber(penalties?.totalPenalty)}
+              suffix="đ"
+              formatter={(value) => formatCurrency(value)}
+            />
           </Card>
         </Col>
       </Row>
 
       {/* BẢNG GIAO DỊCH GẦN ĐÂY */}
       <Card
-        title="Chi tiết giao dịch gần đây"
+        title="Lưu lượng theo cổng"
         style={{ borderRadius: "12px" }}
         extra={<Button type="link">Xem tất cả</Button>}
       >
-        <Table columns={columns} dataSource={tableData} pagination={false} />
+        <Spin spinning={loading}>
+          <Table columns={laneColumns} dataSource={laneTableData} pagination={false} />
+        </Spin>
       </Card>
     </div>
   );

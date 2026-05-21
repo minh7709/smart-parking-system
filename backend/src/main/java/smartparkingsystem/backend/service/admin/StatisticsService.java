@@ -29,6 +29,7 @@ public class StatisticsService {
     private final SubscriptionRepository subscriptionRepository;
 
     public SummaryResponse getSummary(LocalDateTime startDate, LocalDateTime endDate) {
+        validateDateRange(startDate, endDate);
         BigInteger totalRevenueBigInt = invoiceRepository.findTotalRevenueBetween(startDate, endDate);
         BigDecimal totalRevenue = new BigDecimal(totalRevenueBigInt);
         long totalSessions = parkingSessionRepository.countByTimeInBetween(startDate, endDate);
@@ -36,6 +37,15 @@ public class StatisticsService {
         long activeSubscriptions = subscriptionRepository.countByStatus(SubStatus.ACTIVE);
 
         return new SummaryResponse(totalRevenue, totalSessions, parkedCount, activeSubscriptions);
+    }
+
+    private void validateDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        if (startDate == null || endDate == null) {
+            throw new ValidationException("startDate và endDate không được để trống");
+        }
+        if (startDate.isAfter(endDate)) {
+            throw new ValidationException("startDate phải nhỏ hơn hoặc bằng endDate");
+        }
     }
 
     private void validateInterval(String interval) {
@@ -50,25 +60,29 @@ public class StatisticsService {
     }
 
     public List<TrafficTimelineResponse> getTrafficTimeline(LocalDateTime startDate, LocalDateTime endDate, String interval, VehicleTypeEnum vehicleType) {
+        validateDateRange(startDate, endDate);
         validateInterval(interval);
-        String vehicleTypeStr = (vehicleType != null) ? vehicleType.name() : null;
-        return parkingSessionRepository.getTrafficTimeline(startDate, endDate, interval.toUpperCase(), vehicleTypeStr);
+        return parkingSessionRepository.getTrafficTimeline(startDate, endDate, interval.toUpperCase(), vehicleType);
     }
 
     public List<LaneUtilizationResponse> getLaneUtilization(LocalDateTime startDate, LocalDateTime endDate) {
+        validateDateRange(startDate, endDate);
         return parkingSessionRepository.getLaneUtilization(startDate, endDate);
     }
 
     public List<RevenueTimelineResponse> getRevenueTimeline(LocalDateTime startDate, LocalDateTime endDate, String interval) {
+        validateDateRange(startDate, endDate);
         validateInterval(interval);
         return invoiceRepository.getRevenueTimeline(startDate, endDate, interval.toUpperCase());
     }
 
     public RevenueBreakdownResponse getRevenueBreakdown(LocalDateTime startDate, LocalDateTime endDate) {
+        validateDateRange(startDate, endDate);
         return invoiceRepository.getRevenueBreakdown(startDate, endDate);
     }
 
     public PenaltyFeesResponse getTotalPenalties(LocalDateTime startDate, LocalDateTime endDate) {
+        validateDateRange(startDate, endDate);
         BigInteger totalPenaltiesBigInt = invoiceRepository.getTotalPenalties(startDate, endDate);
         BigDecimal totalPenalties = new BigDecimal(totalPenaltiesBigInt);
         return new PenaltyFeesResponse(totalPenalties);

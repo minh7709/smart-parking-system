@@ -26,8 +26,8 @@ public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
 
     @Query(nativeQuery = true, value = "WITH time_series AS ( " +
             "    SELECT generate_series( " +
-            "        date_trunc(:interval, :startDate::timestamp), " +
-            "        :endDate::timestamp, " +
+            "        date_trunc(:interval, CAST(:startDate AS timestamp)), " +
+            "        CAST(:endDate AS timestamp), " +
             "        ('1 ' || :interval)::interval " +
             "    ) AS timestamp " +
             ") " +

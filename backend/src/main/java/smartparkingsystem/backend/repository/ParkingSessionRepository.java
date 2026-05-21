@@ -71,8 +71,8 @@ public interface ParkingSessionRepository extends JpaRepository<ParkingSession, 
         nativeQuery = true,
         value = "WITH time_series AS ( " +
                 "    SELECT generate_series( " +
-                "        date_trunc(:interval, :startDate::timestamp), " +
-                "        :endDate::timestamp, " +
+                "        date_trunc(:interval, CAST(:startDate AS timestamp)), " +
+                "        CAST(:endDate AS timestamp), " +
                 "        ('1 ' || :interval)::interval " +
                 "    ) AS timestamp " +
                 ") " +
@@ -83,13 +83,13 @@ public interface ParkingSessionRepository extends JpaRepository<ParkingSession, 
                 "FROM time_series ts " +
                 "LEFT JOIN parking_session ps ON date_trunc(:interval, ps.time_in) = ts.timestamp " +
                 "    AND ps.time_in >= :startDate AND ps.time_in < :endDate " +
-                "    AND (:vehicleType IS NULL OR ps.vehicle_type = :vehicleType) " +
+                "    AND (CAST(:vehicleType AS vehicle_type_enum) IS NULL OR ps.vehicle_type = CAST(:vehicleType AS vehicle_type_enum)) " +
                 "GROUP BY ts.timestamp " +
                 "ORDER BY ts.timestamp")
     List<TrafficTimelineResponse> getTrafficTimeline(@Param("startDate") LocalDateTime startDate,
                                                      @Param("endDate") LocalDateTime endDate,
                                                      @Param("interval") String interval,
-                                                     @Param("vehicleType") String vehicleType);
+                                                     @Param("vehicleType") VehicleTypeEnum vehicleType);
 
     @Query(
         nativeQuery = true,

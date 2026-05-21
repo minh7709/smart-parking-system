@@ -26,6 +26,7 @@ public class SubscriptionResponse {
     private LocalDateTime endDate;
     private SubStatus subStatus;
     private LocalDateTime createdAt;
+    private BigInteger penaltyFee;
     private LocalDateTime updatedAt;
     private VehicleTypeEnum vehicleType;
 }
