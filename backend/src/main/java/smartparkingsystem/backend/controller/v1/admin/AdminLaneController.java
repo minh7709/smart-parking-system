@@ -35,19 +35,19 @@ public class AdminLaneController {
 	public ResponseEntity<ApiResponse<LaneResponse>> createLane(@Valid @RequestBody LaneCreateRequest request) {
 		LaneResponse response = adminLaneService.createLane(request);
 		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(ApiResponse.success(response, "Lane created successfully"));
+				.body(ApiResponse.success(response, "Tạo làn thành công"));
 	}
 
 	@GetMapping
 	public ResponseEntity<ApiResponse<List<LaneResponse>>> getAllLanes() {
 		List<LaneResponse> response = adminLaneService.getAllLanes();
-		return ResponseEntity.ok(ApiResponse.success(response, "Lanes fetched successfully"));
+		return ResponseEntity.ok(ApiResponse.success(response, "Lấy danh sách làn thành công"));
 	}
 
 	@GetMapping("/{id}")
 	public ResponseEntity<ApiResponse<LaneResponse>> getLaneById(@PathVariable UUID id) {
 		LaneResponse response = adminLaneService.getLaneById(id);
-		return ResponseEntity.ok(ApiResponse.success(response, "Lane fetched successfully"));
+		return ResponseEntity.ok(ApiResponse.success(response, "Lấy thông tin làn thành công"));
 	}
 
 	@PutMapping("/{id}")
@@ -55,12 +55,12 @@ public class AdminLaneController {
 			@PathVariable UUID id,
 			@Valid @RequestBody LaneUpdateRequest request) {
 		LaneResponse response = adminLaneService.updateLane(id, request);
-		return ResponseEntity.ok(ApiResponse.success(response, "Lane updated successfully"));
+		return ResponseEntity.ok(ApiResponse.success(response, "Cập nhật làn thành công"));
 	}
 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<ApiResponse<Void>> deleteLane(@PathVariable UUID id) {
 		adminLaneService.deleteLane(id);
-		return ResponseEntity.ok(ApiResponse.success(null, "Lane deleted successfully"));
+		return ResponseEntity.ok(ApiResponse.success(null, "Xóa làn thành công"));
 	}
 }

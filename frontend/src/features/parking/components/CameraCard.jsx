@@ -136,7 +136,7 @@ const CameraCard = ({
     try {
       const normalizedLaneId = normalizeUuid(laneId);
       if (!normalizedLaneId) {
-        notify.error("Thieu thong tin lane, vui long chon lai lane.");
+        notify.error("Thiếu thông tin làn, vui lòng chọn lại làn.");
         return;
       }
 
@@ -145,7 +145,7 @@ const CameraCard = ({
         .trim();
 
       if (type === "IN" && !["MOTOR", "CAR", "BICYCLE"].includes(normalizedVehicleType)) {
-        notify.error("vehicleType khong hop le. Chi chap nhan MOTOR, CAR hoac BICYCLE.");
+        notify.error("Loại xe không hợp lệ. Chỉ chấp nhận MOTOR, CAR hoặc BICYCLE.");
         return;
       }
 
@@ -239,7 +239,7 @@ const CameraCard = ({
 
       if (incidentCode === "LOST_CARD") {
         if (!normalizedLaneId) {
-          notify.error("Thiếu laneId. Vui lòng chọn lại lane.");
+          notify.error("Thiếu mã làn. Vui lòng chọn lại làn.");
           return;
         }
         const file = await captureImageFile();

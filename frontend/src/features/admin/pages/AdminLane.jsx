@@ -187,7 +187,7 @@ const AdminLane = () => {
 				<Form form={form} layout="vertical">
 					<Form.Item
 						name="laneName"
-						label="Lane name"
+						label="Tên làn"
 						rules={[{ required: true, message: "Vui lòng nhập tên làn" }]}
 					>
 						<Input />
@@ -195,7 +195,7 @@ const AdminLane = () => {
 
 					<Form.Item
 						name="laneType"
-						label="Lane type"
+						label="Loại làn"
 						rules={[{ required: true, message: "Vui lòng chọn loại làn" }]}
 					>
 						<Select placeholder="Chọn loại làn">
@@ -207,7 +207,7 @@ const AdminLane = () => {
 
 					<Form.Item
 						name="status"
-						label="Status"
+						label="Trạng thái"
 						rules={[{ required: true, message: "Vui lòng chọn trạng thái" }]}
 					>
 						<Select placeholder="Chọn trạng thái">
@@ -219,7 +219,7 @@ const AdminLane = () => {
 
 					<Form.Item
 						name="ipCamera"
-						label="IP camera"
+						label="Địa chỉ IP camera"
 						rules={[{ required: true, message: "Vui lòng nhập IP camera" }]}
 					>
 						<Input />

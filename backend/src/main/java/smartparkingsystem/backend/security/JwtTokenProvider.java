@@ -19,33 +19,23 @@ import java.util.UUID;
 public class JwtTokenProvider {
     private final JwtProperties jwtProperties;
 
-    /**
-     * Generate JWT token from authentication
-     */
     public String generateToken(Authentication authentication) {
         CustomUserDetails userPrincipal = (CustomUserDetails) authentication.getPrincipal();
         return createToken(userPrincipal.getUsername(), userPrincipal.getId().toString(), userPrincipal.getRole().name(), false, false);
     }
 
-    /**
-     * Generate JWT token from username and userId
-     */
+
     public String generateToken(String username, String userId, String role) {
         return createToken(username, userId, role, false, false);
     }
 
-    /**
-     * Generate refresh token with Remember Me option
-     * Remember Me extends the refresh token expiration
-     */
+
     public String generateRefreshToken(String username, UUID userId, Object role, boolean rememberMe) {
         String roleStr = (role instanceof String) ? (String) role : role.toString();
         return createToken(username, userId.toString(), roleStr, true, rememberMe);
     }
 
-    /**
-     * Create JWT token
-     */
+
     private String createToken(String username, String userId, String role, boolean isRefreshToken, boolean rememberMe) {
         Date now = new Date();
         long expirationMs;
@@ -71,9 +61,7 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    /**
-     * Get username from JWT token
-     */
+
     public String getUsernameFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
@@ -83,9 +71,7 @@ public class JwtTokenProvider {
                 .getSubject();
     }
 
-    /**
-     * Get userId from JWT token
-     */
+
     public String getUserIdFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
@@ -95,9 +81,6 @@ public class JwtTokenProvider {
                 .get("userId", String.class);
     }
 
-    /**
-     * Get role from JWT token
-     */
     public String getRoleFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
@@ -107,9 +90,6 @@ public class JwtTokenProvider {
                 .get("role", String.class);
     }
 
-    /**
-     * Get rememberMe flag from JWT token
-     */
     public boolean getRememberMeFromToken(String token) {
         try {
             Boolean rememberMe = Jwts.parserBuilder()
@@ -124,9 +104,6 @@ public class JwtTokenProvider {
         }
     }
 
-    /**
-     * Validate JWT token
-     */
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
@@ -148,9 +125,6 @@ public class JwtTokenProvider {
         return false;
     }
 
-    /**
-     * Check if token is refresh token
-     */
     public boolean isRefreshToken(String token) {
         try {
             Boolean isRefreshToken = Jwts.parserBuilder()
@@ -165,10 +139,6 @@ public class JwtTokenProvider {
         }
     }
 
-    /**
-     * Return remaining validity time in milliseconds for a JWT token.
-     * Returns 0 if token is invalid or already expired.
-     */
     public long getRemainingExpirationMillis(String token) {
         try {
             Date expiration = Jwts.parserBuilder()
@@ -184,9 +154,6 @@ public class JwtTokenProvider {
         }
     }
 
-    /**
-     * Get signing key from secret
-     */
     private SecretKey getSigningKey() {
         byte[] keyBytes = jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);

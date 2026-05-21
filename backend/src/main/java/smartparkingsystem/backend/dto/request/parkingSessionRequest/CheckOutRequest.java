@@ -9,10 +9,10 @@ import java.util.UUID;
 @Data
 @Validated
 public class CheckOutRequest {
-    @NotNull(message = "Exit lane ID is required")
+    @NotNull(message = "Mã làn ra là bắt buộc")
     private UUID exitLaneId;
 
-    @NotNull(message = "parking session is required")
+    @NotNull(message = "Phiên gửi xe là bắt buộc")
     private UUID parkingSessionId;
 }
 

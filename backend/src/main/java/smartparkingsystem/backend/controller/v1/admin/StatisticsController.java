@@ -32,7 +32,7 @@ public class StatisticsController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
         SummaryResponse summary = statisticsService.getSummary(startDate, endDate);
-        return ResponseEntity.ok(ApiResponse.success(summary, "Summary retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(summary, "Thống kê tổng quan thành công"));
     }
     @GetMapping("/traffic/timeline")
     public ResponseEntity<ApiResponse<List<TrafficTimelineResponse>>> getTrafficTimeline(
@@ -41,7 +41,7 @@ public class StatisticsController {
             @RequestParam String interval,
             @RequestParam(required = false) VehicleTypeEnum vehicleType) {
         List<TrafficTimelineResponse> timeline = statisticsService.getTrafficTimeline(startDate, endDate, interval, vehicleType);
-        return ResponseEntity.ok(ApiResponse.success(timeline, "Traffic timeline retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(timeline, "Lấy lưu lượng xe thành công"));
     }
 
     @GetMapping("/traffic/lanes")
@@ -49,7 +49,7 @@ public class StatisticsController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
         List<LaneUtilizationResponse> laneUtilization = statisticsService.getLaneUtilization(startDate, endDate);
-        return ResponseEntity.ok(ApiResponse.success(laneUtilization, "Lane utilization retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(laneUtilization, "Lấy tình trạng làn xe thành công"));
     }
 
     @GetMapping("/revenue/timeline")
@@ -58,7 +58,7 @@ public class StatisticsController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
             @RequestParam String interval) {
         List<RevenueTimelineResponse> timeline = statisticsService.getRevenueTimeline(startDate, endDate, interval);
-        return ResponseEntity.ok(ApiResponse.success(timeline, "Revenue timeline retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(timeline, "Lấy doanh thu theo thời gian thành công"));
     }
 
     @GetMapping("/revenue/breakdown")
@@ -66,7 +66,7 @@ public class StatisticsController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
         RevenueBreakdownResponse breakdown = statisticsService.getRevenueBreakdown(startDate, endDate);
-        return ResponseEntity.ok(ApiResponse.success(breakdown, "Revenue breakdown retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(breakdown, "Lấy doanh thu theo loại xe thành công"));
     }
 
     @GetMapping("/revenue/penalties")
@@ -74,6 +74,6 @@ public class StatisticsController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
         PenaltyFeesResponse penalties = statisticsService.getTotalPenalties(startDate, endDate);
-        return ResponseEntity.ok(ApiResponse.success(penalties, "Penalty fees retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(penalties, "Lấy phí phạt thành công"));
     }
 }

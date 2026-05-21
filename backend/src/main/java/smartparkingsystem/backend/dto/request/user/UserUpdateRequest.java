@@ -10,19 +10,19 @@ import smartparkingsystem.backend.entity.type.UserStatus;
 
 @Data
 public class UserUpdateRequest {
-    @NotBlank(message = "Username must not be blank")
-    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+    @NotBlank(message = "Tên đăng nhập không được để trống")
+    @Size(min = 3, max = 50, message = "Tên đăng nhập phải từ 3 đến 50 ký tự")
     private String username;
 
-    @NotBlank(message = "Full name must not be blank")
-    @Size(max = 100, message = "Full name must be at most 100 characters")
+    @NotBlank(message = "Họ và tên không được để trống")
+    @Size(max = 100, message = "Họ và tên tối đa 100 ký tự")
     private String fullName;
 
-    @NotBlank(message = "Phone must not be blank")
-    @Pattern(regexp = "^\\d{10,11}$", message = "Phone must contain 10 or 11 digits")
+    @NotBlank(message = "Số điện thoại không được để trống")
+    @Pattern(regexp = "^\\d{10,11}$", message = "Số điện thoại phải gồm 10 hoặc 11 chữ số")
     private String phone;
 
-    @NotNull(message = "Status must not be null")
+    @NotNull(message = "Trạng thái là bắt buộc")
     private UserStatus status;
 }
 

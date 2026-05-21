@@ -9,17 +9,17 @@ import smartparkingsystem.backend.entity.type.LaneTypeEnum;
 
 @Data
 public class LaneUpdateRequest {
-	@NotBlank(message = "Lane name must not be blank")
-	@Size(max = 50, message = "Lane name must be at most 50 characters")
+	@NotBlank(message = "Tên làn không được để trống")
+	@Size(max = 50, message = "Tên làn tối đa 50 ký tự")
 	private String laneName;
 
-	@NotNull(message = "Lane type must not be null")
+	@NotNull(message = "Loại làn là bắt buộc")
 	private LaneTypeEnum laneType;
 
-	@NotNull(message = "Status must not be null")
+	@NotNull(message = "Trạng thái là bắt buộc")
 	private LaneStatus status;
 
-	@NotBlank(message = "IP camera must not be blank")
-	@Size(max = 100, message = "IP camera must be at most 100 characters")
+	@NotBlank(message = "IP camera không được để trống")
+	@Size(max = 100, message = "IP camera tối đa 100 ký tự")
 	private String ipCamera;
 }

@@ -29,14 +29,14 @@ public class VehicleController {
             @RequestParam(required = false)VehicleTypeEnum vehicleType,
             Pageable pageable) {
         Page<VehicleReponse> response = vehicleService.getVehicles(pageable, licensePlate, vehicleType);
-        return ResponseEntity.ok(ApiResponse.success(response, "Vehicles fetched successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Lấy danh sách phương tiện thành công"));
 
     }
 
     @PostMapping("/")
     public ResponseEntity<ApiResponse<VehicleReponse>> createVehicle(@Valid @RequestBody VehicleRequest request) {
         VehicleReponse response = vehicleService.createVehicle(request);
-        return ResponseEntity.ok(ApiResponse.success(response, "Vehicle created successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Tạo phương tiện thành công"));
     }
 
     @PutMapping("/{id}")
@@ -44,18 +44,18 @@ public class VehicleController {
             @PathVariable UUID id,
             @Valid @RequestBody VehicleRequest request) {
         VehicleReponse response = vehicleService.updateVehicle(request, id);
-        return ResponseEntity.ok(ApiResponse.success(response, "Vehicle updated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Cập nhật phương tiện thành công"));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<VehicleReponse>> deleteVehicle(@PathVariable UUID id) {
         VehicleReponse response = vehicleService.deleteVehicle(id);
-        return ResponseEntity.ok(ApiResponse.success(response, "Vehicle deleted successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Xóa phương tiện thành công"));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<VehicleReponse>> getVehicleById(@PathVariable UUID id) {
         VehicleReponse response = vehicleService.getVehicleById(id);
-        return ResponseEntity.ok(ApiResponse.success(response, "Vehicle retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Lấy thông tin phương tiện thành công"));
     }
 }

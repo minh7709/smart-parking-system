@@ -32,13 +32,13 @@ public class GuardSubscriptionController {
             Pageable pageable
             ) {
         Page<SubscriptionResponse> subscriptions = subscriptionService.getSubscriptions(pageable, subStatus, subType, licensePlate);
-        return ResponseEntity.ok(ApiResponse.success(subscriptions, "Subscriptions retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(subscriptions, "Lấy danh sách gói đăng ký thành công"));
     }
 
     @PostMapping("/")
     public ResponseEntity<ApiResponse<SubscriptionResponse>> createSubscription(@Valid @RequestBody SubscriptionRequest request) {
         SubscriptionResponse response = subscriptionService.createSubscription(request);
-        return ResponseEntity.ok(ApiResponse.success(response, "Subscription created successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Tạo gói đăng ký thành công"));
     }
 
     @PutMapping("/{id}")
@@ -46,29 +46,29 @@ public class GuardSubscriptionController {
             @PathVariable UUID id,
             @Valid @RequestBody SubscriptionRequest request) {
         SubscriptionResponse response = subscriptionService.updateSubscription(request, id);
-        return ResponseEntity.ok(ApiResponse.success(response, "Subscription updated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Cập nhật gói đăng ký thành công"));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteSubscription(@PathVariable UUID id) {
         subscriptionService.deleteSubscription(id);
-        return ResponseEntity.ok(ApiResponse.success(null, "Subscription deleted successfully"));
+        return ResponseEntity.ok(ApiResponse.success(null, "Xóa gói đăng ký thành công"));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<SubscriptionResponse>> getSubscriptionById(@PathVariable UUID id) {
         SubscriptionResponse response = subscriptionService.getSubscriptionById(id);
-        return ResponseEntity.ok(ApiResponse.success(response, "Subscription retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Lấy chi tiết gói đăng ký thành công"));
     }
 
     @GetMapping("/vehicle/{vehicleId}")
     public ResponseEntity<ApiResponse<SubscriptionResponse>> getSubscriptionByVehicleId(@PathVariable UUID vehicleId) {
         SubscriptionResponse response = subscriptionService.getSubscriptionByVehicleId(vehicleId);
-        return ResponseEntity.ok(ApiResponse.success(response, "Subscription retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Lấy thông tin đăng ký của phương tiện thành công"));
     }
     @GetMapping("/license-plate/{licensePlate}")
     public ResponseEntity<ApiResponse<SubscriptionResponse>> getSubscriptionByLicensePlate(@PathVariable String licensePlate) {
         SubscriptionResponse response = subscriptionService.getSubscriptionByLicensePlate(licensePlate);
-        return ResponseEntity.ok(ApiResponse.success(response, "Subscription retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Lấy thông tin đăng ký của phương tiện thành công"));
     }
 }

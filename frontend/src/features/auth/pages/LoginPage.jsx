@@ -46,7 +46,7 @@ const LoginPage = () => {
     e.preventDefault();
 
     if (!username.trim() || !password.trim()) {
-      notify.error("Vui lòng nhập username và password");
+      notify.error("Vui lòng nhập tên đăng nhập và mật khẩu");
       return;
     }
 

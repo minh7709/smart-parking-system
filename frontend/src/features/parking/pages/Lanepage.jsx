@@ -26,7 +26,7 @@ const LanePage = () => {
 				const response = await getActiveLanesApi();
 				setLanes(Array.isArray(response?.data) ? response.data : []);
 			} catch (err) {
-				notify.apiError(err, 'Lỗi khi tải danh sách lane');
+				notify.apiError(err, 'Lỗi khi tải danh sách làn');
 			} finally {
 				setLoading(false);
 			}
@@ -57,7 +57,7 @@ const LanePage = () => {
 
 	const handleContinue = () => {
 		if (!selectedCheckInLane || !selectedCheckOutLane) {
-			notify.error("Vui lòng chọn lane check-in và lane check-out");
+			notify.error("Vui lòng chọn làn vào và làn ra");
 			return;
 		}
 
@@ -83,22 +83,22 @@ const LanePage = () => {
 				<Space orientation="vertical" size={24} style={{ width: '100%' }}>
 					<div className={styles['lane-page__header']}>
 						<Tag color="gold" style={{ marginBottom: 12 }}>
-							GUARD CONSOLE
+							BẢNG ĐIỀU KHIỂN BẢO VỆ
 						</Tag>
 						<Title level={2} style={{ margin: 0, color: '#f8f5ef' }}>
-							Chọn lane trước khi vào hệ thống giám sát Camera
+							Chọn làn trước khi vào hệ thống giám sát camera
 						</Title>
 						<Text style={{ color: '#d7d2c7' }}>
-							Hãy gắn lane vào và lane ra để hệ thống camera hoạt động.
+							Hãy gắn làn vào và làn ra để hệ thống camera hoạt động.
 						</Text>
 					</div>
 
-					<Spin spinning={loading} description="Dang tai lane...">
+					<Spin spinning={loading} description="Đang tải làn...">
 						<Row gutter={[16, 16]}>
 							<Col xs={24} md={12}>
 								<Card className={`${styles['lane-page__selector']} ${styles['lane-page__selector--in']}`} variant="borderless">
 									<Text strong style={{ color: '#efe8d9' }}>
-										Lane Check-In
+										Làn vào
 									</Text>
 									<Select
 										style={{ fontSize: '20px' }}
@@ -106,10 +106,10 @@ const LanePage = () => {
 										onChange={setCheckInLaneId}
 										className={styles['lane-page__select']}
 										popupClassName={styles['lane-page__dropdown']}
-										placeholder="Chọn lane check-in"
+											placeholder="Chọn làn vào"
 										options={inLanes.map((lane) => ({
 											value: lane.id,
-											label: `${lane.laneName} - ${lane.ipCamera || 'No Camera IP'}`,
+												label: `${lane.laneName} - ${lane.ipCamera || 'Không có IP camera'}`,
 										}))}
 									/>
 								</Card>
@@ -118,7 +118,7 @@ const LanePage = () => {
 							<Col xs={24} md={12}>
 								<Card className={`${styles['lane-page__selector']} ${styles['lane-page__selector--out']}`} variant="borderless">
 									<Text strong style={{ color: '#efe8d9' }}>
-										Lane Check-Out
+										Làn ra
 									</Text>
 									<Select
 										style={{ fontSize: '20px' }}
@@ -126,10 +126,10 @@ const LanePage = () => {
 										onChange={setCheckOutLaneId}
 										className={styles['lane-page__select']}
 										popupClassName={styles['lane-page__dropdown']}
-										placeholder="Chọn lane check-out"
+											placeholder="Chọn làn ra"
 										options={outLanes.map((lane) => ({
 											value: lane.id,
-											label: `${lane.laneName} - ${lane.ipCamera || 'No Camera IP'}`,
+												label: `${lane.laneName} - ${lane.ipCamera || 'Không có IP camera'}`,
 										}))}
 									/>
 								</Card>
@@ -139,10 +139,10 @@ const LanePage = () => {
 
 					<div className={styles['lane-page__summary']}>
 						<Text style={{ color: '#efe8d9' }}>
-							Lane vào: <strong>{selectedCheckInLane?.laneName || 'Chưa chọn'}</strong>
+							Làn vào: <strong>{selectedCheckInLane?.laneName || 'Chưa chọn'}</strong>
 						</Text>
 						<Text style={{ color: '#efe8d9' }}>
-							Lane ra: <strong>{selectedCheckOutLane?.laneName || 'Chưa chọn'}</strong>
+							Làn ra: <strong>{selectedCheckOutLane?.laneName || 'Chưa chọn'}</strong>
 						</Text>
 					</div>
 
@@ -156,7 +156,7 @@ const LanePage = () => {
 							onClick={handleContinue}
 							disabled={loading || !selectedCheckInLane || !selectedCheckOutLane}
 						>
-							Vào màn hình monitor
+							Vào màn hình giám sát
 						</Button>
 					</Space>
 				</Space>

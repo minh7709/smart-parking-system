@@ -14,11 +14,11 @@ public class SmsService {
     public void sendSms(String toPhoneNumber, String otpCode) {
         String mockMessage = String.format(
                 "\n==================================================\n" +
-                        "💌 [MOCK SMS SENT] \n" +
-                        "📱 To:      %s \n" +
-                        "🔑 OTP:     %s \n" +
-                        "📝 Content: Mã xác thực tài khoản Haiku Figure Store của bạn là: %s \n" +
-                        "==================================================\n",
+                    "💌 [MOCK SMS] \n" +
+                    "📱 Tới:     %s \n" +
+                    "🔑 OTP:    %s \n" +
+                    "📝 Nội dung: Mã xác thực tài khoản của bạn là: %s \n" +
+                    "==================================================\n",
                 toPhoneNumber, otpCode, otpCode
         );
 

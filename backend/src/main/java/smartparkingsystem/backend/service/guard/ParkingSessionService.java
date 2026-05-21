@@ -344,23 +344,6 @@ public class ParkingSessionService {
         return (float) (0.9 + Math.random() * 0.1);
     }
 
-    public List<ParkingSessionResponse> getParkingSessionsByPlate(String plate, SessionStatus status) {
-        List<ParkingSession> sessions;
-        if (status == null) {
-            sessions = parkingSessionRepository.findAllByFinalPlateIgnoreCase(plate);
-        } else {
-            sessions = parkingSessionRepository.findAllByFinalPlateIgnoreCaseAndStatus(plate, status);
-        }
-
-        if (sessions.isEmpty()) {
-            throw new ResourceNotFoundException("Không có phiên đỗ xe nào được tìm thấy với biển số: " + plate);
-        }
-
-        return sessions.stream()
-                .map(parkingSessionMapper::toParkingSessionResponse)
-                .collect(Collectors.toList());
-    }
-
     private String buildAbsoluteImagePath(String relativeImageUrl) {
         if (relativeImageUrl == null || relativeImageUrl.isBlank()) {
             return null;

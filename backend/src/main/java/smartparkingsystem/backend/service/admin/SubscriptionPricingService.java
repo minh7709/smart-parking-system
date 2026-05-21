@@ -29,9 +29,10 @@ public class SubscriptionPricingService {
     private final SubscriptionPricingMapper subscriptionPricingMapper;
     private final UserService userService;
 
+    @Transactional
     public SubscriptionPricingResponse createSubscriptionPricing(SubscriptionPricingRequest request) {
         if(subscriptionPricingRepository.existsByPricingName(request.getPricingName())){
-            throw new ResourceNotFoundException("Subscription pricing with name '" + request.getPricingName() + "' already exists");
+            throw new ResourceNotFoundException("Cấu hình giá vé đăng ký với tên '" + request.getPricingName() + "' đã tồn tại");
         }
         if(request.getActive()){
             this.handleSubscriptionPricingActivation(request.getVehicleType(), request.getDurationType());
@@ -40,20 +41,20 @@ public class SubscriptionPricingService {
         SubscriptionPricing saved = subscriptionPricingRepository.save(subscriptionPricing);
         return subscriptionPricingMapper.toResponse(saved);
     }
-
+    @Transactional
     public SubscriptionPricingResponse updateSubscriptionPricing(UUID id, SubscriptionPricingRequest request) {
         SubscriptionPricing existing = subscriptionPricingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Subscription pricing not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Cấu hình giá vé đăng ký"));
 
         if(!request.getVehicleType().equals(existing.getVehicleType())){
-            throw new ValidationException("Vehicle type '" + existing.getVehicleType() + "' cannot be changed to '");
+            throw new ValidationException("Loại phương tiện '" + existing.getVehicleType() + "' không thể được thay đổi '");
         }
         if(!request.getDurationType().equals(existing.getDurationType())){
-            throw new ValidationException("Duration type '" + existing.getDurationType() + "' cannot be changed to '");
+            throw new ValidationException("Loại vé '" + existing.getDurationType() + "' không thể được thay đổi '");
         }
 
         if(!existing.getPricingName().equals(request.getPricingName()) && subscriptionPricingRepository.existsByPricingName(request.getPricingName())){
-            throw new DuplicateResourceException("Subscription pricing with name '" + request.getPricingName() + "' already exists");
+            throw new DuplicateResourceException("Cấu hình giá vé đăng ký với tên '" + request.getPricingName() + "' đã tồn tại");
         }
         if(request.getActive() != null && request.getActive() != existing.getActive() && request.getActive()){
             this.handleSubscriptionPricingActivation(request.getVehicleType(), request.getDurationType());
@@ -62,19 +63,19 @@ public class SubscriptionPricingService {
         SubscriptionPricing updated = subscriptionPricingRepository.save(existing);
         return subscriptionPricingMapper.toResponse(updated);
     }
-
+    @Transactional
     public void deleteSubscriptionPricing(UUID id) {
         SubscriptionPricing existing = subscriptionPricingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Subscription pricing not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Không thể tìm thấy Cấu hình giá vé đăng ký"));
         if(existing.getActive()){
-            throw new RuntimeException("Cannot delete active subscription pricing. Please deactivate it first.");
+            throw new InvalidStateException("Không thể xóa Cấu hình giá vé đăng ký đang được kích hoạt. Vui lòng kích hoạt một Cấu hình giá vé đăng ký khác với cùng loại phương tiện và loại vé trước khi xóa Cấu hình giá vé đăng ký này.");
         }
         subscriptionPricingRepository.deleteById(id);
     }
     @Transactional(readOnly = true)
     public SubscriptionPricingResponse getSubscriptionPricingById(UUID id) {
         SubscriptionPricing existing = subscriptionPricingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Subscription pricing not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Cấu hình giá vé đăng ký"));
         return subscriptionPricingMapper.toResponse(existing);
     }
     @Transactional(readOnly = true)
@@ -89,18 +90,19 @@ public class SubscriptionPricingService {
         }
         return page.map(subscriptionPricingMapper::toResponse);
     }
-
+    @Transactional
     public Boolean activateSubscriptionPricing(UUID id) {
         SubscriptionPricing existing = subscriptionPricingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Subscription pricing not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Cấu hình giá vé đăng ký"));
         if(existing.getActive()){
-            throw new InvalidStateException("Subscription pricing is already active");
+            throw new InvalidStateException("Cấu hình giá vé đăng ký đã được kích hoạt");
         }
         handleSubscriptionPricingActivation(existing.getVehicleType(), existing.getDurationType());
         existing.setActive(true);
         subscriptionPricingRepository.save(existing);
         return true;
     }
+
     private void handleSubscriptionPricingActivation(VehicleTypeEnum vehicleType, SubType durationType) {
         // deactivate any other active subscription pricing with the same vehicle type and duration type
         subscriptionPricingRepository.findByVehicleTypeAndDurationTypeAndActiveTrue(vehicleType, durationType)
@@ -109,16 +111,9 @@ public class SubscriptionPricingService {
                     subscriptionPricingRepository.save(sp);
                 });
     }
-    public void handleSubscriptionPricingDeactivation(UUID id) {
-        SubscriptionPricing existing = subscriptionPricingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Subscription pricing not found with id: " + id));
-        if (!existing.getActive()) {
-            throw new InvalidStateException("Subscription pricing is already inactive");
-        }
-        throw new InvalidStateException("Cannot deactivate subscription pricing. Please activate another subscription pricing with the same vehicle type and duration type before deactivating this one.");
-    }
+    @Transactional
     public SubscriptionPricing getSubscriptionPricingByDurationTypeAndVehicleType(SubType subType, VehicleTypeEnum vehicleTypeEnum) {
         return subscriptionPricingRepository.findByVehicleTypeAndDurationTypeAndActiveTrue(vehicleTypeEnum, subType)
-                .orElseThrow(() -> new ResourceNotFoundException("No active subscription pricing found for vehicle type: " + vehicleTypeEnum + " and duration type: " + subType));
+                .orElseThrow(() -> new ResourceNotFoundException("Không có cấu hình giá vé đăng ký nào được kích hoạt với loại phương tiện: " + vehicleTypeEnum.getLabel() + " và loại vé: " + subType.getLabel()));
     }
 }

@@ -11,10 +11,10 @@ import java.util.UUID;
 @Data
 @Validated
 public class ConfirmCheckOutRequest {
-    @NotNull(message = "Payment method is required")
+    @NotNull(message = "Phương thức thanh toán là bắt buộc")
     private PaymentMethod paymentMethod;
 
-    @NotNull(message = "Parking session ID is required")
+    @NotNull(message = "Mã phiên gửi xe là bắt buộc")
     private UUID parkingSessionId;
 
     private BigInteger parkingAmount;

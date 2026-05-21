@@ -79,7 +79,7 @@ public class GuardSubscriptionService {
             case YEARLY:
                 return startDate.plusYears(1);
             default:
-                throw new ValidationException("Invalid subscription type: " + subType);
+                throw new ValidationException("Loại đăng ký không hợp lệ: " + subType);
         }
     }
     @Transactional

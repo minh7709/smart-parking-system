@@ -31,19 +31,12 @@ public class AdminLaneService {
 
     public LaneResponse createLane(LaneCreateRequest request) {
         if (laneRepository.existsByIpCameraAndDeletedFalse(request.getIpCamera())) {
-            throw new DuplicateResourceException("Lane with ipCamera '" + request.getIpCamera() + "' already exists");
+            throw new DuplicateResourceException("ip camera này '" + request.getIpCamera() + "' đã tồn tại");
         }
 
-        Lane lane = Lane.builder()
-                .laneName(request.getLaneName())
-                .laneType(request.getLaneType())
-                .status(request.getStatus())
-                .ipCamera(request.getIpCamera())
-                .deleted(false)
-                .build();
+        Lane lane = laneMapper.toLaneEntity(request);
 
         Lane saved = laneRepository.save(lane);
-        log.info("Created lane with id: {}", saved.getId());
         return laneMapper.toLaneResponse(saved);
     }
 
@@ -57,16 +50,16 @@ public class AdminLaneService {
     @Transactional(readOnly = true)
     public LaneResponse getLaneById(UUID id) {
         Lane lane = laneRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Lane not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("không tìm thấy làn được chọn"));
         return laneMapper.toLaneResponse(lane);
     }
-
+    @Transactional
     public LaneResponse updateLane(UUID id, LaneUpdateRequest request) {
         Lane existing = laneRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Lane not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("không tìm thấy làn được chọn"));
 
         if (laneRepository.existsByIpCameraAndDeletedFalseAndIdNot(request.getIpCamera(), id)) {
-            throw new DuplicateResourceException("Lane with ipCamera '" + request.getIpCamera() + "' already exists");
+            throw new DuplicateResourceException("IpCamera '" + request.getIpCamera() + "' đã tồn tại trên làn khác");
         }
 
         existing.setLaneName(request.getLaneName());
@@ -78,10 +71,10 @@ public class AdminLaneService {
         log.info("Updated lane with id: {}", id);
         return laneMapper.toLaneResponse(updated);
     }
-
+    @Transactional
     public void deleteLane(UUID id) {
         Lane existing = laneRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Lane not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("không tìm thấy làn được chọn"));
         existing.setDeleted(true);
         laneRepository.save(existing);
         log.info("Soft deleted lane with id: {}", id);

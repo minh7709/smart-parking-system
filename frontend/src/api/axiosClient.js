@@ -85,7 +85,7 @@ const tryRefreshToken = async () => {
 
       const payload = response.data;
       if (!payload?.data?.accessToken) {
-        throw new Error(payload?.message || 'Refresh token failed');
+        throw new Error(payload?.message || 'Làm mới phiên đăng nhập thất bại');
       }
 
       persistRefreshData(payload.data);
@@ -141,7 +141,7 @@ axiosClient.interceptors.response.use(
 
     // Parse error to match previous behavior
     const payload = error.response?.data || null;
-    const message = payload?.message || error.message || `Request failed with status ${error.response?.status}`;
+    const message = payload?.message || error.message || `Yêu cầu thất bại với mã trạng thái ${error.response?.status}`;
     const customError = new Error(message);
     customError.status = error.response?.status;
     customError.payload = payload;

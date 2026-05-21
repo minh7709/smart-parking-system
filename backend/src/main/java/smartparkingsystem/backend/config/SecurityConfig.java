@@ -29,9 +29,6 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final TokenRedisService tokenRedisService;
 
-    /**
-     * Create password encoder bean
-     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

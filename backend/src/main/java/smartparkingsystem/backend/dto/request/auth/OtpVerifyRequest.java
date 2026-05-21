@@ -12,7 +12,7 @@ public class OtpVerifyRequest {
     @Pattern(message = "Số điện thoại không hợp lệ", regexp = "\\+?[0-9]{10,11}")
     private String phone;
 
-    @NotBlank(message = "OTP is required")
-    @Pattern(message = "OTP must be a 6-digit number", regexp = "^\\d{6}$")
+    @NotBlank(message = "OTP là bắt buộc")
+    @Pattern(message = "OTP phải gồm 6 chữ số", regexp = "^\\d{6}$")
     private String otp;
 }

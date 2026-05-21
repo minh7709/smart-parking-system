@@ -10,10 +10,10 @@ import java.util.UUID;
 @Data
 @Validated
 public class CheckInRequest {
-    @NotNull(message = "Entry lane ID is required")
+    @NotNull(message = "Mã làn vào là bắt buộc")
     private UUID entryLaneId;
 
-    @NotNull(message = "Vehicle type is required")
+    @NotNull(message = "Loại xe là bắt buộc")
     private VehicleTypeEnum vehicleType;
 }
 /*

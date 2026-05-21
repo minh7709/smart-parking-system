@@ -22,32 +22,25 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Global exception handler for all REST controllers.
- * Handles custom exceptions and Spring validation exceptions.
- */
+
 @Slf4j
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
-    /**
-     * Handle custom BaseException and its subclasses.
-     */
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<ApiResponse<Object>> handleBaseException(@Nullable BaseException ex, WebRequest request) {
-        log.warn("BaseException caught: {} - {}", ex != null ? ex.getErrorCode() : "UNKNOWN", ex != null ? ex.getMessage() : "No message");
+        log.warn("BaseException được bắt: {} - {}", ex != null ? ex.getErrorCode() : "UNKNOWN", ex != null ? ex.getMessage() : "Không có thông điệp");
 
         String path = request.getDescription(false).replace("uri=", "");
 
-        // Set path if not already set
         if (ex != null && ex.getPath() == null) {
             ex.setPath(path);
         }
 
         ApiResponse<Object> response = ApiResponse.error(
                 ex != null ? ex.getErrorCode() : "UNKNOWN",
-                ex != null ? ex.getMessage() : "An error occurred",
+                ex != null ? ex.getMessage() : "Đã xảy ra lỗi",
                 ex != null && ex.getPath() != null ? ex.getPath() : path
         );
 
@@ -58,15 +51,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(response);
     }
 
-    /**
-     * Handle Spring validation errors (e.g., @Valid annotation failures).
-     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Object>> handleMethodArgumentNotValid(
             @Nullable MethodArgumentNotValidException ex,
             WebRequest request) {
 
-        log.warn("Validation error: {}", ex != null ? ex.getBindingResult().getErrorCount() : "0"); //
+        log.warn("Lỗi xác thực dữ liệu: {}", ex != null ? ex.getBindingResult().getErrorCount() : "0"); //
 
         List<ApiResponse.FieldError> fieldErrors = new ArrayList<>();
 
@@ -90,7 +80,7 @@ public class GlobalExceptionHandler {
         // Sử dụng helper method mới thêm vào ApiResponse
         ApiResponse<Object> response = ApiResponse.error(
                 "VALIDATION_FAILED",
-                "One or more validation errors occurred",
+                "Dữ liệu đầu vào không hợp lệ. Vui lòng kiểm tra các lỗi chi tiết.",
                 path,
                 fieldErrors
         );
@@ -98,9 +88,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    /**
-     * Handle Jackson mapping errors - Invalid enum values or malformed JSON
-     */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse<Object>> handleHttpMessageNotReadable(
             @Nullable HttpMessageNotReadableException ex, WebRequest request) {
@@ -109,9 +96,9 @@ public class GlobalExceptionHandler {
         String message;
 
         if (ex == null) {
-            message = "Malformed JSON request. Please check your request body.";
+            message = "Yêu cầu không hợp lệ. Vui lòng kiểm tra lại dữ liệu gửi lên.";
         } else if (ex.getCause() instanceof InvalidFormatException ife) {
-            String fieldName = ife.getPath().isEmpty() ? "unknown" : ife.getPath().get(0).getFieldName();
+            String fieldName = ife.getPath().isEmpty() ? "không rõ" : ife.getPath().get(0).getFieldName();
             String invalidValue = String.valueOf(ife.getValue());
 
             // Nếu là enum, hiển thị các giá trị hợp lệ
@@ -119,24 +106,20 @@ public class GlobalExceptionHandler {
                 Object[] enumConstants = ife.getTargetType().getEnumConstants();
                 String validValues = Arrays.toString(enumConstants);
                 message = String.format(
-                        "Invalid enum value for field '%s': '%s'. Valid values are: %s",
+                        "enum không hợp lệ với trường '%s': '%s'. Dự liệu hợp lệ là: %s",
                         fieldName, invalidValue, validValues
                 );
-                log.warn("Invalid enum value received: field={}, value={}, target={}",
-                        fieldName, invalidValue, ife.getTargetType().getSimpleName());
             } else {
                 // Lỗi format khác (ví dụ: số, ngày, v.v.)
                 message = String.format(
-                        "Invalid value for field '%s': '%s'. Expected type: %s",
+                        "Dữ liệu không hợp lệ '%s': '%s'. Dữ liệu mong đợi: %s",
                         fieldName, invalidValue, ife.getTargetType().getSimpleName()
                 );
-                log.warn("Invalid format received: field={}, value={}, target={}",
-                        fieldName, invalidValue, ife.getTargetType().getSimpleName());
             }
         } else {
             // Lỗi JSON chung (malformed JSON)
-            log.warn("Malformed JSON or invalid request format: {}", ex.getMessage());
-            message = "Malformed JSON request. Please check your request body.";
+            log.warn("Dự liệu yêu cầu không hợp lệ, vui lòng kiểm tra lại: {}", ex.getMessage());
+            message = "Dự liệu yêu cầu không hợp lệ, vui lòng kiểm tra lại.";
         }
 
         ApiResponse<Object> response = ApiResponse.error(
@@ -153,12 +136,12 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleGlobalException(@Nullable Exception ex, WebRequest request) {
-        log.error("Unexpected exception occurred", ex); //
+        log.error("Đã xảy ra lỗi không mong muốn", ex); //
         String path = request.getDescription(false).replace("uri=", ""); //
 
         ApiResponse<Object> response = ApiResponse.error(
                 "INTERNAL_SERVER_ERROR", //
-                "An unexpected error occurred. Please try again later.", //
+                "Lỗi hệ thống.", //
                 path
         );
 
@@ -215,27 +198,27 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiResponse<Object>> handleDataIntegrityViolation(@Nullable DataIntegrityViolationException ex, WebRequest request) {
-        log.warn("Database constraint violation: {}", ex != null ? ex.getMessage() : "Unknown");
+        log.warn("Vi phạm ràng buộc dữ liệu: {}", ex != null ? ex.getMessage() : "Không rõ");
 
         String path = request.getDescription(false).replace("uri=", "");
-        String message = "Database constraint violated";
+        String message = "Xung đột rằng buộc dữ liệu";
 
         if (ex != null && ex.getCause() != null) {
             String causeMessage = ex.getCause().getMessage();
             if (causeMessage != null) {
                 // Extract constraint name from error message
                 if (causeMessage.contains("NOT NULL")) {
-                    message = "One or more required fields are missing or null";
+                    message = "Một hoặc nhiều trường bắt buộc không được cung cấp";
                 } else if (causeMessage.contains("value too long")
                         || causeMessage.contains("Data too long")
                         || causeMessage.contains("too long for column")) {
-                    message = "One or more fields exceed the maximum allowed length";
+                    message = "Dữ liệu quá dài cho một trường nào đó. Vui lòng kiểm tra lại.";
                 } else if (causeMessage.contains("UNIQUE") || causeMessage.contains("unique")) {
-                    message = "This value already exists and must be unique";
+                    message = "Dữ liệu đã tồn tại và phải là duy nhất. Vui lòng kiểm tra lại.";
                 } else if (causeMessage.contains("FOREIGN KEY") || causeMessage.contains("foreign key")) {
-                    message = "Referenced data does not exist or is invalid";
+                    message = "Dữ liệu liên quan không tồn tại. Vui lòng kiểm tra lại các tham chiếu.";
                 } else {
-                    message = "Database constraint violated: " + causeMessage;
+                    message = "Xung đột rằng buộc dữ liệu: " + causeMessage;
                 }
             }
         }
@@ -249,17 +232,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    /**
-     * Handle NullPointerException explicitly to alert developers of bugs.
-     */
     @ExceptionHandler(NullPointerException.class)
     public ResponseEntity<ApiResponse<Object>> handleNullPointerException(@Nullable NullPointerException ex, WebRequest request) {
-        // BẮT BUỘC: Log toàn bộ lỗi ra console/file để developer debug
-        log.error("CRITICAL BUG - NullPointerException occurred: ", ex);
+        log.error("Lỗi nghiêm trọng - xảy ra NullPointerException: ", ex);
 
         String path = request.getDescription(false).replace("uri=", "");
 
-        // TRẢ VỀ CLIENT: Thông báo chung chung, an toàn
         ApiResponse<Object> response = ApiResponse.error(
                 "INTERNAL_SERVER_ERROR",
                 "Đã xảy ra lỗi hệ thống nghiêm trọng. Đội ngũ kỹ thuật đã được thông báo.",

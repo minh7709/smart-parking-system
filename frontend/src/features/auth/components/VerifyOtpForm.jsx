@@ -3,7 +3,7 @@ import styles from '../pages/LoginPage.module.css';
 const VerifyOtpForm = ({ otp, loading, error, otpError, onOtpChange, onSubmit, onBack }) => {
   return (
     <form onSubmit={onSubmit}>
-      <h1>Verify OTP</h1>
+      <h1>Xác minh OTP</h1>
 
       {error && <div className={styles['error-message']}>{error}</div>}
       {otpError && <div className={styles['error-message']}>{otpError}</div>}
@@ -11,7 +11,7 @@ const VerifyOtpForm = ({ otp, loading, error, otpError, onOtpChange, onSubmit, o
       <div className={styles['input-box']}>
         <input
           type="text"
-          placeholder="Enter 6-digit OTP"
+          placeholder="Nhập OTP 6 chữ số"
           inputMode="numeric"
           maxLength={6}
           value={otp}
@@ -28,10 +28,10 @@ const VerifyOtpForm = ({ otp, loading, error, otpError, onOtpChange, onSubmit, o
       </div>
 
       <button type="submit" className={styles.btn} disabled={loading}>
-        {loading ? 'Verifying...' : 'Verify OTP'}
+        {loading ? 'Đang xác minh...' : 'Xác minh OTP'}
       </button>
       <button type="button" className={`${styles.btn} ${styles['btn-secondary']}`} onClick={onBack} disabled={loading}>
-        Back
+        Quay lại
       </button>
     </form>
   );

@@ -37,7 +37,7 @@ public class PricingRuleController {
         log.info("Creating pricing rule: {}", request.getRuleName());
         PricingRuleResponse response = pricingRuleService.createPricingRule(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(response, "Pricing rule created successfully"));
+            .body(ApiResponse.success(response, "Tạo cấu hình giá lượt thành công"));
     }
 
     /**
@@ -49,7 +49,7 @@ public class PricingRuleController {
             @Valid @RequestBody PricingRuleRequest request) {
         log.info("Updating pricing rule with id: {}", id);
         PricingRuleResponse response = pricingRuleService.updatePricingRule(id, request);
-        return ResponseEntity.ok(ApiResponse.success(response, "Pricing rule updated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Cập nhật cấu hình giá lượt thành công"));
     }
 
     /**
@@ -59,7 +59,7 @@ public class PricingRuleController {
     public ResponseEntity<ApiResponse<PricingRuleResponse>> getPricingRuleById(@PathVariable UUID id) {
         log.info("Fetching pricing rule with id: {}", id);
         PricingRuleResponse response = pricingRuleService.getPricingRuleById(id);
-        return ResponseEntity.ok(ApiResponse.success(response, "Pricing rule fetched successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Lấy cấu hình giá lượt thành công"));
     }
 
     /**
@@ -71,7 +71,7 @@ public class PricingRuleController {
             Pageable pageable) {
         log.info("Fetching pricing rules with pagination");
         Page<PricingRuleResponse> page = pricingRuleService.getAllPricingRules(pageable, vehicleType);
-        return ResponseEntity.ok(ApiResponse.success(page, "Pricing rules fetched successfully"));
+        return ResponseEntity.ok(ApiResponse.success(page, "Lấy danh sách cấu hình giá lượt thành công"));
     }
 
 
@@ -82,7 +82,7 @@ public class PricingRuleController {
     public ResponseEntity<ApiResponse<Void>> deletePricingRule(@PathVariable UUID id) {
         log.info("Deleting pricing rule with id: {}", id);
         pricingRuleService.deletePricingRule(id);
-        return ResponseEntity.ok(ApiResponse.success(null, "Pricing rule deleted successfully"));
+        return ResponseEntity.ok(ApiResponse.success(null, "Xóa cấu hình giá lượt thành công"));
     }
 
     /**
@@ -90,19 +90,16 @@ public class PricingRuleController {
      */
     @PostMapping("/{id}/activate")
     public ResponseEntity<ApiResponse<PricingRuleResponse>> activatePricingRule(@PathVariable UUID id) {
-        log.info("Activating pricing rule with id: {}", id);
         PricingRuleResponse response = pricingRuleService.activatePricingRule(id);
-        return ResponseEntity.ok(ApiResponse.success(response, "Pricing rule activated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Kích hoạt cấu hình giá lượt thành công"));
     }
 
     /**
      * Deactivate pricing rule
      */
     @PostMapping("/{id}/deactivate")
-    public ResponseEntity<ApiResponse<PricingRuleResponse>> deactivatePricingRule(@PathVariable UUID id) {
-        log.info("Deactivating pricing rule with id: {}", id);
-        PricingRuleResponse response = pricingRuleService.deactivatePricingRule(id);
-        return ResponseEntity.ok(ApiResponse.success(response, "Pricing rule deactivated successfully"));
+    public void deactivatePricingRule(@PathVariable UUID id) {
+        pricingRuleService.deactivatePricingRule(id);
     }
 }
 

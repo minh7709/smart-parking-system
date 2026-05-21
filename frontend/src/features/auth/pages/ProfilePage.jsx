@@ -95,10 +95,10 @@ const ProfilePage = () => {
           {user.phone || "Chưa cập nhật"}
         </Descriptions.Item>
         <Descriptions.Item label="Vai trò">
-          {user.role || "USER"}
+          {user.role || "Người dùng"}
         </Descriptions.Item>
         <Descriptions.Item label="Trạng thái">
-          {user.status || "ACTIVE"}
+          {user.status || "Đang hoạt động"}
         </Descriptions.Item>
       </Descriptions>
 

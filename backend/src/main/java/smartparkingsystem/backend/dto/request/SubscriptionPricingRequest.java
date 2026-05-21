@@ -16,20 +16,20 @@ import java.math.BigInteger;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SubscriptionPricingRequest {
-    @NotBlank(message = "Pricing name is required")
+    @NotBlank(message = "Tên gói giá là bắt buộc")
     private String pricingName;
 
-    @NotNull(message = "Vehicle type is required")
+    @NotNull(message = "Loại xe là bắt buộc")
     private VehicleTypeEnum vehicleType;
 
-    @NotNull(message = "Duration type is required")
+    @NotNull(message = "Loại thời hạn là bắt buộc")
     private SubType durationType;
 
-    @NotNull(message = "Price is required")
+    @NotNull(message = "Giá là bắt buộc")
     private BigInteger price;
 
     private String description;
 
-    @NotNull(message = "Active status is required")
+    @NotNull(message = "Trạng thái kích hoạt là bắt buộc")
     private Boolean active;
 }

@@ -20,29 +20,29 @@ public class ProgressiveCalculator implements FeeCalculationStrategy {
     @Override
     public BigInteger calculateFee(LocalDateTime timeIn, LocalDateTime timeOut, PricingRule rule) {
         if (timeIn == null || timeOut == null) {
-            throw new ValidationException(
-                    "timeIn and timeOut are required to calculate parking fee. " +
-                            "Both must be provided and in valid LocalDateTime format."
-            );
+                throw new ValidationException(
+                    "Cần có timeIn và timeOut để tính phí gửi xe. " +
+                        "Cả hai phải được cung cấp và đúng định dạng LocalDateTime."
+                );
         }
 
         // Validate time logic - timeOut must be after timeIn
         if (timeOut.isBefore(timeIn)) {
-            throw new InvalidStateException(
+                throw new InvalidStateException(
                     String.format(
-                            "Invalid parking time range. Check-out time (%s) must be after check-in time (%s). " +
-                                    "Please verify the time data.",
-                            timeOut, timeIn
+                        "Khoảng thời gian gửi xe không hợp lệ. Thời gian ra (%s) phải sau thời gian vào (%s). " +
+                            "Vui lòng kiểm tra lại dữ liệu thời gian.",
+                        timeOut, timeIn
                     )
-            );
+                );
         }
 
         // Validate pricing rule exists
         if (rule == null) {
-            throw new ResourceNotFoundException(
-                    "Pricing rule is required to calculate parking fee. " +
-                            "No active pricing rule found for this vehicle type."
-            );
+                throw new ResourceNotFoundException(
+                    "Cần có quy tắc giá để tính phí gửi xe. " +
+                        "Không tìm thấy quy tắc giá đang hoạt động cho loại xe này."
+                );
         }
 
         long totalMinutes = Math.max(1, Duration.between(timeIn, timeOut).toMinutes());

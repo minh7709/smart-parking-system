@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import smartparkingsystem.backend.entity.User;
+import smartparkingsystem.backend.entity.type.UserStatus;
 import smartparkingsystem.backend.repository.UserRepository;
 
 import java.util.UUID;
@@ -22,8 +23,10 @@ public class CustomUserDetailsService implements UserDetailsService {
     @NonNull
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsernameAndDeletedFalse(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-
+                .orElseThrow(() -> new UsernameNotFoundException("không tìm thấy người dùng với username: " + username));
+        if(user.getStatus() != null && user.getStatus() != UserStatus.ACTIVE) {
+            throw new UsernameNotFoundException("Người dùng '" + username + "' không có quyền truy cập hệ thống");
+        }
         return CustomUserDetails.build(user);
     }
 
@@ -32,8 +35,10 @@ public class CustomUserDetailsService implements UserDetailsService {
      */
     public UserDetails loadUserById(UUID userId) throws UsernameNotFoundException {
         User user = userRepository.findByIdAndDeletedFalse(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + userId));
-
+                .orElseThrow(() -> new UsernameNotFoundException("không tìm thấy người dùng với id: " + userId));
+        if(user.getStatus() != null && user.getStatus() != UserStatus.ACTIVE) {
+            throw new UsernameNotFoundException("Người dùng với '" + userId + "' không có quyền truy cập hệ thống");
+        }
         return CustomUserDetails.build(user);
     }
 }

@@ -32,11 +32,11 @@ public class UserService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new UnauthorizedException("User is not authenticated");
+            throw new UnauthorizedException("Người dùng chưa xác thực");
         }
 
         if (!(authentication.getPrincipal() instanceof CustomUserDetails)) {
-            throw new UnauthorizedException("Invalid authentication principal");
+            throw new UnauthorizedException("Thông tin người dùng không hợp lệ");
         }
 
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
@@ -45,7 +45,7 @@ public class UserService {
         User user = userRepository.findByIdAndDeletedFalse(userId)
                 .orElseThrow(() -> {
                     log.warn("User not found in database: {}", userId);
-                    return new ResourceNotFoundException("User not found");
+                    return new ResourceNotFoundException("Không tìm thấy người dùng");
                 });
 
         log.debug("Retrieved current user: {}", user.getUsername());
@@ -55,7 +55,7 @@ public class UserService {
     @Transactional
     public void resetPasswordById(UUID id, String newPassword) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với id: " + id));
         user.setPassword(passwordEncoder.encode(newPassword)); // Password should be encoded before calling this method
         userRepository.save(user);
     }
@@ -66,7 +66,7 @@ public class UserService {
 
         // Verify current password
         if (!passwordEncoder.matches(request.getCurrentPassword(), currentUser.getPassword())) {
-            throw new UnauthorizedException("Current password is incorrect");
+            throw new UnauthorizedException("Mật khẩu hiện tại không đúng");
         }
 
         // Update to new password

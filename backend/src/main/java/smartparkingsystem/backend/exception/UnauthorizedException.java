@@ -27,7 +27,7 @@ public class UnauthorizedException extends BaseException {
     public UnauthorizedException(String resource, String action, String path) {
         super(
                 "UNAUTHORIZED",
-                String.format("You are not authorized to %s %s", action, resource),
+                String.format("Bạn không có quyền để %s %s", action, resource),
                 HttpStatus.FORBIDDEN.value(),
                 path
         );

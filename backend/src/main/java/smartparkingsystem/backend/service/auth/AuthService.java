@@ -40,10 +40,6 @@ public class AuthService {
 
     private static final String FORGOT_PASSWORD_PURPOSE = "FORGOT_PASSWORD";
 
-    /**
-     * Authenticate user and generate JWT tokens
-     * Only ADMIN users can log in via web
-     */
     public LoginResponse login(LoginRequest loginRequest) {
         try {
             // Authenticate user with username and password
@@ -58,10 +54,10 @@ public class AuthService {
 
             // Check user exists and is active BEFORE creating tokens
             User user = userRepository.findByUsername(userDetails.getUsername())
-                    .orElseThrow(() -> new UnauthorizedException("User not found"));
+                    .orElseThrow(() -> new UnauthorizedException("không tìm thấy người dùng"));
 
             if (user.getStatus() != UserStatus.ACTIVE) {
-                throw new UnauthorizedException("User account is not active");
+                throw new UnauthorizedException("Tài khoản người dùng không còn hoạt động");
             }
 
             String accessToken = tokenProvider.generateToken(authentication);
@@ -97,7 +93,7 @@ public class AuthService {
 
         } catch (AuthenticationException e) {
             log.error("Authentication failed for user: {}", loginRequest.getUsername());
-            throw new UnauthorizedException("Invalid username or password");
+            throw new UnauthorizedException("Tên đăng nhập hoặc mật khẩu không chính xác");
         }
     }
 
@@ -108,18 +104,18 @@ public class AuthService {
         String refreshToken = refreshTokenRequest.getRefreshToken();
 
         if (!tokenRedisService.isRefreshTokenActive(refreshToken)) {
-            throw new UnauthorizedException("Refresh token has been revoked or does not exist");
+            throw new UnauthorizedException("Refresh token đã bị thu hồi hoặc không tồn tại");
         }
 
         // Validate refresh token
         if (!tokenProvider.validateToken(refreshToken)) {
             tokenRedisService.revokeRefreshToken(refreshToken);
-            throw new UnauthorizedException("Invalid or expired refresh token");
+            throw new UnauthorizedException("Refresh token không hợp lệ");
         }
 
         // Verify it's actually a refresh token
         if (!tokenProvider.isRefreshToken(refreshToken)) {
-            throw new ValidationException("Token is not a refresh token");
+            throw new ValidationException("Token được cung cấp không phải là refresh token");
         }
 
         // Extract user info from refresh token
@@ -128,11 +124,11 @@ public class AuthService {
 
         // Get fresh user details from DB to ensure they still exist and are active
         User user = userRepository.findByUsernameAndDeletedFalse(username)
-                .orElseThrow(() -> new UnauthorizedException("User not found"));
+                .orElseThrow(() -> new UnauthorizedException("không tìm thấy người dùng"));
 
         if (user.getStatus() != UserStatus.ACTIVE) {
             tokenRedisService.revokeRefreshToken(refreshToken);
-            throw new UnauthorizedException("User account is no longer active");
+            throw new UnauthorizedException("Tài khoản người dùng không còn hoạt động");
         }
 
         // Generate new access token using FRESH data from DB
@@ -174,7 +170,7 @@ public class AuthService {
 
     public void forgotPasswordHandler(PhoneRequest request) {
         User user  = userRepository.findByPhone(request.getPhone())
-                .orElseThrow(() -> new ResourceNotFoundException("User with this phone number not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("không tìm thấy người dùng với số điện thoại này"));
         String otp = otpRedisService.generateOtp(user.getPhone(), FORGOT_PASSWORD_PURPOSE);
         smsService.sendSms(request.getPhone(), "Mã OTP đặt lại mật khẩu của bạn là: " + otp);
     }
@@ -182,17 +178,17 @@ public class AuthService {
     public String otpVerifyHandler(OtpVerifyRequest otpVerifyRequest) {
         boolean isValid = otpRedisService.validateOtp(otpVerifyRequest.getPhone(), otpVerifyRequest.getOtp(), FORGOT_PASSWORD_PURPOSE);
         if (!isValid) {
-            throw new ValidationException("Invalid or expired OTP");
+            throw new ValidationException("Mã OTP không hợp lệ hoặc đã hết hạn");
         }
         return otpRedisService.generateResetToken(otpVerifyRequest.getPhone());
     }
     public void resetPasswordHandler(ResetPasswordRequest resetPasswordRequest) {
         String identifier = otpRedisService.validateResetToken(resetPasswordRequest.getToken());
         if (identifier == null) {
-            throw new ValidationException("Invalid or expired reset token");
+            throw new ValidationException("Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn");
         }
         User user = userRepository.findByPhone(identifier)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("không tìm thấy người dùng với số điện thoại này"));
         userService.resetPasswordById(user.getId(), resetPasswordRequest.getNewPassword());
         otpRedisService.deleteResetToken(resetPasswordRequest.getToken());
     }

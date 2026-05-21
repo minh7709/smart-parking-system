@@ -32,7 +32,7 @@ public class SubscriptionPricingController {
         log.info("Creating subscription pricing: {}", request.getPricingName());
         SubscriptionPricingResponse response = subscriptionPricingService.createSubscriptionPricing(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(response, "Subscription pricing created successfully"));
+                .body(ApiResponse.success(response, "Tạo cấu hình giá vé đăng ký thành công"));
     }
 
     @PutMapping("/{id}")
@@ -41,21 +41,21 @@ public class SubscriptionPricingController {
             @Valid @RequestBody SubscriptionPricingRequest request) {
         log.info("Updating subscription pricing with id: {}", id);
         SubscriptionPricingResponse response = subscriptionPricingService.updateSubscriptionPricing(id, request);
-        return ResponseEntity.ok(ApiResponse.success(response, "Subscription pricing updated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Cập nhật cấu hình giá vé đăng ký thành công"));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteSubscriptionPricing(@PathVariable UUID id) {
         log.info("Deleting subscription pricing with id: {}", id);
         subscriptionPricingService.deleteSubscriptionPricing(id);
-        return ResponseEntity.ok(ApiResponse.success(null, "Subscription pricing deleted successfully"));
+        return ResponseEntity.ok(ApiResponse.success(null, "Xóa cấu hình giá vé đăng ký thành công"));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<SubscriptionPricingResponse>> getSubscriptionPricingById(@PathVariable UUID id) {
         log.info("Fetching subscription pricing with id: {}", id);
         SubscriptionPricingResponse response = subscriptionPricingService.getSubscriptionPricingById(id);
-        return ResponseEntity.ok(ApiResponse.success(response, "Subscription pricing fetched successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Lấy chi tiết cấu hình giá vé đăng ký thành công"));
     }
 
     @GetMapping
@@ -64,13 +64,13 @@ public class SubscriptionPricingController {
             Pageable pageable) {
         log.info("Fetching subscription pricing list with pagination");
         Page<SubscriptionPricingResponse> page = subscriptionPricingService.getSubscriptionPricings(pageable, vehicleType);
-        return ResponseEntity.ok(ApiResponse.success(page, "Subscription pricing list fetched successfully"));
+        return ResponseEntity.ok(ApiResponse.success(page, "Lấy danh sách cấu hình giá vé đăng ký thành công"));
     }
 
     @PostMapping("/{id}/activate")
     public ResponseEntity<ApiResponse<Boolean>> activateSubscriptionPricing(@PathVariable UUID id) {
         log.info("Activating subscription pricing with id: {}", id);
         Boolean result = subscriptionPricingService.activateSubscriptionPricing(id);
-        return ResponseEntity.ok(ApiResponse.success(result, "Subscription pricing activated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(result, "Kích hoạt cấu hình giá vé đăng ký thành công"));
     }
 }

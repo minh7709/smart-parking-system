@@ -17,36 +17,36 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PricingRuleRequest {
 
-    @NotBlank(message = "Rule name is required")
-    @Size(min = 1, max = 100, message = "Rule name must be between 1 and 100 characters")
+    @NotBlank(message = "Tên quy tắc là bắt buộc")
+    @Size(min = 1, max = 100, message = "Tên quy tắc phải từ 1 đến 100 ký tự")
     private String ruleName;
 
-    @NotNull(message = "Vehicle type is required")
+    @NotNull(message = "Loại xe là bắt buộc")
     private VehicleTypeEnum vehicleType;
 
-    @NotNull(message = "Pricing strategy is required")
+    @NotNull(message = "Chiến lược tính giá là bắt buộc")
     private PricingStrategyEnum pricingStrategy;
 
-    @DecimalMin(value = "0", inclusive = false, message = "Base price must be greater than 0")
+    @DecimalMin(value = "0", inclusive = false, message = "Giá cơ bản phải lớn hơn 0")
     private BigInteger basePrice;
 
-    @Min(value = 1, message = "Block minutes must be at least 1")
+    @Min(value = 1, message = "Số phút theo block phải ít nhất là 1")
     private Integer blockMinutes;
 
-    @Min(value = 1, message = "Threshold minutes must be at least 1")
+    @Min(value = 1, message = "Số phút ngưỡng phải ít nhất là 1")
     private Integer thresholdMinutes;
 
-    @DecimalMin(value = "0", message = "Threshold price must be greater than or equal 0")
+    @DecimalMin(value = "0", message = "Giá ngưỡng phải lớn hơn hoặc bằng 0")
     private BigInteger thresholdPrice;
 
-    @DecimalMin(value = "0", message = "Max price per day must be greater than 0")
+    @DecimalMin(value = "0", message = "Giá tối đa mỗi ngày phải lớn hơn 0")
     private BigInteger maxPricePerDay;
 
     private List<TimeWindowAndProgressiveConfig> progressiveConfig;
 
-    @NotNull(message = "Penalty price is required")
+    @NotNull(message = "Phí phạt là bắt buộc")
     private BigInteger penaltyFee;
 
-    @NotNull(message = "Active status is required")
+    @NotNull(message = "Trạng thái kích hoạt là bắt buộc")
     private Boolean isActive;
 }

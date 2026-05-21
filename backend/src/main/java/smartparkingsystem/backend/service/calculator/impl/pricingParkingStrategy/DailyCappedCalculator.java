@@ -21,8 +21,8 @@ public class DailyCappedCalculator implements FeeCalculationStrategy {
         // Validate input times
         if (timeIn == null || timeOut == null) {
             throw new ValidationException(
-                "timeIn and timeOut are required to calculate parking fee. " +
-                "Both must be provided and in valid LocalDateTime format."
+                "Cần có timeIn và timeOut để tính phí gửi xe. " +
+                "Cả hai phải được cung cấp và đúng định dạng LocalDateTime."
             );
         }
 
@@ -30,8 +30,8 @@ public class DailyCappedCalculator implements FeeCalculationStrategy {
         if (timeOut.isBefore(timeIn)) {
             throw new InvalidStateException(
                 String.format(
-                    "Invalid parking time range. Check-out time (%s) must be after check-in time (%s). " +
-                    "Please verify the time data.",
+                    "Khoảng thời gian gửi xe không hợp lệ. Thời gian ra (%s) phải sau thời gian vào (%s). " +
+                    "Vui lòng kiểm tra lại dữ liệu thời gian.",
                     timeOut, timeIn
                 )
             );
@@ -40,16 +40,16 @@ public class DailyCappedCalculator implements FeeCalculationStrategy {
         // Validate pricing rule and base price
         if (rule == null || rule.getBasePrice() == null) {
             throw new ResourceNotFoundException(
-                "Pricing rule with basePrice is required to calculate parking fee. " +
-                "No active pricing rule found for this vehicle type."
+                "Cần có quy tắc giá với basePrice để tính phí gửi xe. " +
+                "Không tìm thấy quy tắc giá đang hoạt động cho loại xe này."
             );
         }
 
         // Validate daily cap configuration
         if (rule.getMaxPricePerDay() == null || rule.getMaxPricePerDay().compareTo(BigInteger.ZERO) <= 0) {
             throw new ValidationException(
-                "maxPricePerDay must be provided and greater than 0 for daily capped strategy. " +
-                "Current value: " + rule.getMaxPricePerDay()
+                "maxPricePerDay phải được cung cấp và lớn hơn 0 cho chiến lược giới hạn theo ngày. " +
+                "Giá trị hiện tại: " + rule.getMaxPricePerDay()
             );
         }
 

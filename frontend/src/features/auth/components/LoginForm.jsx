@@ -14,14 +14,14 @@ const LoginForm = ({
 }) => {
   return (
     <form onSubmit={onSubmit}>
-      <h1>Login</h1>
+      <h1>Đăng nhập</h1>
 
       {error && <div className={styles['error-message']}>{error}</div>}
 
       <div className={styles['input-box']}>
         <input
           type="text"
-          placeholder="Username"
+          placeholder="Tên đăng nhập"
           required
           value={username}
           onChange={(e) => onUsernameChange(e.target.value)}
@@ -33,7 +33,7 @@ const LoginForm = ({
       <div className={styles['input-box']}>
         <input
           type="password"
-          placeholder="Password"
+          placeholder="Mật khẩu"
           required
           value={password}
           onChange={(e) => onPasswordChange(e.target.value)}
@@ -50,7 +50,7 @@ const LoginForm = ({
             onChange={(e) => onRememberMeChange(e.target.checked)}
             disabled={loading}
           />{' '}
-          Remember Me
+          Ghi nhớ đăng nhập
         </label>
         <button
           type="button"
@@ -58,12 +58,12 @@ const LoginForm = ({
           onClick={onForgotPassword}
           disabled={loading}
         >
-          Forgot Password?
+          Quên mật khẩu?
         </button>
       </div>
 
       <button type="submit" className={styles.btn} disabled={loading}>
-        {loading ? 'Logging in...' : 'Login'}
+        {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
       </button>
     </form>
   );

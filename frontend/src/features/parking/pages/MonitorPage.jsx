@@ -38,8 +38,8 @@ const MonitorPage = () => {
     return (
       <AppLayout>
         <Alert
-          message="Chưa chọn lane vào"
-          description="Vui lòng quay lại trang Lane để chọn lane có camera."
+          message="Chưa chọn làn vào"
+          description="Vui lòng quay lại trang chọn làn để chọn làn có camera."
           type="warning"
           showIcon
         />

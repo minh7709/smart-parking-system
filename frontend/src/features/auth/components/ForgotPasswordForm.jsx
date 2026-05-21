@@ -11,7 +11,7 @@ const ForgotPasswordForm = ({
 }) => {
   return (
     <form onSubmit={onSubmit}>
-      <h1>Forgot Password</h1>
+      <h1>Quên mật khẩu</h1>
 
       {error && <div className={styles['error-message']}>{error}</div>}
       {phoneError && <div className={styles['error-message']}>{phoneError}</div>}
@@ -19,7 +19,7 @@ const ForgotPasswordForm = ({
       <div className={styles['input-box']}>
         <input
           type="text"
-          placeholder="Nhap so dien thoai"
+          placeholder="Nhập số điện thoại"
           value={phone}
           onChange={(e) => onPhoneChange(e.target.value)}
           required
@@ -29,10 +29,10 @@ const ForgotPasswordForm = ({
       </div>
 
       <button type="submit" className={styles.btn} disabled={loading}>
-        {loading ? 'Sending...' : 'Send OTP'}
+        {loading ? 'Đang gửi...' : 'Gửi OTP'}
       </button>
       <button type="button" className={`${styles.btn} ${styles['btn-secondary']}`} onClick={onBack} disabled={loading}>
-        Back to Login
+        Quay lại đăng nhập
       </button>
     </form>
   );

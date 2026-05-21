@@ -33,7 +33,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String jwt = getJwtFromRequest(request);
 
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
-                // Validate that it's not a refresh token
                 if (tokenProvider.isRefreshToken(jwt)) {
                     log.warn("Refresh token used as access token");
                     filterChain.doFilter(request, response);
@@ -41,7 +40,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
 
                 if (tokenRedisService.isAccessTokenBlacklisted(jwt)) {
-                    log.warn("Blacklisted access token detected");
                     filterChain.doFilter(request, response);
                     return;
                 }
@@ -66,8 +64,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 } catch (UsernameNotFoundException ex) {
                     log.warn("User not found or has been deleted. UserId: {}, Exception: {}", userId, ex.getMessage());
-                    // User has been deleted or doesn't exist - don't set authentication
-                    // This will cause a 401/403 response for protected endpoints
                 }
             }
         } catch (Exception ex) {

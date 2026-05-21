@@ -33,61 +33,61 @@ public class TypeController {
 
     @GetMapping("/lane-statuses")
     public ResponseEntity<ApiResponse<List<LaneStatus>>> getLaneStatuses() {
-        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(LaneStatus.values()), "Lane statuses retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(LaneStatus.values()), "Lấy trạng thái làn thành công"));
     }
 
     @GetMapping("/lane-types")
     public ResponseEntity<ApiResponse<List<LaneTypeEnum>>> getLaneTypes() {
-        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(LaneTypeEnum.values()), "Lane types retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(LaneTypeEnum.values()), "Lấy loại làn thành công"));
     }
 
     @GetMapping("/vehicle-types")
     public ResponseEntity<ApiResponse<List<VehicleTypeEnum>>> getVehicleTypes() {
-        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(VehicleTypeEnum.values()), "Vehicle types retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(VehicleTypeEnum.values()), "Lấy loại xe thành công"));
     }
 
     @GetMapping("/session-statuses")
     public ResponseEntity<ApiResponse<List<SessionStatus>>> getSessionStatuses() {
-        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(SessionStatus.values()), "Session statuses retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(SessionStatus.values()), "Lấy trạng thái phiên gửi xe thành công"));
     }
 
     @GetMapping("/payment-statuses")
     public ResponseEntity<ApiResponse<List<PaymentStatus>>> getPaymentStatuses() {
-        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(PaymentStatus.values()), "Payment statuses retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(PaymentStatus.values()), "Lấy trạng thái thanh toán thành công"));
     }
 
     @GetMapping("/payment-methods")
     public ResponseEntity<ApiResponse<List<PaymentMethod>>> getPaymentMethods() {
-        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(PaymentMethod.values()), "Payment methods retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(PaymentMethod.values()), "Lấy phương thức thanh toán thành công"));
     }
 
     @GetMapping("/pricing-strategies")
     public ResponseEntity<ApiResponse<List<PricingStrategyEnum>>> getPricingStrategies() {
-        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(PricingStrategyEnum.values()), "Pricing strategies retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(PricingStrategyEnum.values()), "Lấy chiến lược tính giá thành công"));
     }
 
     @GetMapping("/incident-types")
     public ResponseEntity<ApiResponse<List<IncidentTypeEnum>>> getIncidentTypes() {
-        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(IncidentTypeEnum.values()), "Incident types retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(IncidentTypeEnum.values()), "Lấy loại sự cố thành công"));
     }
 
     @GetMapping("/user-roles")
     public ResponseEntity<ApiResponse<List<UserRole>>> getUserRoles() {
-        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(UserRole.values()), "User roles retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(UserRole.values()), "Lấy vai trò người dùng thành công"));
     }
 
     @GetMapping("/user-statuses")
     public ResponseEntity<ApiResponse<List<UserStatus>>> getUserStatuses() {
-        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(UserStatus.values()), "User statuses retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(UserStatus.values()), "Lấy trạng thái người dùng thành công"));
     }
 
     @GetMapping("/subscription-types")
     public ResponseEntity<ApiResponse<List<SubType>>> getSubscriptionTypes() {
-        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(SubType.values()), "Subscription types retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(SubType.values()), "Lấy loại đăng ký thành công"));
     }
 
     @GetMapping("/subscription-statuses")
     public ResponseEntity<ApiResponse<List<SubStatus>>> getSubscriptionStatuses() {
-        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(SubStatus.values()), "Subscription statuses retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(Arrays.asList(SubStatus.values()), "Lấy trạng thái đăng ký thành công"));
     }
 }

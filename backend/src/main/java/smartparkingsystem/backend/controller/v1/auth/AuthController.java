@@ -28,37 +28,23 @@ import smartparkingsystem.backend.service.auth.UserService;
 public class AuthController {
     private final AuthService authService;
     private final UserService userService;
-    /**
-     * Login endpoint for ADMIN users
-     * POST /api/v1/auth/login
-     */
+
     @SecurityRequirements
     @Operation(summary = "Admin login")
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
-        log.info("Login attempt for user: {}", loginRequest.getUsername());
         LoginResponse response = authService.login(loginRequest);
-        log.info("User logged in successfully: {}", loginRequest.getUsername());
-        return ResponseEntity.ok(ApiResponse.success(response, "Login successful"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Đăng nhập thành công"));
     }
 
-    /**
-     * Refresh access token endpoint
-     * POST /api/v1/auth/refresh
-     */
     @SecurityRequirements
     @Operation(summary = "Refresh token")
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
-        log.info("Token refresh requested");
         LoginResponse response = authService.refreshToken(refreshTokenRequest);
-        return ResponseEntity.ok(ApiResponse.success(response,"Refresh Token successful"));
+        return ResponseEntity.ok(ApiResponse.success(response,"Refresh Token thành công"));
     }
 
-    /**
-     * Logout endpoint
-     * POST /api/v1/auth/logout
-     */
     @PreAuthorize("hasAnyRole('ADMIN', 'GUARD')")
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody LogoutRequest logoutRequest,
@@ -70,7 +56,7 @@ public class AuthController {
         authService.logout(accessToken, logoutRequest.getRefreshToken(), username);
 
         log.info("User logged out successfully: {}", username);
-        return ResponseEntity.ok(ApiResponse.success(null,"Logout successful"));
+        return ResponseEntity.ok(ApiResponse.success(null,"Đăng xuất thành công"));
     }
 
     private String extractBearerToken(String authorizationHeader) {
@@ -96,7 +82,7 @@ public class AuthController {
                 .status(user.getStatus().toString())
                 .phone(user.getPhone())
                 .build();
-        return ResponseEntity.ok(ApiResponse.success(userInfo,"Current user info retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(userInfo,"Lấy thông tin người dùng thành công"));
     }
 
     @SecurityRequirements
@@ -112,7 +98,7 @@ public class AuthController {
     @PostMapping("verify-otp")
     public ResponseEntity<ApiResponse<String>> verifyOtp(@Valid @RequestBody OtpVerifyRequest request) {
         String resetToken =  authService.otpVerifyHandler(request);
-        return ResponseEntity.ok(ApiResponse.success(resetToken,"OTP verified successfully. start resetting password"));
+        return ResponseEntity.ok(ApiResponse.success(resetToken,"Xác thực OTP thành công, bạn có thể đặt lại mật khẩu của mình"));
     }
 
     @SecurityRequirements
@@ -120,7 +106,7 @@ public class AuthController {
     @PostMapping("reset-password")
     public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request){
         authService.resetPasswordHandler(request);
-        return ResponseEntity.ok(ApiResponse.success(null,"Password reset successful"));
+        return ResponseEntity.ok(ApiResponse.success(null,"Đặt lại mật khẩu thành công"));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'GUARD')")
@@ -128,7 +114,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> changePassword( @Valid @RequestBody
             ChangePasswordRequest request) {
         userService.changePasswordHandler(request);
-        return ResponseEntity.ok(ApiResponse.success(null,"Password changed successfully"));
+        return ResponseEntity.ok(ApiResponse.success(null,"Đổi mật khẩu thành công"));
     }
 
 }

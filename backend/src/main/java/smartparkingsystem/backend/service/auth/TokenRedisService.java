@@ -53,10 +53,6 @@ public class TokenRedisService {
         return Boolean.TRUE.equals(redisTemplate.hasKey(buildAccessBlacklistKey(accessToken)));
     }
 
-    /**
-     * Mark a user as deleted (invalidate all future token attempts)
-     * This is used when a user is deleted to prevent them from using old tokens
-     */
     public void markUserAsDeleted(UUID userId) {
         if (userId == null) {
             return;
@@ -65,9 +61,6 @@ public class TokenRedisService {
         redisTemplate.opsForValue().set(buildDeletedUserKey(userId), "1", ttlMillis, TimeUnit.MILLISECONDS);
     }
 
-    /**
-     * Check if a user has been marked as deleted
-     */
     public boolean isUserDeleted(UUID userId) {
         if (userId == null) {
             return false;
@@ -75,9 +68,6 @@ public class TokenRedisService {
         return Boolean.TRUE.equals(redisTemplate.hasKey(buildDeletedUserKey(userId)));
     }
 
-    /**
-     * Remove a user from deleted list (for restore functionality)
-     */
     public void removeDeletedUser(UUID userId) {
         if (userId == null) {
             return;

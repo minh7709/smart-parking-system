@@ -21,7 +21,7 @@ public class ValidationException extends BaseException {
     public ValidationException(String fieldName, String reason, String path) {
         super(
                 "VALIDATION_FAILED",
-                String.format("Validation failed for field '%s': %s", fieldName, reason),
+                String.format("Kiểm tra lại trường dữ liệu '%s': %s", fieldName, reason),
                 HttpStatus.BAD_REQUEST.value(),
                 path
         );
@@ -31,7 +31,7 @@ public class ValidationException extends BaseException {
     public ValidationException(String fieldName, String reason) {
         super(
                 "VALIDATION_FAILED",
-                String.format("Validation failed for field '%s': %s", fieldName, reason),
+                String.format("Kiểm tra lại trường dữ liệu '%s': %s", fieldName, reason),
                 HttpStatus.BAD_REQUEST.value()
         );
     }

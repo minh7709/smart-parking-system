@@ -3,10 +3,7 @@ package smartparkingsystem.backend.exception;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Base exception class for all custom application exceptions.
- * Includes error code, message, and path for consistent error handling.
- */
+
 @Getter
 public abstract class BaseException extends RuntimeException {
     private final String errorCode;

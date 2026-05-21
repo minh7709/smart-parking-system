@@ -41,13 +41,13 @@ public class ParkingSessionController {
             @RequestPart("request") @Valid CheckInRequest request,
             @RequestPart("image") MultipartFile image) {
         CheckInResponse response = parkingSessionService.processCheckIn(request, image);
-        return ResponseEntity.ok(ApiResponse.success(response, "Check-in successful"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Check-in thành công"));
     }
 
     @DeleteMapping("/cancel-check-in")
     public ResponseEntity<ApiResponse<Void>> cancelCheckIn(@Valid @RequestBody String imageUrl) {
         parkingSessionService.cancelCheckIn(imageUrl);
-        return ResponseEntity.ok(ApiResponse.success(null, "Check-in cancelled successfully"));
+        return ResponseEntity.ok(ApiResponse.success(null, "Hủy check-in thành công"));
     }
 
     @PostMapping(value = "/check-out", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -55,21 +55,21 @@ public class ParkingSessionController {
             @Valid @RequestPart("request") CheckOutRequest request,
             @RequestPart("image") MultipartFile image) {
         CheckOutResponse response = parkingSessionService.processCheckOut(request, image);
-        return ResponseEntity.ok(ApiResponse.success(response, "Check-out successful"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Check-out thành công"));
     }
 
     @PostMapping("/confirm-check-in")
     public ResponseEntity<ApiResponse<ParkingSessionResponse>> confirmCheckIn(
             @Valid @RequestBody ConfirmCheckInRequest request) {
         ParkingSessionResponse parkingSessionResponse = parkingSessionService.processConfirmCheckIn(request);
-        return ResponseEntity.ok(ApiResponse.success(parkingSessionResponse, "Check-in confirmed successfully"));
+        return ResponseEntity.ok(ApiResponse.success(parkingSessionResponse, "Xác nhận check-in thành công"));
     }
 
     @PostMapping("/confirm-check-out")
     public ResponseEntity<ApiResponse<Void>> confirmCheckOut(
             @Valid @RequestBody ConfirmCheckOutRequest request) {
         parkingSessionService.processConfirmCheckOut(request);
-        return ResponseEntity.ok(ApiResponse.success(null, "Check-out confirmed successfully"));
+        return ResponseEntity.ok(ApiResponse.success(null, "Xác nhận check-out thành công"));
     }
 
     @PostMapping(value = "/report-incident/lost-card", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -78,7 +78,7 @@ public class ParkingSessionController {
             @RequestPart("image") MultipartFile image,
             @RequestPart(value = "evidenceImage") MultipartFile evidenceImage) {
         CheckOutResponse response = parkingSessionService.reportLostCard(request, image, evidenceImage);
-        return ResponseEntity.ok(ApiResponse.success(response, "Incident reported successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Báo cáo sự cố mất thẻ thành công"));
 
     }
 
@@ -87,7 +87,7 @@ public class ParkingSessionController {
             @Valid @RequestPart("request") IncidentRequest request,
             @RequestPart(value = "evidenceImage") MultipartFile evidenceImage) {
         parkingSessionService.reportGeneralIncident(request, evidenceImage);
-        return ResponseEntity.ok(ApiResponse.success(null, "Incident reported successfully"));
+        return ResponseEntity.ok(ApiResponse.success(null, "Báo cáo sự cố " + request.getIncidentType().getLabel() + " thành công"));
     }
 
     @GetMapping
@@ -97,7 +97,7 @@ public class ParkingSessionController {
             @RequestParam (required = false) SessionStatus status,
             Pageable pageable) {
         Page<ParkingSessionResponse> page = parkingSessionService.getAllParkingSessions(pageable, status, licensePlate, vehicleType);
-        return ResponseEntity.ok(ApiResponse.success(page, "Parking sessions retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(page, "Lấy danh sách phiên đỗ xe thành công"));
     }
 
     @GetMapping("/{licensePlate}")
@@ -105,7 +105,7 @@ public class ParkingSessionController {
             @PathVariable String licensePlate,
             Pageable pageable) {
         Page<ParkingSessionResponse> page = parkingSessionService.getParkingSessionsByLicensePlate(licensePlate, pageable);
-        return ResponseEntity.ok(ApiResponse.success(page, "Parking sessions retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(page, "Lấy danh sách phiên đỗ xe theo biển số thành công"));
     }
 
     @GetMapping("/count")
@@ -113,7 +113,7 @@ public class ParkingSessionController {
             @RequestParam (required = false) SessionStatus status
     ) {
         Long total = parkingSessionService.getTotalParkedVehicles(status);
-        return ResponseEntity.ok(ApiResponse.success(total, "Total parked vehicles retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(total, "Lấy tổng số xe đang đỗ thành công"));
     }
 
     @GetMapping("/{parkingSessionId}/image")

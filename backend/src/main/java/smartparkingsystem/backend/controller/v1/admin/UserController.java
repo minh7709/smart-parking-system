@@ -33,7 +33,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserResponse>> createUser(@Valid @RequestBody UserCreateRequest request) {
         UserResponse response = adminUserService.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(response, "User created successfully"));
+                .body(ApiResponse.success(response, "Tạo người dùng thành công"));
     }
 
     @GetMapping
@@ -42,13 +42,13 @@ public class UserController {
             @RequestParam(required = false) UserStatus status
     ) {
         List<UserResponse> response = adminUserService.getAllUsers(status, phone);
-        return ResponseEntity.ok(ApiResponse.success(response, "Users fetched successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Lấy danh sách người dùng thành công"));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable UUID id) {
         UserResponse response = adminUserService.getUserById(id);
-        return ResponseEntity.ok(ApiResponse.success(response, "User fetched successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Lấy thông tin người dùng thành công"));
     }
 
     @PutMapping("/{id}")
@@ -56,13 +56,13 @@ public class UserController {
             @PathVariable UUID id,
             @Valid @RequestBody UserUpdateRequest request) {
         UserResponse response = adminUserService.updateUser(id, request);
-        return ResponseEntity.ok(ApiResponse.success(response, "User updated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Cập nhật người dùng thành công"));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable UUID id) {
         adminUserService.deleteUser(id);
-        return ResponseEntity.ok(ApiResponse.success(null, "User deleted successfully"));
+        return ResponseEntity.ok(ApiResponse.success(null, "Xóa người dùng thành công"));
     }
 
 }

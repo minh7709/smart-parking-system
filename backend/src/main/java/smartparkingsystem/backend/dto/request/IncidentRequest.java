@@ -11,11 +11,11 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class IncidentRequest {
-    @NotNull(message = "Parking session ID is required")
+    @NotNull(message = "Mã phiên gửi xe là bắt buộc")
     private UUID parkingSessionId;
 
     private String description;
 
-    @NotNull(message = "Incident type is required")
+    @NotNull(message = "Loại sự cố là bắt buộc")
     private IncidentTypeEnum incidentType;
 }

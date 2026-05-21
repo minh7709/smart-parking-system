@@ -18,12 +18,12 @@ import java.time.LocalDateTime;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SubscriptionRequest {
-    @NotBlank(message = "license plate is required")
+    @NotBlank(message = "Biển số xe là bắt buộc")
     private String licensePlate;
-    @NotNull(message = "Subscription duration is required")
+    @NotNull(message = "Thời hạn đăng ký là bắt buộc")
     private SubType subType;
-    @NotNull(message = "Start date is required")
+    @NotNull(message = "Ngày bắt đầu là bắt buộc")
     private LocalDateTime startDate;
-    @NotNull(message = "payment method is required")
+    @NotNull(message = "Phương thức thanh toán là bắt buộc")
     private PaymentMethod paymentMethod;
 }

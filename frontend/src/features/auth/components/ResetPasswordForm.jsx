@@ -11,7 +11,7 @@ const ResetPasswordForm = ({
 }) => {
   return (
     <form onSubmit={onSubmit}>
-      <h1>Reset Password</h1>
+      <h1>Đặt lại mật khẩu</h1>
 
       {error && <div className={styles['error-message']}>{error}</div>}
       {passwordError && <div className={styles['error-message']}>{passwordError}</div>}
@@ -19,7 +19,7 @@ const ResetPasswordForm = ({
       <div className={styles['input-box']}>
         <input
           type="password"
-          placeholder="New password (8+ chars, uppercase, lowercase, number)"
+          placeholder="Mật khẩu mới (tối thiểu 8 ký tự, gồm chữ hoa, chữ thường, số)"
           value={newPassword}
           onChange={(e) => onNewPasswordChange(e.target.value)}
           required
@@ -29,10 +29,10 @@ const ResetPasswordForm = ({
       </div>
 
       <button type="submit" className={styles.btn} disabled={loading}>
-        {loading ? 'Resetting...' : 'Confirm'}
+        {loading ? 'Đang đặt lại...' : 'Xác nhận'}
       </button>
       <button type="button" className={`${styles.btn} ${styles['btn-secondary']}`} onClick={onBack} disabled={loading}>
-        Back
+        Quay lại
       </button>
     </form>
   );

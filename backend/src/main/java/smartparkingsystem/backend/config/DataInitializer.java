@@ -9,6 +9,7 @@ import smartparkingsystem.backend.entity.PricingRule;
 import smartparkingsystem.backend.entity.SubscriptionPricing;
 import smartparkingsystem.backend.entity.User;
 import smartparkingsystem.backend.entity.type.*;
+import smartparkingsystem.backend.exception.ResourceNotFoundException;
 import smartparkingsystem.backend.repository.LaneRepository;
 import smartparkingsystem.backend.repository.SubscriptionPricingRepository;
 import smartparkingsystem.backend.repository.UserRepository;
@@ -66,11 +67,8 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(@NonNull String... args) throws Exception {
         if (userRepository.count() == 0) {
-            // 2. Nếu chưa có, tạo tài khoản Admin mặc định
             User admin = new User();
             admin.setUsername("admin");
-
-            // QUAN TRỌNG: Phải mã hóa mật khẩu trước khi lưu
             admin.setPassword(passwordEncoder.encode("123456Aa"));
 
             admin.setRole(UserRole.ADMIN);
@@ -97,7 +95,6 @@ public class DataInitializer implements CommandLineRunner {
                 defaultRule.setVehicleType(vehicleType);
                 defaultRule.setStrategy(PricingStrategyEnum.FLAT_RATE);
 
-                // Thiết lập giá cơ bản tùy theo loại xe
                 BigInteger basePrice;
                 switch (vehicleType) {
                     case CAR:
@@ -139,11 +136,10 @@ public class DataInitializer implements CommandLineRunner {
         Lane entryLane = laneRepository.findAll().stream().filter(l -> l.getLaneType() == LaneTypeEnum.IN).findFirst().orElse(null);
         Lane exitLane = laneRepository.findAll().stream().filter(l -> l.getLaneType() == LaneTypeEnum.OUT).findFirst().orElse(null);
 
-        // Seed missing pairs (vehicle_type + duration_type) so each enum combination is unique and complete.
         User admin = userRepository.findByUsername("admin")
-                .orElseThrow(() -> new RuntimeException("Admin user not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("không tìm thấy Admin user"));
         User guard = userRepository.findByUsername("guard")
-                .orElseThrow(() -> new RuntimeException("Guard user not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("không tìm thấy Guard user"));
 
         Set<String> existingPairs = new HashSet<>();
         subscriptionPricingRepository.findAll().forEach(item ->
@@ -162,14 +158,14 @@ public class DataInitializer implements CommandLineRunner {
                 pricing.setVehicleType(vehicleType);
                 pricing.setDurationType(durationType);
                 pricing.setPrice(calculatePrice(vehicleType, durationType));
-                pricing.setDescription("Auto-seeded default subscription pricing");
+                pricing.setDescription("sinh tự động cấu hình vé đăng ký");
                 pricing.setActive(true);
                 pricing.setCreator(admin);
 
                 subscriptionPricingRepository.save(pricing);
             }
         }
-        System.out.println("SubscriptionPricing seeding completed. Total records: " + subscriptionPricingRepository.count());
+        System.out.println("SubscriptionPricing được sinh thành công, tổng là: " + subscriptionPricingRepository.count());
         // Seed sample Vehicles
         if (vehicleRepository.count() == 0) {
             Vehicle vehicle1 = Vehicle.builder()
@@ -218,11 +214,12 @@ public class DataInitializer implements CommandLineRunner {
                         .entryLane(entryLane)
                         .vehicleType(VehicleTypeEnum.CAR)
                         .timeIn(LocalDateTime.now().minusHours(2))
-                        .plateInOcr("29A12345")
-                        .finalPlate("29A12345")
+                        .plateInOcr("50AA37979")
+                        .finalPlate("50AA37979")
                         .confidenceIn(0.95f)
                         .month(true)
                         .status(SessionStatus.PARKED)
+                        .imageInUrl("check-in/7a05a4a6-7b81-4d7e-8af6-36dd72d20d81.jpg")
                         .build();
                 parkingSessionRepository.save(session1);
 
@@ -233,15 +230,31 @@ public class DataInitializer implements CommandLineRunner {
                         .vehicleType(VehicleTypeEnum.MOTOR)
                         .timeIn(LocalDateTime.now().minusHours(5))
                         .timeOut(LocalDateTime.now().minusHours(1))
-                        .plateInOcr("59P166480")
-                        .plateOutOcr("59P166480")
-                        .finalPlate("59P166480")
+                        .plateInOcr("29AB22658")
+                        .plateOutOcr("29AB22658")
+                        .finalPlate("29AB22658")
                         .confidenceIn(0.98f)
                         .confidenceOut(0.97f)
                         .month(false)
                         .status(SessionStatus.COMPLETED)
+                        .imageInUrl("check-in/c76b48ae-6418-45cd-b4d9-976d15fd02bd.jpg")
+                        .imageOutUrl("check-out/c76b48ae-6418-45cd-b4d9-976d15fd02bd.jpg")
                         .build();
                 parkingSessionRepository.save(session2);
+
+                ParkingSession session3 = ParkingSession.builder()
+                        .entryLane(entryLane)
+                        .exitLane(exitLane)
+                        .vehicleType(VehicleTypeEnum.CAR)
+                        .timeIn(LocalDateTime.now().minusHours(3))
+                        .plateInOcr("73K99999")
+                        .finalPlate("73K99999")
+                        .confidenceIn(0.90f)
+                        .month(false)
+                        .status(SessionStatus.PARKED)
+                        .imageInUrl("check-in/f4db84fd-8be9-4e47-9cf0-8ef89d699924.jpg")
+                        .build();
+                parkingSessionRepository.save(session3);
 
                 // Seed sample Invoices
                 if (invoiceRepository.count() == 0) {
@@ -263,8 +276,9 @@ public class DataInitializer implements CommandLineRunner {
                     Incident incident1 = Incident.builder()
                             .parkingSession(session2)
                             .reporter(guard)
-                            .description("Biển số mờ, cần kiểm tra lại camera.")
-                            .incidentType(IncidentTypeEnum.WRONG_PLATE)
+                            .description("Có va chạm xảy ra")
+                            .incidentType(IncidentTypeEnum.DAMAGE)
+                            .evidenceUrl("evidence/7f81805e-5ea7-4095-b996-188fce6f043c.jpg")
                             .build();
                     incidentRepository.save(incident1);
                 }

@@ -25,7 +25,7 @@ public class IncidentMapper {
                 .build();
     }
 
-    public Incident toEntity(IncidentRequest request, ParkingSession parkingSession, User reporter) {
+    public Incident toEntity(IncidentRequest request, ParkingSession parkingSession, User reporter, String evidenceUrl) {
         if(request == null) {
             return null;
         }
@@ -34,6 +34,7 @@ public class IncidentMapper {
                 .incidentType(request.getIncidentType())
                 .reporter(reporter)
                 .parkingSession(parkingSession)
+                .evidenceUrl(evidenceUrl)
                 .build();
     }
 }

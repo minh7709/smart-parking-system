@@ -16,10 +16,6 @@ import java.util.UUID;
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByUsername(String userName);
-    boolean existsByUsername(String userName);
-    boolean existsByPhone(String phone);
-    boolean existsByUsernameAndIdNot(String username, UUID id);
-    boolean existsByPhoneAndIdNot(String phone, UUID id);
     Optional<User> findByPhone(String phone);
 
     Optional<User> findByUsernameAndDeletedFalse(String username);
@@ -39,15 +35,5 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     @Query("SELECT u FROM User u WHERE u.deleted = false AND u.phone LIKE CONCAT('%', :phone, '%') AND u.status = :status")
     List<User> findByPhoneContainingAndStatusAndDeletedFalse(@Param("phone") String phone, @Param("status") UserStatus status);
-
-    // Pageable versions for future use
-    @Query("SELECT u FROM User u WHERE u.deleted = false AND u.phone LIKE CONCAT('%', :phone, '%')")
-    Page<User> findByPhoneContainingAndDeletedFalse(@Param("phone") String phone, Pageable pageable);
-
-    @Query("SELECT u FROM User u WHERE u.deleted = false AND u.status = :status")
-    Page<User> findByStatusAndDeletedFalse(@Param("status") UserStatus status, Pageable pageable);
-
-    @Query("SELECT u FROM User u WHERE u.deleted = false AND u.phone LIKE CONCAT('%', :phone, '%') AND u.status = :status")
-    Page<User> findByPhoneContainingAndStatusAndDeletedFalse(@Param("phone") String phone, @Param("status") UserStatus status, Pageable pageable);
 }
 

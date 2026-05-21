@@ -11,7 +11,7 @@ import java.util.UUID;
 @Validated
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CheckOutWithoutCardRequest {
-    @NotNull(message = "Entry lane ID is required")
+    @NotNull(message = "Mã làn ra là bắt buộc")
     private UUID exitLaneId;
 
     private String description;

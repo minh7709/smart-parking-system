@@ -21,7 +21,7 @@ public class PricingValidatorFactory {
     public PricingStrategyValidator getValidator(PricingStrategyEnum strategy) {
         PricingStrategyValidator validator = this.validators.get(strategy);
         if (validator == null) {
-            throw new IllegalArgumentException("No validator found for strategy: " + strategy);
+            throw new IllegalArgumentException("Không tìm thấy bộ kiểm tra cho chiến lược: " + strategy);
         }
         return validator;
     }

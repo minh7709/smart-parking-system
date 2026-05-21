@@ -1,6 +1,6 @@
 package smartparkingsystem.backend.mapper;
 import org.springframework.stereotype.Component;
-import smartparkingsystem.backend.dto.request.parkingSessionRequest.LaneRequest;
+import smartparkingsystem.backend.dto.request.lane.LaneCreateRequest;
 import smartparkingsystem.backend.dto.response.LaneResponse;
 import smartparkingsystem.backend.entity.Lane;
 @Component
@@ -17,16 +17,15 @@ public class LaneMapper {
                 .ipCamera(lane.getIpCamera())
                 .build();
     }
-    public Lane toLaneEntity(LaneRequest request) {
+    public Lane toLaneEntity(LaneCreateRequest request) {
         if (request == null) {
             return null;
         }
-        Lane lane = new Lane();
-        lane.setId(request.getId());
-        lane.setLaneName(request.getLaneName());
-        lane.setLaneType(request.getLaneType());
-        lane.setStatus(request.getStatus());
-        lane.setIpCamera(request.getIpCamera());
-        return lane;
+        return Lane.builder()
+                .laneName(request.getLaneName())
+                .laneType(request.getLaneType())
+                .ipCamera(request.getIpCamera())
+                .status(request.getStatus())
+                .build();
     }
 }

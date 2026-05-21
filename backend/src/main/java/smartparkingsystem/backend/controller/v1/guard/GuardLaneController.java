@@ -22,6 +22,6 @@ public class GuardLaneController {
     @GetMapping("/")
     public ResponseEntity<ApiResponse<List<LaneResponse>>> getActiveLanes() {
         List<LaneResponse> lanes = laneService.getActiveLanes();
-        return ResponseEntity.ok(ApiResponse.success(lanes, "Active lanes retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(lanes, "Lấy danh sách làn xe đang hoạt động thành công"));
     }
 }

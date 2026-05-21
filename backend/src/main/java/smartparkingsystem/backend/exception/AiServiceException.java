@@ -2,10 +2,6 @@ package smartparkingsystem.backend.exception;
 
 import org.springframework.http.HttpStatus;
 
-/**
- * Exception thrown when AI service integration fails.
- * This includes file reading errors, network errors, or AI service failures.
- */
 public class AiServiceException extends BaseException {
 
     public AiServiceException(String message) {

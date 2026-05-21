@@ -12,24 +12,24 @@ import java.util.UUID;
 @Data
 @Validated
 public class ConfirmCheckInRequest {
-    @NotBlank(message = "Plate number is required")
+    @NotBlank(message = "Biển số xe là bắt buộc")
     private String finalPlate;
 
-    @NotBlank(message = "Plate number in is required")
+    @NotBlank(message = "Biển số vào là bắt buộc")
     private String plateInOcr; // Biển số cuối cùng được xác nhận
 
-    @NotBlank(message = "Image in URL is required")
+    @NotBlank(message = "URL ảnh vào là bắt buộc")
     private String imageInUrl; // URL hình ảnh lúc check-in
 
-    @NotNull(message = "time in is required")
+    @NotNull(message = "Thời gian vào là bắt buộc")
     private LocalDateTime timeIn; // Thời gian check-in
 
-    @NotNull(message = "confidence in is required")
+    @NotNull(message = "Độ tin cậy ảnh vào là bắt buộc")
     private Float confidenceIn;
 
-    @NotNull(message = "vehicle type is required")
+    @NotNull(message = "Loại xe là bắt buộc")
     private VehicleTypeEnum vehicleType; //
 
-    @NotNull(message = "entry lane id is required")
+    @NotNull(message = "Mã làn vào là bắt buộc")
     private UUID entryLaneId;
 }
