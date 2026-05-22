@@ -193,21 +193,14 @@ const PricingRuleConfig = () => {
       }));
     }
 
-    const normalizeNumber = (value) => {
-      if (value && typeof value === "object") {
-        return value.value ?? value.amount ?? null;
-      }
-      return value ?? null;
-    };
-
     form.setFieldsValue({
       ruleName: record.ruleName,
       vehicleType: getEnumValue(record.vehicleType),
       pricingStrategy,
-      basePrice: normalizeNumber(record.basePrice),
+      basePrice: record.basePrice,
       blockMinutes: record.blockMinutes,
-      maxPricePerDay: normalizeNumber(record.maxPricePerDay),
-      penaltyFee: normalizeNumber(record.penaltyFee),
+      maxPricePerDay: record.maxPricePerDay,
+      penaltyFee: record.penaltyFee,
       startTime: null,
       progressiveConfig,
     });
