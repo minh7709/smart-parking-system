@@ -23,12 +23,11 @@ public class AdminSubscriptionController {
     private final AdminSubscriptionService adminSubscriptionService;
     private final GuardSubscriptionService guardSubscriptionService;
 
-    @PutMapping("/{id}/confirm")
-    public ResponseEntity<ApiResponse<Void>> confirmSubscription(
-            @PathVariable UUID id,
-            @RequestParam SubStatus newStatus) {
-        adminSubscriptionService.confirmSubscription(id, newStatus);
-        return ResponseEntity.ok(ApiResponse.success(null, "Cập nhật trạng thái đăng ký thành công"));
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<ApiResponse<Void>> cancelSubscription(
+            @PathVariable UUID id) {
+        adminSubscriptionService.cancelSubscription(id);
+        return ResponseEntity.ok(ApiResponse.success(null, "Hủy đăng ký thành công"));
     }
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<SubscriptionResponse>> getSubscriptionById(@PathVariable UUID id) {

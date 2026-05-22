@@ -1,5 +1,6 @@
 package smartparkingsystem.backend.mapper;
 
+import jakarta.annotation.Nullable;
 import org.springframework.stereotype.Component;
 import smartparkingsystem.backend.dto.request.parkingSessionRequest.CheckInRequest;
 import smartparkingsystem.backend.dto.request.parkingSessionRequest.CheckOutRequest;
@@ -9,6 +10,7 @@ import smartparkingsystem.backend.dto.response.parkingSession.CheckOutResponse;
 import smartparkingsystem.backend.dto.response.parkingSession.ParkingSessionResponse;
 import smartparkingsystem.backend.entity.Lane;
 import smartparkingsystem.backend.entity.ParkingSession;
+import smartparkingsystem.backend.entity.Subscription;
 import smartparkingsystem.backend.entity.type.SessionStatus;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 
@@ -17,7 +19,7 @@ import java.time.LocalDateTime;
 
 @Component
 public class ParkingSessionMapper {
-    public ParkingSession toEntityForConfirmCheckIn(ConfirmCheckInRequest request, Lane entryLane, boolean isMonth) {
+    public ParkingSession toEntityForConfirmCheckIn(ConfirmCheckInRequest request, Lane entryLane, @Nullable Subscription subscription) {
         if (request == null || entryLane == null) {
             return null;
         }
@@ -28,7 +30,7 @@ public class ParkingSessionMapper {
                 .plateInOcr(request.getPlateInOcr())
                 .status(SessionStatus.PARKED)
                 .confidenceIn(request.getConfidenceIn())
-                .month(isMonth)
+                .subscription(subscription)
                 .timeIn(request.getTimeIn())
                 .imageInUrl(request.getImageInUrl())
                 .build();
@@ -74,7 +76,7 @@ public class ParkingSessionMapper {
                 .status(session.getStatus())
                 .parkingAmount(parkingAmount)
                 .penaltyAmount(penaltyAmount)
-                .isMonth(session.isMonth())
+                .isMonth(session.getSubscription() != null)
                 .vehicleType(session.getVehicleType())
                 .build();
     }
@@ -96,7 +98,7 @@ public class ParkingSessionMapper {
                 .imageInUrl(session.getImageInUrl())
                 .imageOutUrl(session.getImageOutUrl())
                 .status(session.getStatus())
-                .isMonth(session.isMonth())
+                .isMonth(session.getSubscription() != null)
                 .build();
     }
 }

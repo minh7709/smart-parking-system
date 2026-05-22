@@ -7,7 +7,7 @@ import { SearchOutlined, SyncOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import {
   getSubscriptionsApi,
-  confirmAdminSubscriptionApi,
+  cancelAdminSubscriptionApi,
 } from "../../parking/api/subscriptionApi";
 import { getSystemTypes } from "../../../utils/storage";
 import { useNotification } from "../../../hooks/useNotification";
@@ -88,20 +88,9 @@ const AdminRegisterPage = () => {
     setFilterStatus(null);
     setCurrentPage(1);
   };
-
-  const handleActive = async (id) => {
-    try {
-      await confirmAdminSubscriptionApi(id, "ACTIVE");
-      notify.success("Kích hoạt vé tháng thành công!");
-      fetchSubscriptions(currentPage, pageSize);
-    } catch (error) {
-      notify.apiError(error, "Lỗi khi kích hoạt vé tháng");
-    }
-  };
-
   const handleCancel = async (id) => {
     try {
-      await confirmAdminSubscriptionApi(id, "CANCELLED");
+      await cancelAdminSubscriptionApi(id);
       notify.success("Hủy vé tháng thành công!");
       fetchSubscriptions(currentPage, pageSize);
     } catch (error) {
@@ -152,19 +141,6 @@ const AdminRegisterPage = () => {
       title: "Hành động", key: "actions",
       render: (_, record) => (
         <Space size="middle">
-          <Tooltip title="Kích hoạt">
-            <Popconfirm
-              title="Bạn chắc muốn kích hoạt vé này?"
-              onConfirm={() => handleActive(record.id)}
-              okText="Kích hoạt"
-              cancelText="Hủy"
-              disabled={getSubStatusValue(record.subStatus) !== "PENDING"}
-            >
-              <Button type="text" disabled={getSubStatusValue(record.subStatus) !== "PENDING"}>
-                Active
-              </Button>
-            </Popconfirm>
-          </Tooltip>
           <Tooltip title="Hủy vé">
             <Popconfirm
               title="Bạn chắc muốn hủy vé này?"
@@ -174,7 +150,7 @@ const AdminRegisterPage = () => {
               disabled={!canCancel(record.subStatus)}
             >
               <Button type="text" danger disabled={!canCancel(record.subStatus)}>
-                Cancel
+                Hủy
               </Button>
             </Popconfirm>
           </Tooltip>

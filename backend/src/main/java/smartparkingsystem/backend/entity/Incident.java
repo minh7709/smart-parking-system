@@ -24,7 +24,7 @@ public class Incident {
     @JoinColumn(name = "session_id", nullable = false)
     private ParkingSession parkingSession;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reported_by", nullable = false)
     private User reporter;
 

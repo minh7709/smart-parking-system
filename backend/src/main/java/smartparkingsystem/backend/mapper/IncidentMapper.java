@@ -17,7 +17,7 @@ public class IncidentMapper {
                 .id(incident.getId())
                 .sessionId(incident.getParkingSession().getId())
                 .reporterName(incident.getReporter().getFullName())
-                .reporterId(incident.getReporter().getId())
+                .reporterName(incident.getReporter().getUsername())
                 .description(incident.getDescription())
                 .reportedAt(incident.getReportedAt())
                 .incidentType(incident.getIncidentType())

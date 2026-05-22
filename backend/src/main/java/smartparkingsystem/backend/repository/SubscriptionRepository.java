@@ -28,6 +28,8 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
 
     boolean existsByVehicle_LicensePlateAndStatus(String plate, SubStatus status);
 
+    List<Subscription> findAllByStatusAndStartDateBefore(SubStatus status, LocalDateTime startDate);
+
     Page<Subscription> findAllByStatus(SubStatus subStatus, Pageable pageable);
 
     Page<Subscription> findAllByStatusAndSubscriptionPricing_DurationType(SubStatus subStatus, SubType subType, Pageable pageable);

@@ -51,6 +51,9 @@ const safeNumber = (value) => (Number.isFinite(value) ? value : 0);
 const formatCurrency = (value) =>
   new Intl.NumberFormat("vi-VN").format(safeNumber(value));
 
+const formatDateTimeDisplay = (value) =>
+  value ? dayjs(value).format("DD/MM/YYYY HH:mm") : "-";
+
 const CHART_COLORS = ["#1677ff", "#52c41a", "#faad14", "#ff4d4f"];
 
 const renderCurrencyTooltip = (value) => `${formatCurrency(value)} đ`;
@@ -69,6 +72,7 @@ const AdminDashboard = () => {
   const [revenueBreakdown, setRevenueBreakdown] = useState(null);
   const [penalties, setPenalties] = useState(null);
   const [laneUtilization, setLaneUtilization] = useState([]);
+  const [invoices, setInvoices] = useState([]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -100,6 +104,7 @@ const AdminDashboard = () => {
           revenueTimelineRes,
           revenueBreakdownRes,
           penaltiesRes,
+          invoicesRes,
         ] = await Promise.all([
           axiosClient.get(API_ENDPOINTS.admin.statistics.summary, { params }),
           axiosClient.get(API_ENDPOINTS.admin.statistics.trafficTimeline, {
@@ -115,6 +120,9 @@ const AdminDashboard = () => {
           axiosClient.get(API_ENDPOINTS.admin.statistics.revenuePenalties, {
             params,
           }),
+          axiosClient.get(API_ENDPOINTS.admin.statistics.invoices, {
+            params,
+          }),
         ]);
 
         setSummary(summaryRes?.data || null);
@@ -123,6 +131,7 @@ const AdminDashboard = () => {
         setRevenueTimeline(revenueTimelineRes?.data || []);
         setRevenueBreakdown(revenueBreakdownRes?.data || null);
         setPenalties(penaltiesRes?.data || null);
+        setInvoices(invoicesRes?.data?.content || []);
       } catch (err) {
         setError(err?.message || "Không thể tải dữ liệu thống kê");
       } finally {
@@ -202,6 +211,21 @@ const AdminDashboard = () => {
     [filteredLaneUtilization]
   );
 
+  const invoiceTableData = useMemo(
+    () =>
+      invoices.map((invoice, index) => ({
+        key: `${invoice?.id || index}`,
+        id: invoice?.id,
+        invoiceType: invoice?.invoiceType,
+        totalAmount: invoice?.totalAmount,
+        paymentMethod: invoice?.paymentMethod,
+        status: invoice?.status,
+        cashierName: invoice?.cashierName,
+        paymentTime: invoice?.paymentTime,
+      })),
+    [invoices]
+  );
+
   const laneColumns = [
     { title: "CỔNG", dataIndex: "laneName", key: "laneName" },
     {
@@ -215,6 +239,52 @@ const AdminDashboard = () => {
       dataIndex: "exitCount",
       key: "exitCount",
       align: "right",
+    },
+  ];
+
+  const invoiceColumns = [
+    {
+      title: "MÃ HÓA ĐƠN",
+      dataIndex: "id",
+      key: "id",
+      render: (value) => value || "-",
+    },
+    {
+      title: "LOẠI HÓA ĐƠN",
+      dataIndex: "invoiceType",
+      key: "invoiceType",
+      render: (t) => t?.label || "-",
+    },
+    {
+      title: "THANH TOÁN",
+      dataIndex: "totalAmount",
+      key: "totalAmount",
+      align: "right",
+      render: (value) => `${formatCurrency(value)} đ`,
+    },
+    {
+      title: "PHƯƠNG THỨC",
+      dataIndex: "paymentMethod",
+      key: "paymentMethod",
+      render: (t) => t?.label || "-",
+    },
+    {
+      title: "TRẠNG THÁI",
+      dataIndex: "status",
+      key: "status",
+      render: (t) => t?.label || "-",
+    },
+    {
+      title: "THU NGÂN",
+      dataIndex: "cashierName",
+      key: "cashierName",
+      render: (value) => value || "-",
+    },
+    {
+      title: "THỜI GIAN",
+      dataIndex: "paymentTime",
+      key: "paymentTime",
+      render: (value) => formatDateTimeDisplay(value),
     },
   ];
   return (
@@ -479,6 +549,20 @@ const AdminDashboard = () => {
           </Select>
         <Spin spinning={loading}>
           <Table columns={laneColumns} dataSource={laneTableData} pagination={false} />
+        </Spin>
+      </Card>
+
+      <Card
+        title="Hóa đơn"
+        style={{ borderRadius: "12px", marginTop: 20 }}
+      >
+        <Spin spinning={loading}>
+          <Table
+            columns={invoiceColumns}
+            dataSource={invoiceTableData}
+            pagination={{ pageSize: 8 }}
+            scroll={{ x: 900 }}
+          />
         </Spin>
       </Card>
     </div>

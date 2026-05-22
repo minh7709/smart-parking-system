@@ -283,6 +283,10 @@ const PricingRuleConfig = () => {
         ),
     },
     {
+      title: "Người tạo",
+      dataIndex: "createdBy"
+    },
+    {
       title: "Kích hoạt",
       render: (_, record) => (
         <Tooltip

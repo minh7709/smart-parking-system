@@ -65,8 +65,9 @@ public class ParkingSession {
     @Column(name = "confidence_out")
     private Float confidenceOut;
 
-    @Column(name = "is_month", nullable = false)
-    private boolean month;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @Column(name = "sub_id")
+    private Subscription subscription;
 
     @Column(name = "status", nullable = false, columnDefinition = "session_status")
     @Enumerated(EnumType.STRING)

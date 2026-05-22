@@ -51,7 +51,7 @@ export const API_ENDPOINTS = {
 
 		subscriptions: {
 			base: "/v1/admin/subscriptions",
-			confirm: (id) => `/v1/admin/subscriptions/${id}/confirm`,
+			cancel: (id) => `/v1/admin/subscriptions/${id}/cancel`,
 			byId: (id) => `/v1/admin/subscriptions/${id}`,
 			byVehicleId: (vehicleId) => `/v1/admin/subscriptions/vehicle/${vehicleId}`,
 		},
@@ -64,6 +64,7 @@ export const API_ENDPOINTS = {
 			revenueTimeline: "/v1/admin/statistics/revenue/timeline",
 			revenueBreakdown: "/v1/admin/statistics/revenue/breakdown",
 			revenuePenalties: "/v1/admin/statistics/revenue/penalties",
+			invoices: "/v1/admin/statistics/invoices",
 		},
 
 		incidents: {

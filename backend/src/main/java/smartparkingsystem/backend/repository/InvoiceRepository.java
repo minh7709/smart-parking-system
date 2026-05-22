@@ -1,6 +1,8 @@
 package smartparkingsystem.backend.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import smartparkingsystem.backend.entity.Invoice;
 import smartparkingsystem.backend.entity.ParkingSession;
@@ -55,4 +57,10 @@ public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
 
     @Query("SELECT COALESCE(SUM(i.penaltyAmount), 0) FROM Invoice i WHERE i.paymentTime BETWEEN :startDate AND :endDate AND i.status = 'SUCCESS'")
     BigInteger getTotalPenalties(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
+    /**
+     * Lấy danh sách hóa đơn trong khoảng thời gian với phân trang
+     */
+    @Query("SELECT i FROM Invoice i WHERE i.paymentTime >= :startDate AND i.paymentTime < :endDate ORDER BY i.paymentTime DESC")
+    Page<Invoice> findByPaymentTimeBetween(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate, Pageable pageable);
 }

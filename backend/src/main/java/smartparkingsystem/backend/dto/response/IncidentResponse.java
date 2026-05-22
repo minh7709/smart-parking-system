@@ -17,7 +17,6 @@ public class IncidentResponse {
     private UUID id;
     private UUID sessionId;
     private String reporterName;
-    private UUID reporterId;
     private String description;
     private LocalDateTime reportedAt;
     private IncidentTypeEnum incidentType;

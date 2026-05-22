@@ -168,6 +168,11 @@ const AdminMonthTicket = () => {
 			),
 		},
 		{
+			title: "Người tạo",
+			dataIndex: "createdBy",
+			render: (createdBy) => createdBy ?? "N/A"
+		},
+		{
 			title: "Kích hoạt",
 			key: "activate",
 			render: (_, record) => (

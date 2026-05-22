@@ -22,7 +22,7 @@ public class AdminSubscriptionService {
     private final InvoiceRepository invoiceRepository;
 
     @Transactional
-    public void confirmSubscription (UUID subscriptionId, SubStatus newStatus) {
+    public void cancelSubscription (UUID subscriptionId) {
         Subscription subscription = subscriptionRepository.findById(subscriptionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy gói đăng ký"));
         if(subscription.getStatus() != SubStatus.PENDING && subscription.getStatus() != SubStatus.ACTIVE){
@@ -31,15 +31,8 @@ public class AdminSubscriptionService {
         Invoice invoice = invoiceRepository.findBySubscriptionId(subscriptionId)
                 .orElseThrow(() -> new ResourceNotFoundException("không tìm thấy hóa đơn của gói đăng ký này"));
 
-        if(newStatus == SubStatus.ACTIVE){
-            subscription.setStatus(SubStatus.ACTIVE);
-            invoice.setStatus(PaymentStatus.SUCCESS);
-        } else if(newStatus == SubStatus.CANCELLED){
-            subscription.setStatus(SubStatus.CANCELLED);
-            invoice.setStatus(PaymentStatus.FAILED);
-        } else {
-            throw new ValidationException("Trạng thái gói đăng ký không hợp lệ: " + newStatus + ". Chỉ chấp nhận ACTIVE hoặc CANCELLED");
-        }
+        subscription.setStatus(SubStatus.CANCELLED);
+        invoice.setStatus(PaymentStatus.FAILED);
         subscriptionRepository.save(subscription);
         invoiceRepository.save(invoice);
     }

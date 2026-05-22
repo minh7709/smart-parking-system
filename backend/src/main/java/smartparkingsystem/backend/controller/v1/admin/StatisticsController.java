@@ -2,6 +2,7 @@ package smartparkingsystem.backend.controller.v1.admin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -12,6 +13,7 @@ import smartparkingsystem.backend.dto.response.ApiResponse;
 import smartparkingsystem.backend.dto.response.admin.*;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 import smartparkingsystem.backend.service.admin.StatisticsService;
+import smartparkingsystem.backend.service.guard.InvoiceService;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -26,6 +28,7 @@ import java.util.List;
 public class StatisticsController {
 
     private final StatisticsService statisticsService;
+    private final InvoiceService invoiceService;
 
     @GetMapping("/summary")
     public ResponseEntity<ApiResponse<SummaryResponse>> getSummary(
@@ -76,4 +79,13 @@ public class StatisticsController {
         PenaltyFeesResponse penalties = statisticsService.getTotalPenalties(startDate, endDate);
         return ResponseEntity.ok(ApiResponse.success(penalties, "Lấy phí phạt thành công"));
     }
+
+    @GetMapping("/invoices")
+    public ResponseEntity<ApiResponse<Page<InvoiceResponse>>> getInvoices(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        Page<InvoiceResponse> invoices = invoiceService.getInvoices(startDate, endDate);
+        return ResponseEntity.ok(ApiResponse.success(invoices, "Lấy hóa đơn thành công"));
+    }
+
 }

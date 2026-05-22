@@ -165,7 +165,7 @@ export const AppLayout = () => {
                 onClick={handleMenuClick}
                 style={{ background: "transparent", borderRight: 0, color: "#ffffff" }}
                 items={[
-                  { key: "1", icon: <StarOutlined />, label: "Vé tháng" },
+                  { key: "1", icon: <StarOutlined />, label: "Gói đăng ký" },
                   { key: "3", icon: <CarOutlined />, label: "Phương tiện" },
                   { key: "2", icon: <VideoCameraOutlined />, label: "Camera" },
                 ]}
@@ -189,7 +189,7 @@ export const AppLayout = () => {
         <Layout style={{ marginLeft: 230, background: "transparent", minHeight: "100vh" }}>
           {/* TOPBAR */}
           <Header style={styles.header}>
-            <h2 style={{ color: "#1d4ed8", margin: 0 }}>{selectedKey === "1" ? "Vé tháng" : selectedKey === "3" ? "Phương tiện" : "Camera"}</h2>
+            <h2 style={{ color: "#1d4ed8", margin: 0 }}>{selectedKey === "1" ? "Gói đăng ký" : selectedKey === "3" ? "Phương tiện" : "Camera"}</h2>
             <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
               <Dropdown menu={{ items: menuItems }} trigger={["click"]}>
                 <div style={styles.userInfo}>
