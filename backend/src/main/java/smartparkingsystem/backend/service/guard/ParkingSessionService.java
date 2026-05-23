@@ -144,13 +144,14 @@ public class ParkingSessionService {
                             invoice.setStatus(PaymentStatus.SUCCESS);
                             invoice.setPaymentTime(request.getTimeOut());
                             invoice.setPaymentMethod(request.getPaymentMethod());
+                            invoice.setCashier(userService.getCurrentUser());
                             invoiceRepository.save(invoice);
                         });
             }
         }
 
         parkingSessionMapper.updateEntityForCheckOut(session, lane, request.getImageOutUrl(), request.getConfidenceOut(), session.getFinalPlate(), SessionStatus.COMPLETED, request.getTimeOut());
-        Invoice invoice = invoiceService.createInvoiceForParkingSession(session, request.getParkingAmount(), request.getPenaltyAmount(), request.getPaymentMethod(), userService.getCurrentUser(), PaymentStatus.SUCCESS);
+        Invoice invoice = invoiceService.createInvoiceForParkingSession(session, request.getParkingAmount(), request.getPenaltyAmount(), request.getPaymentMethod(), userService.getCurrentUser(), PaymentStatus.SUCCESS, request.getTimeOut());
         invoiceRepository.save(invoice);
         parkingSessionRepository.save(session);
     }
@@ -312,7 +313,7 @@ public class ParkingSessionService {
         session.setStatus(SessionStatus.COMPLETED);
         parkingSessionRepository.save(session);
 
-        invoiceService.createInvoiceForParkingSession(session, calculateFee(session), BigInteger.ZERO, null, null, PaymentStatus.PENDING);
+        invoiceService.createInvoiceForParkingSession(session, calculateFee(session), BigInteger.ZERO, null, null, PaymentStatus.PENDING, LocalDateTime.now());
 
         if (newStatus == SubStatus.ACTIVE) {
             invoice.setStatus(PaymentStatus.SUCCESS);

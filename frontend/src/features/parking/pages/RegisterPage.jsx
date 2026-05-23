@@ -177,8 +177,8 @@ const RegisterPage = () => {
       subType: typeof record.subType === "object" ? record.subType?.value : record.subType,
       subStatus: typeof record.subStatus === "object" ? record.subStatus?.value : record.subStatus,
       price: record.price,
-      startDate: record.startDate ? dayjs(record.startDate).format("YYYY-MM-DD HH:mm:ss") : null,
-      endDate: record.endDate ? dayjs(record.endDate).format("YYYY-MM-DD HH:mm:ss") : null,
+      startDate: record.startDate ? dayjs(record.startDate) : null,
+      endDate: record.endDate ? dayjs(record.endDate) : null,
     });
     setIsModalVisible(true);
   };
@@ -190,7 +190,7 @@ const RegisterPage = () => {
         const payload = {
           licensePlate: allValues.licensePlate,
           subType: allValues.subType,
-          startDate: allValues.startDate ? allValues.startDate.format("YYYY-MM-DD HH:mm:ss") : null,
+          startDate: allValues.startDate ? allValues.startDate.format("YYYY-MM-DDTHH:mm:ss") : null,
           paymentMethod: allValues.paymentMethod ?? "CASH",
         };
 
@@ -243,11 +243,11 @@ const RegisterPage = () => {
     },
     {
       title: "Ngày bắt đầu", dataIndex: "startDate", key: "startDate",
-      render: (d) => (d ? dayjs(d).format("YYYY-MM-DD HH:mm:ss") : ""),
+      render: (d) => (d ? dayjs(d).format("YYYY-MM-DDTHH:mm:ss") : ""),
     },
     {
       title: "Ngày kết thúc", dataIndex: "endDate", key: "endDate",
-      render: (d) => (d ? dayjs(d).format("YYYY-MM-DD HH:mm:ss") : ""),
+      render: (d) => (d ? dayjs(d).format("YYYY-MM-DDTHH:mm:ss") : ""),
     },
     {
       title: "Trạng thái", dataIndex: "subStatus", key: "subStatus",
@@ -371,14 +371,14 @@ const RegisterPage = () => {
             </Col>
             <Col span={12}>
               <Form.Item label="Ngày bắt đầu" name="startDate" rules={[{ required: true, message: "Vui lòng chọn ngày bắt đầu!" }]}>
-                <DatePicker style={{ width: "100%" }} format="YYYY-MM-DD HH:mm:ss" showTime />
+                <DatePicker style={{ width: "100%" }} format="YYYY-MM-DDTHH:mm:ss" showTime />
               </Form.Item>
             </Col>
           </Row>
 
           <Row gutter={16}>
             {/* Tạo mới: chọn PTTT */}
-            {!editingId && (
+            {(
               <Col span={12}>
                 <Form.Item label="Phương thức thanh toán" name="paymentMethod" rules={[{ required: true, message: "Vui lòng chọn thanh toán!" }]} initialValue={paymentMethods[0]?.value ?? paymentMethods[0]}>
                   <Select placeholder="Chọn PTTT">

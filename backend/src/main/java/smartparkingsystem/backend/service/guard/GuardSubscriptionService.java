@@ -5,7 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import smartparkingsystem.backend.dto.request.SubscriptionRequest;
@@ -100,10 +99,10 @@ public class GuardSubscriptionService {
             subscription.setStartDate(request.getStartDate());
             subscription.setEndDate(calculateEndDate(request.getStartDate(), request.getSubType()));
         }
-
+        Invoice invoice = invoiceRepository.findBySubscriptionId(subscriptionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy hóa đơn cho đăng ký với ID: " + subscriptionId));
+        invoiceService.updateInvoicePaymentMethod(invoice, request.getPaymentMethod());
         if(!request.getSubType().equals(subscription.getSubscriptionPricing().getDurationType())){
-            Invoice invoice = invoiceRepository.findBySubscriptionId(subscriptionId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy hóa đơn cho đăng ký với ID: " + subscriptionId));
 
             SubscriptionPricing subscriptionPricing  = subscriptionPricingService.
                     getSubscriptionPricingByDurationTypeAndVehicleType(request.getSubType(), vehicle.getVehicleType());

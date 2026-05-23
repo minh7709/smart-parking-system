@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class InvoiceService {
     private final InvoiceRepository invoiceRepository;
-    public Invoice createInvoiceForParkingSession(ParkingSession session, BigInteger parkingAmount, BigInteger penaltyAmount, PaymentMethod paymentMethod, User user, PaymentStatus paymentStatus) {
+    public Invoice createInvoiceForParkingSession(ParkingSession session, BigInteger parkingAmount, BigInteger penaltyAmount, PaymentMethod paymentMethod, User user, PaymentStatus paymentStatus, LocalDateTime paymentTime) {
 
         Invoice invoice = new Invoice();
         invoice.setInvoiceType(InvoiceTypeEnum.PARKING_FEE); // Phân loại
@@ -32,10 +32,16 @@ public class InvoiceService {
         invoice.setParkingAmount(parkingAmount);
         invoice.setPenaltyAmount(penaltyAmount);
         invoice.setSubscriptionAmount(BigInteger.ZERO);
-        invoice.setTotalAmount(parkingAmount);
+        invoice.setTotalAmount(parkingAmount.add(penaltyAmount));
         invoice.setStatus(paymentStatus);
         invoice.setCashier(user);
+        invoice.setPaymentTime(paymentTime);
         return invoiceRepository.save(invoice);
+    }
+
+    public void updateInvoicePaymentMethod(Invoice invoice, PaymentMethod paymentMethod) {
+        invoice.setPaymentMethod(paymentMethod);
+        invoiceRepository.save(invoice);
     }
 
     public Invoice updateInvoiceStatus(Invoice invoice, PaymentStatus status) {
