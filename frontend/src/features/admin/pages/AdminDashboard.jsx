@@ -429,7 +429,7 @@ const AdminDashboard = () => {
             style={{ borderRadius: "12px", height: "100%" }}
           >
             <p style={{ color: "#888" }}>
-              Tổng lượt vào ra theo vé lượt và vé tháng
+              Tổng lượt vào ra theo vé lượt và vé vip
             </p>
             <Spin spinning={loading}>
               <div style={{ width: "100%", height: 280 }}>
@@ -439,7 +439,7 @@ const AdminDashboard = () => {
                     <YAxis />
                     <Tooltip />
                     <Line type="monotone" dataKey="regularCount" name="Vé lượt" stroke={CHART_COLORS[1]} strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="monthlyCount" name="Vé tháng" stroke={CHART_COLORS[2]} strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="monthlyCount" name="Vé vip" stroke={CHART_COLORS[2]} strokeWidth={2} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -516,7 +516,7 @@ const AdminDashboard = () => {
               </Col>
               <Col span={12} style={{ marginTop: 16 }}>
                 <Statistic
-                  title="Vé tháng"
+                  title="Vé vip"
                   value={safeNumber(revenueBreakdown?.subscriptionRevenue)}
                   suffix="đ"
                   formatter={(value) => formatCurrency(value)}
