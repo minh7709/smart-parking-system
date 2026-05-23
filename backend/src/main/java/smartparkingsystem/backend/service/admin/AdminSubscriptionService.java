@@ -35,13 +35,8 @@ public class AdminSubscriptionService {
         if(subscription.getStatus() != SubStatus.PENDING && subscription.getStatus() != SubStatus.ACTIVE){
             throw new InvalidStateException("Không thể thay đổi trạng thái của gói đăng ký có trạng thái hiện tại: " + subscription.getStatus());
         }
-        Invoice invoice = invoiceRepository.findBySubscriptionId(subscriptionId)
-                .orElseThrow(() -> new ResourceNotFoundException("không tìm thấy hóa đơn của gói đăng ký này"));
-
         subscription.setStatus(SubStatus.CANCELLED);
-        invoice.setStatus(PaymentStatus.FAILED);
         subscriptionRepository.save(subscription);
-        invoiceRepository.save(invoice);
         parkingSessionService.handleSubscriptionChanging(subscription, SubStatus.CANCELLED);
     }
 

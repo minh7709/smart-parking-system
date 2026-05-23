@@ -177,8 +177,8 @@ const RegisterPage = () => {
       subType: typeof record.subType === "object" ? record.subType?.value : record.subType,
       subStatus: typeof record.subStatus === "object" ? record.subStatus?.value : record.subStatus,
       price: record.price,
-      startDate: record.startDate ? dayjs(record.startDate) : null,
-      endDate: record.endDate ? dayjs(record.endDate) : null,
+      startDate: record.startDate ? dayjs(record.startDate).format("YYYY-MM-DD HH:mm:ss") : null,
+      endDate: record.endDate ? dayjs(record.endDate).format("YYYY-MM-DD HH:mm:ss") : null,
     });
     setIsModalVisible(true);
   };
@@ -190,7 +190,7 @@ const RegisterPage = () => {
         const payload = {
           licensePlate: allValues.licensePlate,
           subType: allValues.subType,
-          startDate: allValues.startDate ? allValues.startDate.format("YYYY-MM-DDTHH:mm:ss") : null,
+          startDate: allValues.startDate ? allValues.startDate.format("YYYY-MM-DD HH:mm:ss") : null,
           paymentMethod: allValues.paymentMethod ?? "CASH",
         };
 
@@ -243,11 +243,11 @@ const RegisterPage = () => {
     },
     {
       title: "Ngày bắt đầu", dataIndex: "startDate", key: "startDate",
-      render: (d) => (d ? dayjs(d).format("DD/MM/YYYY") : ""),
+      render: (d) => (d ? dayjs(d).format("YYYY-MM-DD HH:mm:ss") : ""),
     },
     {
       title: "Ngày kết thúc", dataIndex: "endDate", key: "endDate",
-      render: (d) => (d ? dayjs(d).format("DD/MM/YYYY") : ""),
+      render: (d) => (d ? dayjs(d).format("YYYY-MM-DD HH:mm:ss") : ""),
     },
     {
       title: "Trạng thái", dataIndex: "subStatus", key: "subStatus",

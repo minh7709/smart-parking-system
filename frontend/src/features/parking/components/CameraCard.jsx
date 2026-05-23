@@ -19,6 +19,7 @@ const CameraCard = ({
   laneId,
   videoSrc,
   onSuccess,
+  onLostCardSuccess,
   vehicleType = "MOTOR",
 }) => {
   const notify = useNotification();
@@ -299,6 +300,12 @@ const CameraCard = ({
           : await reportIncidentApi(formData, buildAuthRequestOptions());
       if (response?.success) {
         notify.success("Báo sự cố thành công");
+        if (incidentCode === "LOST_CARD" && onLostCardSuccess) {
+          onLostCardSuccess({
+            ...response.data,
+            exitLaneId: normalizedLaneId,
+          });
+        }
         setIncidentModalOpen(false);
         setIncidentDescription("");
         setIncidentType("");

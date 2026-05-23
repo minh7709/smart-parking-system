@@ -49,7 +49,7 @@ public class ParkingSessionController {
     @DeleteMapping("/cancel-check-in")
     public ResponseEntity<ApiResponse<Void>> cancelCheckIn(@Valid @RequestBody String imageUrl) {
         parkingSessionService.cancelCheckIn(imageUrl);
-        return ResponseEntity.ok(ApiResponse.success(null, "Hủy check-in thành công"));
+        return ResponseEntity.ok(ApiResponse.success(null, "Hủy check-in/out thành công"));
     }
 
     @PostMapping(value = "/check-out", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

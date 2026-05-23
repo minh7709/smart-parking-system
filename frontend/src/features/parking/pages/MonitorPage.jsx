@@ -70,6 +70,13 @@ const MonitorPage = () => {
             vehicleType="MOTO"
             videoSrc={cameraOutUrl}
             onSuccess={(data) => {
+              console.log("Check-out detected data:", data);
+              setPendingConfirmOut({
+                ...data,
+                exitLaneId: checkOutLane?.id,
+              });
+            }}
+            onLostCardSuccess={(data) => {
               setPendingConfirmOut({
                 ...data,
                 exitLaneId: checkOutLane?.id,

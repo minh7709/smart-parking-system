@@ -132,6 +132,15 @@ const AdminDashboard = () => {
         setRevenueBreakdown(revenueBreakdownRes?.data || null);
         setPenalties(penaltiesRes?.data || null);
         setInvoices(invoicesRes?.data?.content || []);
+        console.log("Fetched statistics:", {
+          summary: summaryRes?.data,
+          trafficTimeline: trafficTimelineRes?.data,
+          trafficLanes: trafficLanesRes?.data,
+          revenueTimeline: revenueTimelineRes?.data,
+          revenueBreakdown: revenueBreakdownRes?.data,
+          penalties: penaltiesRes?.data,
+          invoices: invoicesRes?.data?.content,
+        });
       } catch (err) {
         setError(err?.message || "Không thể tải dữ liệu thống kê");
       } finally {

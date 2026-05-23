@@ -142,6 +142,8 @@ public class ParkingSessionService {
                 invoiceRepository.findByParkingSession(parkingSession)
                         .ifPresent(invoice -> {
                             invoice.setStatus(PaymentStatus.SUCCESS);
+                            invoice.setPaymentTime(request.getTimeOut());
+                            invoice.setPaymentMethod(request.getPaymentMethod());
                             invoiceRepository.save(invoice);
                         });
             }
@@ -299,7 +301,9 @@ public class ParkingSessionService {
     public void handleSubscriptionChanging(Subscription sub, SubStatus newStatus) {
         ParkingSession session = parkingSessionRepository.findFirstByStatusAndFinalPlateIgnoreCase(SessionStatus.PARKED, sub.getVehicle().getLicensePlate())
                 .orElse(null);
-        if (session == null) {
+        Invoice invoice = invoiceRepository.findBySubscriptionId(sub.getId())
+                .orElse(null);
+        if (session == null || invoice == null) {
             return;
         }
         if(session.getRootId() == null){
@@ -309,9 +313,16 @@ public class ParkingSessionService {
         parkingSessionRepository.save(session);
 
         invoiceService.createInvoiceForParkingSession(session, calculateFee(session), BigInteger.ZERO, null, null, PaymentStatus.PENDING);
+
         if (newStatus == SubStatus.ACTIVE) {
+            invoice.setStatus(PaymentStatus.SUCCESS);
+            invoiceRepository.save(invoice);
             createParkingSessionBySystem(session, true);
         } else {
+            if(newStatus == SubStatus.CANCELLED){
+                invoice.setStatus(PaymentStatus.SUCCESS);
+                invoiceRepository.save(invoice);
+            }
             createParkingSessionBySystem(session, false);
         }
 

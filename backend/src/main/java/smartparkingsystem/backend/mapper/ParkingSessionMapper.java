@@ -76,7 +76,7 @@ public class ParkingSessionMapper {
                 .plateOutOcr(plateOutOcr)
                 .finalPlate(session.getFinalPlate())
                 .timeIn(session.getTimeIn())
-                .timeOut(session.getTimeOut())
+                .timeOut(LocalDateTime.now())
                 .status(session.getStatus())
                 .parkingAmount(parkingAmount)
                 .penaltyAmount(penaltyAmount)

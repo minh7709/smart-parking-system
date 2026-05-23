@@ -129,9 +129,10 @@ const ConfirmCheckOutModal = ({ visible, initialData, onClose, onConfirmed }) =>
         imageOutUrl: initialData.imageOutUrl || null,
         confidenceOut: initialData.confidenceOut || null,
         exitLaneId: initialData.exitLaneId || null,
-        timeOut: initialData.timeOut || null,
+        timeOut: initialData.timeOut,
         relatedSessionIds: initialData.relatedSessionIds || []
       };
+      console.log("Confirming check-out with payload:", payload);
       const resp = await confirmCheckOutApi(payload);
       if (resp?.success) {
         notify.success("Check-out thành công");
@@ -151,13 +152,31 @@ const ConfirmCheckOutModal = ({ visible, initialData, onClose, onConfirmed }) =>
 
   const plateValue = initialData?.finalPlate || initialData?.plateOutOcr || "N/A";
 
+  const handleCancelClick = async () => {
+      if (onClose) {
+        onClose();
+      }
+      setLoading(true);
+      try {
+        if (initialData?.imageInUrl) {
+          await cancelCheckInApi(initialData.imageOutUrl);
+        }
+        notify.info('Bạn đã hủy xác nhận check-out', 'Đã hủy');
+      } catch (err) {
+        console.error(err);
+        notify.apiError(err, 'Lỗi khi hủy check-out');
+      } finally {
+        setLoading(false);
+      }
+    };
+
   return (
     <Modal
       title="Xác nhận check-out"
       open={visible}
       onCancel={onClose}
       footer={[
-        <Button key="cancel" onClick={onClose} disabled={loading}>
+        <Button key="cancel" onClick={handleCancelClick} disabled={loading}>
           Hủy
         </Button>,
         <Button key="confirm" type="primary" loading={loading} onClick={handleConfirm}>
