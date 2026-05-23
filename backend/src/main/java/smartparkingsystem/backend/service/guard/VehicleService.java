@@ -9,13 +9,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import smartparkingsystem.backend.dto.request.VehicleRequest;
 import smartparkingsystem.backend.dto.response.VehicleReponse;
+import smartparkingsystem.backend.entity.Subscription;
 import smartparkingsystem.backend.entity.Vehicle;
+import smartparkingsystem.backend.entity.type.SubStatus;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 import smartparkingsystem.backend.exception.DuplicateResourceException;
+import smartparkingsystem.backend.exception.InvalidStateException;
 import smartparkingsystem.backend.exception.ResourceNotFoundException;
 import smartparkingsystem.backend.mapper.VehicleMapper;
+import smartparkingsystem.backend.repository.SubscriptionRepository;
 import smartparkingsystem.backend.repository.VehicleRepository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -23,6 +28,7 @@ import java.util.UUID;
 public class VehicleService {
     private final VehicleRepository vehicleRepository;
     private final VehicleMapper vehicleMapper;
+    private final SubscriptionRepository subscriptionRepository;
     @Transactional
     public VehicleReponse createVehicle(VehicleRequest request){
         if(vehicleRepository.existsByLicensePlateAndDeletedFalse(request.getLicensePlate())){
@@ -46,6 +52,10 @@ public class VehicleService {
     public VehicleReponse deleteVehicle(UUID id){
         Vehicle vehicle = vehicleRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phương tiện để cập nhật"));
+        subscriptionRepository.findByVehicleIdAndStatusIn(id, List.of(SubStatus.PENDING, SubStatus.ACTIVE))
+                .ifPresent(sub -> {
+                    throw new InvalidStateException("Không thể xóa phương tiện đang có đăng ký hoạt động hoặc chờ duyệt");
+                });
         vehicle.setDeleted(true);
         vehicleRepository.save(vehicle);
         return vehicleMapper.toResponse(vehicle);

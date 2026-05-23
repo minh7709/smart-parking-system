@@ -130,16 +130,6 @@ public class GuardSubscriptionService {
         invoiceService.updateInvoiceStatus(invoice, PaymentStatus.FAILED);
     }
 
-    @Scheduled(cron = "0 0 0 * * ?")
-    @Transactional
-    public void processExpiredSubscriptions() {
-        LocalDateTime now = LocalDateTime.now();
-        List<Subscription> expiredSubscriptions = subscriptionRepository.findAllByStatusAndEndDateBefore(SubStatus.ACTIVE, now);
-        for (Subscription subscription : expiredSubscriptions) {
-            subscription.setStatus(SubStatus.EXPIRED);
-        }
-        subscriptionRepository.saveAll(expiredSubscriptions);
-    }
     public SubscriptionResponse getSubscriptionById(UUID subscriptionId){
         Subscription subscription = subscriptionRepository.findById(subscriptionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đăng ký với ID: " + subscriptionId));

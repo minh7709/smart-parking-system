@@ -22,6 +22,7 @@ import smartparkingsystem.backend.dto.response.parkingSession.ParkingSessionResp
 import smartparkingsystem.backend.entity.type.SessionStatus;
 import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 import smartparkingsystem.backend.service.guard.ParkingSessionService;
+import smartparkingsystem.backend.service.thirdService.FileService;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,6 +36,7 @@ import java.util.UUID;
 @PreAuthorize("hasAnyRole('ADMIN', 'GUARD')")
 public class ParkingSessionController {
     private final ParkingSessionService parkingSessionService;
+    private final FileService fileService;
 
     @PostMapping(value = "/check-in", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<CheckInResponse>> checkIn(
@@ -139,7 +141,7 @@ public class ParkingSessionController {
         @GetMapping("/image/by-url")
     public ResponseEntity<Resource> getParkingSessionImageByUrl(
             @RequestParam String imageUrl) {
-        Path imagePath = parkingSessionService.getImagePath(imageUrl);
+        Path imagePath = fileService.getImagePath(imageUrl);
         String contentType = "application/octet-stream";
         try {
             String detectedType = Files.probeContentType(imagePath);

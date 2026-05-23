@@ -123,6 +123,7 @@ CREATE TABLE pricing_rule (
 -- 6. Bảng parking_session (Lượt gửi xe)
 CREATE TABLE parking_session (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    root_id UUID, 
     entry_lane_id UUID REFERENCES lane(id),
     exit_lane_id UUID REFERENCES lane(id),
     time_in TIMESTAMP NOT NULL,

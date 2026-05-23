@@ -27,7 +27,7 @@ public interface ParkingSessionRepository extends JpaRepository<ParkingSession, 
     Optional<ParkingSession> findFirstByIdAndStatus(UUID id, SessionStatus status);
 
     Page<ParkingSession> findByStatus(SessionStatus status, Pageable pageable);
-
+    List<ParkingSession> findAllByRootId(UUID rootId);
     List<ParkingSession> findAllByFinalPlateIgnoreCase(String finalPlate);
 
     List<ParkingSession> findAllByFinalPlateIgnoreCaseAndStatus(String finalPlate, SessionStatus status);

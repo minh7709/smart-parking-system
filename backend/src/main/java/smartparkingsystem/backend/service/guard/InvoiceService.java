@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import smartparkingsystem.backend.dto.request.parkingSessionRequest.ConfirmCheckOutRequest;
 import smartparkingsystem.backend.dto.response.admin.InvoiceResponse;
 import smartparkingsystem.backend.entity.Invoice;
 import smartparkingsystem.backend.entity.ParkingSession;
@@ -22,20 +21,19 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class InvoiceService {
     private final InvoiceRepository invoiceRepository;
-    public Invoice createInvoiceForParkingSession(ParkingSession session, ConfirmCheckOutRequest request, User user) {
+    public Invoice createInvoiceForParkingSession(ParkingSession session, BigInteger parkingAmount, BigInteger penaltyAmount, PaymentMethod paymentMethod, User user, PaymentStatus paymentStatus) {
 
         Invoice invoice = new Invoice();
         invoice.setInvoiceType(InvoiceTypeEnum.PARKING_FEE); // Phân loại
         invoice.setParkingSession(session);
         invoice.setSubscription(null); // Đảm bảo sub_id = null
 
-        invoice.setPaymentMethod(request.getPaymentMethod());
-        invoice.setParkingAmount(request.getParkingAmount());
-        invoice.setPenaltyAmount(BigInteger.ZERO);
-        invoice.setSubscriptionAmount(BigInteger.ZERO); // Bắt buộc = 0 theo CHECK Constraint
-        invoice.setTotalAmount(request.getParkingAmount());
-
-        invoice.setStatus(PaymentStatus.SUCCESS);
+        invoice.setPaymentMethod(paymentMethod);
+        invoice.setParkingAmount(parkingAmount);
+        invoice.setPenaltyAmount(penaltyAmount);
+        invoice.setSubscriptionAmount(BigInteger.ZERO);
+        invoice.setTotalAmount(parkingAmount);
+        invoice.setStatus(paymentStatus);
         invoice.setCashier(user);
         return invoiceRepository.save(invoice);
     }
@@ -50,22 +48,6 @@ public class InvoiceService {
         invoice.setParkingAmount(parkingAmount);
         invoice.setPenaltyAmount(penaltyAmount);
         invoice.setTotalAmount(parkingAmount.add(penaltyAmount));
-        return invoiceRepository.save(invoice);
-    }
-
-    public Invoice createInvoiceForPenalty(ParkingSession session, BigInteger penaltyAmount, BigInteger parkingAmount, User user) {
-        Invoice invoice = new Invoice();
-        invoice.setInvoiceType(InvoiceTypeEnum.PARKING_FEE);
-        invoice.setParkingSession(session);
-        invoice.setSubscription(null);
-
-        invoice.setParkingAmount(parkingAmount);
-        invoice.setPenaltyAmount(penaltyAmount);
-        invoice.setSubscriptionAmount(BigInteger.ZERO); // Bắt buộc = 0
-        invoice.setTotalAmount(parkingAmount.add(penaltyAmount));
-
-        invoice.setStatus(PaymentStatus.SUCCESS);
-        invoice.setCashier(user);
         return invoiceRepository.save(invoice);
     }
 

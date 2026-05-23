@@ -9,6 +9,7 @@ import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -24,6 +25,10 @@ public class CheckOutResponse {
     private SessionStatus status; //
     private BigInteger parkingAmount; //
     private BigInteger penaltyAmount; //
+    private String imageOutUrl; //
+    private Float confidenceOut; //
+    private UUID exitLaneId; //
     private boolean isMonth; //
     private VehicleTypeEnum vehicleType; //
+    private List<UUID> relatedSessionIds;
 }

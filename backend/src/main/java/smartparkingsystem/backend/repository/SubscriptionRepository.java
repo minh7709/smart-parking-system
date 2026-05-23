@@ -23,12 +23,13 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
     Optional<Subscription> findByVehicle_LicensePlateIgnoreCaseAndStatus(String licensePlate, SubStatus status);
 
     List<Subscription> findAllByStatusAndEndDateBefore(SubStatus status, LocalDateTime endDate);
-
+    List<Subscription> findAllByStatusAndStartDateBefore(SubStatus status, LocalDateTime startDate);
     long countByStatus(SubStatus active);
 
-    boolean existsByVehicle_LicensePlateAndStatus(String plate, SubStatus status);
 
-    List<Subscription> findAllByStatusAndStartDateBefore(SubStatus status, LocalDateTime startDate);
+    Optional<Subscription> findByVehicleIdAndStatusIn(UUID vehicleId, Collection<SubStatus> statuses);
+
+    boolean existsByVehicle_LicensePlateAndStatus(String plate, SubStatus status);
 
     Page<Subscription> findAllByStatus(SubStatus subStatus, Pageable pageable);
 

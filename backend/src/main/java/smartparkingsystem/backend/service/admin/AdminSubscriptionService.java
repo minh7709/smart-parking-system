@@ -1,9 +1,11 @@
 package smartparkingsystem.backend.service.admin;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import smartparkingsystem.backend.entity.Invoice;
+import smartparkingsystem.backend.entity.ParkingSession;
 import smartparkingsystem.backend.entity.Subscription;
 import smartparkingsystem.backend.entity.type.PaymentStatus;
 import smartparkingsystem.backend.entity.type.SubStatus;
@@ -11,8 +13,12 @@ import smartparkingsystem.backend.exception.InvalidStateException;
 import smartparkingsystem.backend.exception.ResourceNotFoundException;
 import smartparkingsystem.backend.exception.ValidationException;
 import smartparkingsystem.backend.repository.InvoiceRepository;
+import smartparkingsystem.backend.repository.ParkingSessionRepository;
 import smartparkingsystem.backend.repository.SubscriptionRepository;
+import smartparkingsystem.backend.service.guard.ParkingSessionService;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -20,6 +26,7 @@ import java.util.UUID;
 public class AdminSubscriptionService {
     private final SubscriptionRepository subscriptionRepository;
     private final InvoiceRepository invoiceRepository;
+    private final ParkingSessionService parkingSessionService;
 
     @Transactional
     public void cancelSubscription (UUID subscriptionId) {
@@ -35,6 +42,29 @@ public class AdminSubscriptionService {
         invoice.setStatus(PaymentStatus.FAILED);
         subscriptionRepository.save(subscription);
         invoiceRepository.save(invoice);
+    }
+
+    @Scheduled(cron = "0 * * * * ?")
+    @Transactional
+    public void processExpiredSubscriptions() {
+        LocalDateTime now = LocalDateTime.now();
+        List<Subscription> expiredSubscriptions = subscriptionRepository.findAllByStatusAndEndDateBefore(SubStatus.ACTIVE, now);
+        for (Subscription subscription : expiredSubscriptions) {
+            subscription.setStatus(SubStatus.EXPIRED);
+            parkingSessionService.handleSubscriptionChanging(subscription, SubStatus.EXPIRED);
+        }
+        subscriptionRepository.saveAll(expiredSubscriptions);
+    }
+    @Scheduled(cron = "0 * * * * ?")
+    @Transactional
+    public void processPendingSubscriptions() {
+        LocalDateTime now = LocalDateTime.now();
+        List<Subscription> pendingSubscriptions = subscriptionRepository.findAllByStatusAndStartDateBefore(SubStatus.PENDING, now);
+        for (Subscription subscription : pendingSubscriptions) {
+            subscription.setStatus(SubStatus.ACTIVE);
+            parkingSessionService.handleSubscriptionChanging(subscription, SubStatus.ACTIVE);
+        }
+        subscriptionRepository.saveAll(pendingSubscriptions);
     }
 
 }

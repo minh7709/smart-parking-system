@@ -16,10 +16,12 @@ import smartparkingsystem.backend.entity.type.VehicleTypeEnum;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 @Component
 public class ParkingSessionMapper {
-    public ParkingSession toEntityForConfirmCheckIn(ConfirmCheckInRequest request, Lane entryLane, @Nullable Subscription subscription) {
+    public ParkingSession toEntityForConfirmCheckIn(ConfirmCheckInRequest request, Lane entryLane, boolean isMonth) {
         if (request == null || entryLane == null) {
             return null;
         }
@@ -30,17 +32,18 @@ public class ParkingSessionMapper {
                 .plateInOcr(request.getPlateInOcr())
                 .status(SessionStatus.PARKED)
                 .confidenceIn(request.getConfidenceIn())
-                .subscription(subscription)
+                .month(isMonth)
                 .timeIn(request.getTimeIn())
                 .imageInUrl(request.getImageInUrl())
                 .build();
     }
 
-    public void updateEntityForCheckOut(ParkingSession session, Lane lane, String imageUrl, float confidenceOrRandom, String plateOutOcr) {
+    public void updateEntityForCheckOut(ParkingSession session, Lane lane, String imageUrl, float confidenceOrRandom, String plateOutOcr, SessionStatus status, LocalDateTime timeOut) {
         if (session == null) {
             return;
         }
-        session.setTimeOut(LocalDateTime.now());
+        session.setStatus(status);
+        session.setTimeOut(timeOut);
         session.setExitLane(lane);
         session.setPlateOutOcr(plateOutOcr);
         session.setConfidenceOut(confidenceOrRandom);
@@ -62,7 +65,8 @@ public class ParkingSessionMapper {
 
     }
 
-    public CheckOutResponse toCheckOutResponse(ParkingSession session, BigInteger parkingAmount, BigInteger penaltyAmount) {
+    public CheckOutResponse toCheckOutResponse(ParkingSession session, BigInteger parkingAmount, BigInteger penaltyAmount,
+                                               List<UUID> relatedSessionIds, Lane lane, String imageUrl, Float confidenceOut, String plateOutOcr) {
         if (session == null) {
             return null;
         }
@@ -76,8 +80,12 @@ public class ParkingSessionMapper {
                 .status(session.getStatus())
                 .parkingAmount(parkingAmount)
                 .penaltyAmount(penaltyAmount)
-                .isMonth(session.getSubscription() != null)
+                .isMonth(session.isMonth())
                 .vehicleType(session.getVehicleType())
+                .relatedSessionIds(relatedSessionIds)
+                .exitLaneId(session.getExitLane().getId())
+                .imageOutUrl(imageUrl)
+                .confidenceOut(confidenceOut)
                 .build();
     }
     public ParkingSessionResponse toParkingSessionResponse(ParkingSession session) {
@@ -98,7 +106,7 @@ public class ParkingSessionMapper {
                 .imageInUrl(session.getImageInUrl())
                 .imageOutUrl(session.getImageOutUrl())
                 .status(session.getStatus())
-                .isMonth(session.getSubscription() != null)
+                .isMonth(session.isMonth())
                 .build();
     }
 }

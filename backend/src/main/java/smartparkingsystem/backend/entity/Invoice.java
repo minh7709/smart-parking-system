@@ -57,7 +57,6 @@ public class Invoice {
     private User cashier;
 
     @Column(name = "payment_time")
-    @UpdateTimestamp
     private LocalDateTime paymentTime;
 
     @Column(name = "payment_method")

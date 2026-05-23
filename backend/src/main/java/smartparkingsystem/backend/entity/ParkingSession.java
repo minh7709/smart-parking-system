@@ -24,6 +24,9 @@ public class ParkingSession {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "root_id")
+    private UUID rootId;
+
     @ManyToOne
     @JoinColumn(name = "entry_lane_id", nullable = false)
     private Lane entryLane;
@@ -65,12 +68,12 @@ public class ParkingSession {
     @Column(name = "confidence_out")
     private Float confidenceOut;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @Column(name = "sub_id")
-    private Subscription subscription;
+    @Column(name = "is_month", nullable = false)
+    private boolean month;
 
     @Column(name = "status", nullable = false, columnDefinition = "session_status")
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private SessionStatus status;
 }
+
