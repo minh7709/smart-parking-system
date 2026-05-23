@@ -83,7 +83,7 @@ public class ParkingSessionMapper {
                 .isMonth(session.isMonth())
                 .vehicleType(session.getVehicleType())
                 .relatedSessionIds(relatedSessionIds)
-                .exitLaneId(session.getExitLane().getId())
+                .exitLaneId(lane.getId())
                 .imageOutUrl(imageUrl)
                 .confidenceOut(confidenceOut)
                 .build();

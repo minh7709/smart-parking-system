@@ -222,7 +222,7 @@ public class DataInitializer implements CommandLineRunner {
                         .plateInOcr("50AA37979")
                         .finalPlate("50AA37979")
                         .confidenceIn(0.95f)
-                        .month(true)
+                        .month(false)
                         .status(SessionStatus.PARKED)
                         .imageInUrl("check-in/7a05a4a6-7b81-4d7e-8af6-36dd72d20d81.jpg")
                         .build();

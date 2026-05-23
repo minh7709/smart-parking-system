@@ -308,7 +308,7 @@ public class ParkingSessionService {
         session.setStatus(SessionStatus.COMPLETED);
         parkingSessionRepository.save(session);
 
-        invoiceService.createInvoiceForParkingSession(session, calculateFee(session), BigInteger.ZERO, null, userService.getCurrentUser(), PaymentStatus.PENDING);
+        invoiceService.createInvoiceForParkingSession(session, calculateFee(session), BigInteger.ZERO, null, null, PaymentStatus.PENDING);
         if (newStatus == SubStatus.ACTIVE) {
             createParkingSessionBySystem(session, true);
         } else {

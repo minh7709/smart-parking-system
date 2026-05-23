@@ -3,6 +3,7 @@ import { Modal, Image, Row, Col, Button, Select } from "antd";
 import {
   confirmCheckOutApi,
   getParkingSessionImageApi,
+  getParkingSessionImageByUrlApi,
 } from "../api/parkingSession.api";
 import { getSystemTypes } from "../../../utils/storage";
 import { useNotification } from "../../../hooks/useNotification";
@@ -76,7 +77,7 @@ const ConfirmCheckOutModal = ({ visible, initialData, onClose, onConfirmed }) =>
 
       setImageLoading(true);
       try {
-        const blob = await getParkingSessionImageApi(initialData.id, "out");
+        const blob = await getParkingSessionImageByUrlApi(initialData.imageOutUrl);
         objectUrl = URL.createObjectURL(blob);
         if (isActive) {
           setImageSrc(objectUrl);
@@ -124,7 +125,12 @@ const ConfirmCheckOutModal = ({ visible, initialData, onClose, onConfirmed }) =>
         parkingSessionId: initialData.id,
         paymentMethod,
         parkingAmount: initialData.parkingAmount || 0,
-        penaltyAmount: initialData.penaltyAmount || 0
+        penaltyAmount: initialData.penaltyAmount || 0,
+        imageOutUrl: initialData.imageOutUrl || null,
+        confidenceOut: initialData.confidenceOut || null,
+        exitLaneId: initialData.exitLaneId || null,
+        timeOut: initialData.timeOut || null,
+        relatedSessionIds: initialData.relatedSessionIds || []
       };
       const resp = await confirmCheckOutApi(payload);
       if (resp?.success) {

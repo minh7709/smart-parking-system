@@ -42,6 +42,7 @@ public class AdminSubscriptionService {
         invoice.setStatus(PaymentStatus.FAILED);
         subscriptionRepository.save(subscription);
         invoiceRepository.save(invoice);
+        parkingSessionService.handleSubscriptionChanging(subscription, SubStatus.CANCELLED);
     }
 
     @Scheduled(cron = "0 * * * * ?")

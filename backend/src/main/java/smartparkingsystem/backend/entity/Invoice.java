@@ -53,7 +53,7 @@ public class Invoice {
     private BigInteger totalAmount;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cashier_id", nullable = false)
+    @JoinColumn(name = "cashier_id")
     private User cashier;
 
     @Column(name = "payment_time")
