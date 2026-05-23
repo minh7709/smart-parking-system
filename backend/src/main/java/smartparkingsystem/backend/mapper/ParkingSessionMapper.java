@@ -73,7 +73,7 @@ public class ParkingSessionMapper {
 
         return CheckOutResponse.builder()
                 .id(session.getId())
-                .plateOutOcr(session.getPlateOutOcr())
+                .plateOutOcr(plateOutOcr)
                 .finalPlate(session.getFinalPlate())
                 .timeIn(session.getTimeIn())
                 .timeOut(session.getTimeOut())
