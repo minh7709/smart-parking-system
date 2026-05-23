@@ -17,11 +17,13 @@ import org.springframework.data.repository.query.Param;
 
 import smartparkingsystem.backend.dto.response.admin.RevenueBreakdownResponse;
 import smartparkingsystem.backend.dto.response.admin.RevenueTimelineResponse;
+import smartparkingsystem.backend.entity.Subscription;
 
 @Repository
 public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
     Optional<Invoice> findByParkingSession(ParkingSession parkingSession);
     Optional<Invoice> findBySubscriptionId(UUID subscriptionId);
+    Optional<Invoice> findBySubscription(Subscription subscription);
 
     @Query("SELECT COALESCE(SUM(i.totalAmount), 0) FROM Invoice i WHERE i.paymentTime BETWEEN :startDate AND :endDate AND i.status = 'SUCCESS'")
     BigInteger findTotalRevenueBetween(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
