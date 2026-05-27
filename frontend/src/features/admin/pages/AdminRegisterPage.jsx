@@ -123,11 +123,11 @@ const AdminRegisterPage = () => {
     },
     {
       title: "Ngày bắt đầu", dataIndex: "startDate", key: "startDate",
-      render: (d) => (d ? dayjs(d).format("DD/MM/YYYY HH:mm:ss") : ""),
+      render: (d) => (d ? dayjs(d).format("YYYY-MM-DDTHH:mm:ss") : ""),
     },
     {
       title: "Ngày kết thúc", dataIndex: "endDate", key: "endDate",
-      render: (d) => (d ? dayjs(d).format("DD/MM/YYYY HH:mm:ss") : ""),
+      render: (d) => (d ? dayjs(d).format("YYYY-MM-DDTHH:mm:ss") : ""),
     },
     {
       title: "Trạng thái", dataIndex: "subStatus", key: "subStatus",
