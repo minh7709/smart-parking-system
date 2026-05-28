@@ -506,18 +506,10 @@ const AdminDashboard = () => {
                   </ResponsiveContainer>
                 </div>
               </Col>
-              <Col span={12} style={{ marginTop: 16 }}>
+              <Col span={24} style={{ marginTop: 16, borderTop: "1px solid #f0f0f0", paddingTop: 16 }}>
                 <Statistic
-                  title="Vé lượt"
-                  value={safeNumber(revenueBreakdown?.sessionRevenue)}
-                  suffix="đ"
-                  formatter={(value) => formatCurrency(value)}
-                />
-              </Col>
-              <Col span={12} style={{ marginTop: 16 }}>
-                <Statistic
-                  title="Vé vip"
-                  value={safeNumber(revenueBreakdown?.subscriptionRevenue)}
+                  title="Tổng phí phạt"
+                  value={safeNumber(penalties?.totalPenalty)}
                   suffix="đ"
                   formatter={(value) => formatCurrency(value)}
                 />
@@ -526,36 +518,73 @@ const AdminDashboard = () => {
           </Card>
         </Col>
         <Col span={12}>
-          <Card title="Phí phạt" style={{ borderRadius: "12px" }}>
-            <Statistic
-              title="Tổng phí phạt"
-              value={safeNumber(penalties?.totalPenalty)}
-              suffix="đ"
-              formatter={(value) => formatCurrency(value)}
-            />
+          <Card title="Phiên gửi xe & Gói đăng ký" style={{ borderRadius: "12px" }}>
+            <Row gutter={12}>
+              <Col span={12}>
+                <Statistic
+                  title="Phiên gửi xe"
+                  value={safeNumber(revenueBreakdown?.sessionRevenue)}
+                  suffix="đ"
+                  formatter={(value) => formatCurrency(value)}
+                />
+              </Col>
+              <Col span={12}>
+                <Statistic
+                  title="Gói đăng ký"
+                  value={safeNumber(revenueBreakdown?.subscriptionRevenue)}
+                  suffix="đ"
+                  formatter={(value) => formatCurrency(value)}
+                />
+              </Col>
+              <Col span={24} style={{ marginTop: 16 }}>
+                <div style={{ width: "100%", height: 220 }}>
+                  <ResponsiveContainer>
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: "Vé lượt", value: safeNumber(revenueBreakdown?.sessionRevenue) },
+                          { name: "Vé vip", value: safeNumber(revenueBreakdown?.subscriptionRevenue) },
+                        ]}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        label
+                      >
+                        <Cell fill={CHART_COLORS[2]} />
+                        <Cell fill={CHART_COLORS[3]} />
+                      </Pie>
+                      <Tooltip formatter={(value) => renderCurrencyTooltip(value)} />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </Col>
+            </Row>
           </Card>
         </Col>
       </Row>
-      
+
       {/* BẢNG GIAO DỊCH GẦN ĐÂY */}
       <Card
         title="Lưu lượng theo cổng"
         style={{ borderRadius: "12px" }}
       >
         <span style={{ fontWeight: "bold", color: "#888", marginLeft: 10, marginRight: 20 }}>
-            CỔNG KIỂM SOÁT
-          </span>
+          CỔNG KIỂM SOÁT
+        </span>
         <Select
-            value={selectedLane}
-            style={{ width: 160 }}
-            onChange={setSelectedLane}
-          >
-            {laneOptions.map((laneName) => (
-              <Select.Option key={laneName} value={laneName}>
-                {laneName === "all" ? "Tất cả cổng" : laneName}
-              </Select.Option>
-            ))}
-          </Select>
+          value={selectedLane}
+          style={{ width: 160 }}
+          onChange={setSelectedLane}
+        >
+          {laneOptions.map((laneName) => (
+            <Select.Option key={laneName} value={laneName}>
+              {laneName === "all" ? "Tất cả cổng" : laneName}
+            </Select.Option>
+          ))}
+        </Select>
         <Spin spinning={loading}>
           <Table columns={laneColumns} dataSource={laneTableData} pagination={false} />
         </Spin>

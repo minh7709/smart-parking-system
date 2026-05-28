@@ -79,15 +79,6 @@ const ProfilePage = () => {
         <Descriptions.Item
           label={
             <>
-              <MailOutlined /> Email
-            </>
-          }
-        >
-          {user.email || "Chưa cập nhật"}
-        </Descriptions.Item>
-        <Descriptions.Item
-          label={
-            <>
               <PhoneOutlined /> Số điện thoại
             </>
           }

@@ -28,4 +28,4 @@ ai-service/.env
 # Logs and temporary files
 logs/
 temp/
-uploads/
+uploads/images/

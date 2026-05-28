@@ -50,7 +50,7 @@ const AdminRegisterPage = () => {
         setData(pageData?.content ?? []);
         setTotal(pageData?.totalElements ?? 0);
       } catch (err) {
-        if (!silent) notify.apiError(err, "Lỗi khi tải danh sách vé tháng");
+        if (!silent) notify.apiError(err, "Lỗi khi tải danh sách gói đăng ký");
       } finally {
         if (!silent) setLoading(false);
       }
@@ -91,10 +91,10 @@ const AdminRegisterPage = () => {
   const handleCancel = async (id) => {
     try {
       await cancelAdminSubscriptionApi(id);
-      notify.success("Hủy vé tháng thành công!");
+      notify.success("Hủy gói thành công!");
       fetchSubscriptions(currentPage, pageSize);
     } catch (error) {
-      notify.apiError(error, "Lỗi khi hủy vé tháng");
+      notify.apiError(error, "Lỗi khi hủy gói");
     }
   };
 

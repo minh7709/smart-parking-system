@@ -260,10 +260,8 @@ public class DataInitializer implements CommandLineRunner {
                         .imageInUrl("check-in/f4db84fd-8be9-4e47-9cf0-8ef89d699924.jpg")
                         .build();
                 parkingSessionRepository.save(session3);
-
-                // Seed sample Invoices
-                if (invoiceRepository.count() == 0) {
-                    Invoice invoice1 = Invoice.builder()
+                
+                Invoice invoice1 = Invoice.builder()
                             .invoiceType(InvoiceTypeEnum.PARKING_FEE)
                             .parkingSession(session2)
                             .parkingAmount(BigInteger.valueOf(5000))
@@ -273,8 +271,7 @@ public class DataInitializer implements CommandLineRunner {
                             .paymentTime(LocalDateTime.now().minusHours(1))
                             .status(PaymentStatus.SUCCESS)
                             .build();
-                    invoiceRepository.save(invoice1);
-                }
+                invoiceRepository.save(invoice1);
 
                 // Seed sample Incident
                 if (incidentRepository.count() == 0) {

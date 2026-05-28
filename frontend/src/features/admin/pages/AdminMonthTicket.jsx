@@ -59,7 +59,7 @@ const AdminMonthTicket = () => {
 			setData(pageData?.content ?? []);
 			setTotal(pageData?.totalElements ?? 0);
 		} catch (error) {
-			notify.apiError(error, "Không thể tải danh sách giá vé tháng");
+			notify.apiError(error, "Không thể tải danh sách cấu hình giá");
 			setData([]);
 		} finally {
 			setLoading(false);
@@ -103,25 +103,25 @@ const AdminMonthTicket = () => {
 			const values = await form.validateFields();
 			if (isEditMode) {
 				await adminApi.updateSubscriptionPricing(editingId, values);
-				notify.success("Cập nhật giá vé tháng thành công");
+				notify.success("Cập nhật cấu hình giá gói đăng ký thành công");
 			} else {
 				await adminApi.createSubscriptionPricing(values);
-				notify.success("Tạo giá vé tháng thành công");
+				notify.success("Tạo cấu hình giá gói đăng ký thành công");
 			}
 			setIsModalVisible(false);
 			fetchSubscriptionPricings(currentPage, pageSize);
 		} catch (error) {
-			notify.apiError(error, "Không thể lưu giá vé tháng");
+			notify.apiError(error, "Không thể lưu cấu hình giá gói đăng ký");
 		}
 	};
 
 	const handleDelete = async (id) => {
 		try {
 			await adminApi.deleteSubscriptionPricing(id);
-			notify.success("Đã xóa giá vé tháng");
+			notify.success("Đã xóa cấu hình giá gói đăng ký");
 			fetchSubscriptionPricings(currentPage, pageSize);
 		} catch (error) {
-			notify.apiError(error, "Không thể xóa giá vé tháng");
+			notify.apiError(error, "Không thể xóa cấu hình giá gói đăng ký");
 		}
 	};
 
@@ -132,10 +132,10 @@ const AdminMonthTicket = () => {
 				return;
 			}
 			await adminApi.activateSubscriptionPricing(record.id);
-			notify.success("Đã kích hoạt giá vé tháng");
+			notify.success("Đã kích hoạt cấu hình giá gói đăng ký");
 			fetchSubscriptionPricings(currentPage, pageSize);
 		} catch (error) {
-			notify.apiError(error, "Không thể kích hoạt giá vé tháng");
+			notify.apiError(error, "Không thể kích hoạt cấu hình giá gói đăng ký");
 		}
 	};
 
@@ -191,7 +191,7 @@ const AdminMonthTicket = () => {
 				<Space size="middle">
 					<Button type="text" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
 					<Popconfirm
-						title="Bạn chắc chắn muốn xóa giá vé tháng này?"
+						title="Bạn chắc chắn muốn xóa cấu hình giá gói đăng ký này?"
 						onConfirm={() => handleDelete(record.id)}
 						okText="Xóa"
 						cancelText="Hủy"
@@ -208,7 +208,7 @@ const AdminMonthTicket = () => {
 		<div style={{ padding: "0 24px", maxWidth: 1200, margin: "0 auto" }}>
 			<Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
 				<Col>
-					<h2 style={{ margin: 0 }}>Cấu hình vé tháng</h2>
+					<h2 style={{ margin: 0 }}>Cấu hình giá gói đăng ký</h2>
 				</Col>
 				<Col>
 					<Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
@@ -253,7 +253,7 @@ const AdminMonthTicket = () => {
 			</Card>
 
 			<Modal
-				title={isEditMode ? "Cập nhật giá vé tháng" : "Thêm giá vé tháng"}
+				title={isEditMode ? "Cập nhật cấu hình giá gói đăng ký" : "Thêm cấu hình giá gói đăng ký"}
 				open={isModalVisible}
 				onOk={handleSave}
 				onCancel={() => setIsModalVisible(false)}
