@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Smart Parking System Banner](https://images.unsplash.com/photo-1506521788723-8681c63d596e?auto=format&fit=crop&w=1200&h=400&q=80)
+![Smart Parking System Banner](./frontend/src/assets/images/bg1.jpg)
 
 **Giải pháp quản lý bãi đỗ xe toàn diện thế hệ mới với nhận diện biển số bằng AI (ANPR), giám sát làn xe Real-time, cấu hình phí linh hoạt và báo cáo trực quan**
 
