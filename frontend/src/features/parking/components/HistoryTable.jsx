@@ -124,7 +124,7 @@ const HistoryTable = () => {
     setImageOutSrc(null);
   };
 
-  useEffect(() => {
+ useEffect(() => {
     if (!imageModalOpen || !selectedSession?.id) return;
 
     let isActive = true;
@@ -137,24 +137,32 @@ const HistoryTable = () => {
       setImageOutSrc(null);
 
       try {
-        if (selectedSession.status?.value === "PARKED") {
-          const inBlob = await getParkingSessionImageApi(selectedSession.id, "in");
-          inUrl = URL.createObjectURL(inBlob);
-          if (isActive) setImageInSrc(inUrl);
-        } else {
-          const [inBlob, outBlob] = await Promise.all([
-            getParkingSessionImageApi(selectedSession.id, "in"),
-            getParkingSessionImageApi(selectedSession.id, "out"),
-          ]);
-          inUrl = URL.createObjectURL(inBlob);
-          outUrl = URL.createObjectURL(outBlob);
-          if (isActive) {
+        // Gọi đồng thời cả 2 API, không quan tâm status là PARKED hay gì khác
+        const [inResult, outResult] = await Promise.allSettled([
+          getParkingSessionImageApi(selectedSession.id, "in"),
+          getParkingSessionImageApi(selectedSession.id, "out"),
+        ]);
+
+        if (isActive) {
+          // 1. Nếu tải thành công ảnh VÀO thì hiển thị
+          if (inResult.status === "fulfilled") {
+            inUrl = URL.createObjectURL(inResult.value);
             setImageInSrc(inUrl);
+          } else {
+            console.warn("Không tải được ảnh vào:", inResult.reason);
+          }
+
+          // 2. Nếu tải thành công ảnh RA thì hiển thị
+          if (outResult.status === "fulfilled") {
+            outUrl = URL.createObjectURL(outResult.value);
             setImageOutSrc(outUrl);
+          } else {
+            console.warn("Không tải được ảnh ra:", outResult.reason);
           }
         }
       } catch (error) {
-        notify.apiError(error, "Lỗi tải ảnh");
+        // Catch ở đây chỉ bắt lỗi block code, API error đã được allSettled xử lý
+        notify.apiError(error, "Lỗi hệ thống khi tải ảnh");
       } finally {
         if (isActive) setImageLoading(false);
       }
@@ -162,13 +170,16 @@ const HistoryTable = () => {
 
     fetchImages();
 
+    // Cleanup function: Hủy URL cũ để tránh rò rỉ bộ nhớ khi unmount hoặc chạy lại effect
     return () => {
       isActive = false;
       if (inUrl) URL.revokeObjectURL(inUrl);
       if (outUrl) URL.revokeObjectURL(outUrl);
     };
+    
+  // Đã xóa selectedSession?.status?.value khỏi dependency array
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [imageModalOpen, selectedSession?.id, selectedSession?.status?.value]);
+  }, [imageModalOpen, selectedSession?.id]);
 
   const columns = [
     { title: "Thời gian", dataIndex: "time" },
